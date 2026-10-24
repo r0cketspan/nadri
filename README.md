@@ -16,7 +16,7 @@
 
 ## 아키텍처
 
-![관광 챗봇 아키텍처](../docs/images/architecture.png)
+![관광 챗봇 아키텍처](./docs/images/architecture.png)
 
 실선은 내부 호출, 점선은 외부 서비스 호출입니다. 외부에 여는 포트는 Nginx의 443 하나뿐이고, 나머지 서비스는 Docker Compose 내부 네트워크에만 둡니다.
 
