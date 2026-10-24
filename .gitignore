@@ -1,0 +1,10 @@
+# 비밀값 — 키 이름만 담은 .env.example은 커밋한다
+.env
+.env.*
+!.env.example
+
+# Claude Code 개인 설정
+.claude/settings.local.json
+
+# IDE
+.idea/
