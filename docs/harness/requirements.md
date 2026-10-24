@@ -1,7 +1,7 @@
 # 요구사항 — 한국관광공사 TourAPI 기반 관광 챗봇
 
 > 하네스 Phase 1 산출물 — **초안 (미해결 질문 답변 대기, G1 미승인)**. 작성일 2026-10-24.
-> 출처 표기: [CL]=CLAUDE.md, [TS]=TECH_STACK.md, [AN]=docs/analysis/00-initial-analysis.md
+> 출처 표기: [CL]=CLAUDE.md, [TS]=TECH_STACK.md, [AN]=docs/analysis/00-initial-analysis.md, [DS]=docs/analysis/01-data-sources.md
 > `미확인` = 문서로 확인 못 한 항목. `→Qn` = 미해결 질문과 연결된 항목.
 
 ## 1. 배경 / 목표
@@ -89,6 +89,7 @@
 | FR-46 | lint: 깨진 링크, 기준일이 지난 페이지, 모순을 찾아 리포트를 만든다 | [TS §3.3] |
 | FR-47 | 위키 디렉터리는 별도 git(데이터 볼륨)으로 커밋해 변경 이력을 남긴다 | [TS §3.3, §12] |
 | FR-48 | 수집 대상 지역·콘텐츠 타입 범위는 →Q5 | [TS §3.1] |
+| FR-49 | **확장 데이터 원천 (MVP 이후)**: 비짓제주 관광정보 API, 서울 실시간 도시데이터, 문화데이터광장, 한국관광공사 관광빅데이터. MVP에서는 연동하지 않고 아키텍처에 확장 지점으로만 표시. 원천별 출처·기준일·라이선스 표기 유지. 도입 순서는 Q5 지역 결정과 연계 | [DS] 2026-10-25 사용자 결정 |
 
 ### 3.5 툴 (tour-tools MCP)
 | ID | 요구사항 | 출처 |
@@ -190,7 +191,7 @@
 | DuckDB/SQLite, Apache AGE, Neo4j, Qdrant | [AN §10], [TS §5.1] |
 | 런타임에 범용 공공데이터 MCP(opendata-mcp 등)로 임의 API 호출 | [AN §3.4] |
 | WSL 오디오(WSLg Pulse) 마이크 처리, Hermes CLI 음성 모드(로컬 테스트용만) | [AN §3.6, §9] |
-| TourAPI 외 다른 공공데이터셋 | [AN §11] |
+| MVP 단계의 TourAPI 외 데이터 원천 연동 (확장 후보는 FR-49) · 크롤링 기본 미사용 | [AN §11], [DS §3] |
 
 ## 6. 미해결 질문 (G1 전 답변 필요)
 

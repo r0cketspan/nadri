@@ -12,6 +12,8 @@
 
 ## 결정 로그 (게이트에서 바뀐 것)
 - 2026-10-25 (G1 전): 리버스 프록시 Caddy → **Nginx** (사용자 결정). requirements D-15·NFR-08, TECH_STACK, README, 구성도 반영. Nginx는 인증서 자동 발급이 없어 인증서 준비 방식은 Q4에서 함께 결정
+- 2026-10-25 (G1 전): 프로젝트 이름 **nadri** 확정 (README·구성도 제목). 로컬 디렉터리는 `myAgent` 유지
+- 2026-10-25 (G1 전): 확장 데이터 원천 4곳(비짓제주, 서울 실시간 도시데이터, 문화데이터광장, 관광빅데이터)을 MVP 이후 항목으로 추가 — requirements FR-49, `docs/analysis/01-data-sources.md`, 구성도 반영. 크롤링은 기본 미사용
 
 ## 기타 산출물
 - `README.md`, `.gitignore`, `docs/images/architecture.svg`·`architecture.png` (구성도, SVG가 원본)
