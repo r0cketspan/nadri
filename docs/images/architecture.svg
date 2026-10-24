@@ -1,223 +1,194 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1810" height="1225" viewBox="0 0 1810 1225">
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1240" viewBox="0 0 1800 1240">
 <defs>
-  <filter id="sh" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.12"/></filter>
-  <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#475569"/></marker>
-  <marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#9ca3af"/></marker>
+  <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.3" fill="#e2e8f0"/></pattern>
+  <filter id="sh" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#0f172a" flood-opacity="0.10"/></filter>
+  <filter id="sh2" x="-10%" y="-30%" width="120%" height="170%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.07"/></filter>
+  <marker id="m2563eb" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="m7c3aed" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#7c3aed"/></marker><marker id="m059669" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="m64748b" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#64748b"/></marker>
   <style>
     text { font-family: 'Noto Sans CJK KR', 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; text-rendering: geometricPrecision; }
-    .t { font-size: 23px; font-weight: 700; text-anchor: middle; }
-    .s { font-size: 19px; fill: #374151; text-anchor: middle; }
-    .xs { font-size: 16px; font-weight: 400; }
-    .xp { font-size: 17px; font-weight: 600; fill: #334155; text-anchor: middle; }
-    .p { font-size: 16px; font-weight: 700; text-anchor: middle; }
-    .g { font-size: 19px; font-weight: 700; }
-    .l { font-size: 17px; font-weight: 700; fill: #1e293b; text-anchor: middle; }
-    .lg { font-size: 18px; fill: #475569; }
-    .e { fill: none; stroke: #475569; stroke-width: 2.2; }
-    .ex { stroke: #9ca3af; stroke-dasharray: 7 5; }
-    .h1 { font-size: 38px; font-weight: 800; fill: #0f172a; }
+    .nt { font-size: 21px; font-weight: 700; fill: #0f172a; text-anchor: middle; }
+    .ns { font-size: 16.5px; fill: #64748b; text-anchor: middle; }
+    .ft { font-size: 18px; font-weight: 700; }
+    .fs { font-size: 15px; font-weight: 500; }
+    .el { font-size: 16px; font-weight: 700; paint-order: stroke; stroke: #ffffff; stroke-width: 6px; stroke-linejoin: round; }
+    .pl { font-size: 15px; font-weight: 700; text-anchor: middle; }
+    .ch { font-size: 14px; font-weight: 600; fill: #5b21b6; text-anchor: middle; }
+    .xp { font-size: 16.5px; font-weight: 600; fill: #334155; text-anchor: middle; }
+    .lg { font-size: 17px; fill: #475569; }
+    .h1 { font-size: 44px; font-weight: 800; fill: #0f172a; letter-spacing: -1px; }
     .h2 { font-size: 19px; fill: #64748b; }
-    .h1s { font-size: 26px; font-weight: 700; fill: #475569; }
   </style>
 </defs>
 <rect width="100%" height="100%" fill="#ffffff"/>
-<text x="40" y="70" class="h1">nadri <tspan class="h1s">관광 챗봇 아키텍처</tspan></text>
-<text x="40" y="104" class="h2">한국관광공사 TourAPI 기반 · 웹/모바일 브라우저</text>
-<rect x="240" y="210" width="1530" height="790" rx="22" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="8 6"/>
-<svg x="262" y="958" width="28" height="28" viewBox="0 0 24 24"><g fill="#2496ED"><path d="M13.983 11.078h2.119a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.119a.185.185 0 00-.185.185v1.888c0 .102.083.185.185.185m-2.954-5.43h2.118a.186.186 0 00.186-.186V3.574a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m0 2.716h2.118a.187.187 0 00.186-.186V6.29a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.887c0 .102.082.185.185.186m-2.93 0h2.12a.186.186 0 00.184-.186V6.29a.185.185 0 00-.185-.185H8.1a.185.185 0 00-.185.185v1.887c0 .102.083.185.185.186m-2.964 0h2.119a.186.186 0 00.185-.186V6.29a.185.185 0 00-.185-.185H5.136a.186.186 0 00-.186.185v1.887c0 .102.084.185.186.186m5.893 2.715h2.118a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m-2.93 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.083.185.185.185m-2.964 0h2.119a.185.185 0 00.185-.185V9.006a.185.185 0 00-.184-.186h-2.12a.186.186 0 00-.186.186v1.887c0 .102.084.185.186.185m-2.92 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.082.185.185.185M23.763 9.89c-.065-.051-.672-.51-1.954-.51-.338.001-.676.03-1.01.087-.248-1.7-1.653-2.53-1.716-2.566l-.344-.199-.226.327c-.284.438-.49.922-.612 1.43-.23.97-.09 1.882.403 2.661-.595.332-1.55.413-1.744.42H.751a.751.751 0 00-.75.748 11.376 11.376 0 00.692 4.062c.545 1.428 1.355 2.48 2.41 3.124 1.18.723 3.1 1.137 5.275 1.137.983.003 1.963-.086 2.93-.266a12.248 12.248 0 003.823-1.389c.98-.567 1.86-1.288 2.61-2.136 1.252-1.418 1.998-2.997 2.553-4.4h.221c1.372 0 2.215-.549 2.68-1.009.309-.293.55-.65.707-1.046l.098-.288Z"/></g></svg>
-<text x="298" y="979" class="g" fill="#64748b">Docker Compose 내부 네트워크</text>
-<rect x="490" y="280" width="240" height="480" rx="18" fill="#eff6ff" fill-opacity="0.55" stroke="#2563eb" stroke-opacity="0.45" stroke-width="1.5"/>
-<text x="506" y="308" class="g" fill="#2563eb">애플리케이션</text>
-<rect x="820" y="280" width="250" height="480" rx="18" fill="#f5f3ff" fill-opacity="0.55" stroke="#7c3aed" stroke-opacity="0.45" stroke-width="1.5"/>
-<text x="836" y="308" class="g" fill="#7c3aed">에이전트</text>
-<rect x="1160" y="280" width="580" height="480" rx="18" fill="#ecfdf5" fill-opacity="0.55" stroke="#059669" stroke-opacity="0.45" stroke-width="1.5"/>
-<text x="1176" y="308" class="g" fill="#059669">데이터</text>
-<text x="1484" y="308" class="g" fill="#0f766e">데이터 볼륨</text>
-<path d="M190 520 H262" class="e" marker-end="url(#ah)"/>
-<path d="M420 500 C455 500 455 405 502 405" class="e" marker-end="url(#ah)"/>
-<path d="M420 540 C455 540 455 640 502 640" class="e" marker-end="url(#ah)"/>
-<path d="M710 385 H832" class="e" marker-end="url(#ah)"/>
-<path d="M570 320 V193" class="e ex" marker-end="url(#ah2)"/>
-<path d="M660 320 V255 H900 V193" class="e ex" marker-end="url(#ah2)"/>
-<path d="M1000 320 V240 H1290 V193" class="e ex" marker-end="url(#ah2)"/>
-<path d="M945 450 V522" class="e" marker-end="url(#ah)"/>
-<path d="M1050 580 C1110 580 1110 390 1172 390" class="e" marker-end="url(#ah)"/>
-<path d="M1050 670 H1172" class="e" marker-end="url(#ah)"/>
-<path d="M1285 460 V522" class="e" marker-end="url(#ah)"/>
-<path d="M1484 390 H1398" class="e" marker-end="url(#ah)"/>
-<path d="M710 460 H775 V795 H1230 V738" class="e" marker-end="url(#ah)"/>
-<path d="M920 730 V787 A8 8 0 0 1 920 803 V1032" class="e ex" marker-end="url(#ah2)"/>
-<path d="M1350 920 H1010 V1032" class="e ex" marker-end="url(#ah2)"/>
-<path d="M1480 970 V1032" class="e ex" marker-end="url(#ah2)"/>
-<path d="M1390 830 V738" class="e" marker-end="url(#ah)"/>
-<path d="M1545 830 V718" class="e" marker-end="url(#ah)"/>
-<path d="M1610 900 H1755 V405 H1722" class="e" marker-end="url(#ah)"/>
-<rect x="40" y="450" width="150" height="140" rx="14" fill="#fffbeb" stroke="#d97706" stroke-width="2" filter="url(#sh)"/>
-<path d="M42 464 A12 12 0 0 1 54 452 H176 A12 12 0 0 1 188 464 V458 H42 Z" fill="#d97706"/>
-<svg x="96.0" y="474.5" width="38" height="38" viewBox="0 0 24 24"><g fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+<rect width="100%" height="100%" fill="url(#dots)"/>
+<text x="40" y="76" class="h1">nadri</text>
+<text x="40" y="110" class="h2">관광 챗봇 아키텍처</text>
+<text x="40" y="136" class="h2">한국관광공사 TourAPI 기반</text>
+<rect x="240" y="230" width="1530" height="790" rx="18" fill="#475569" fill-opacity="0.0" stroke="#475569" stroke-opacity="0.4" stroke-width="1.6" stroke-dasharray="7 5"/>
+<svg x="254" y="242" width="24" height="24" viewBox="0 0 24 24"><g fill="#2496ED"><path d="M13.983 11.078h2.119a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.119a.185.185 0 00-.185.185v1.888c0 .102.083.185.185.185m-2.954-5.43h2.118a.186.186 0 00.186-.186V3.574a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m0 2.716h2.118a.187.187 0 00.186-.186V6.29a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.887c0 .102.082.185.185.186m-2.93 0h2.12a.186.186 0 00.184-.186V6.29a.185.185 0 00-.185-.185H8.1a.185.185 0 00-.185.185v1.887c0 .102.083.185.185.186m-2.964 0h2.119a.186.186 0 00.185-.186V6.29a.185.185 0 00-.185-.185H5.136a.186.186 0 00-.186.185v1.887c0 .102.084.185.186.186m5.893 2.715h2.118a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m-2.93 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.083.185.185.185m-2.964 0h2.119a.185.185 0 00.185-.185V9.006a.185.185 0 00-.184-.186h-2.12a.186.186 0 00-.186.186v1.887c0 .102.084.185.186.185m-2.92 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.082.185.185.185M23.763 9.89c-.065-.051-.672-.51-1.954-.51-.338.001-.676.03-1.01.087-.248-1.7-1.653-2.53-1.716-2.566l-.344-.199-.226.327c-.284.438-.49.922-.612 1.43-.23.97-.09 1.882.403 2.661-.595.332-1.55.413-1.744.42H.751a.751.751 0 00-.75.748 11.376 11.376 0 00.692 4.062c.545 1.428 1.355 2.48 2.41 3.124 1.18.723 3.1 1.137 5.275 1.137.983.003 1.963-.086 2.93-.266a12.248 12.248 0 003.823-1.389c.98-.567 1.86-1.288 2.61-2.136 1.252-1.418 1.998-2.997 2.553-4.4h.221c1.372 0 2.215-.549 2.68-1.009.309-.293.55-.65.707-1.046l.098-.288Z"/></g></svg>
+<text x="286" y="261" class="ft" fill="#475569">Docker Compose 내부 네트워크</text>
+<rect x="480" y="290" width="240" height="500" rx="18" fill="#2563eb" fill-opacity="0.045" stroke="#2563eb" stroke-opacity="0.4" stroke-width="1.6"/>
+<text x="498" y="321" class="ft" fill="#2563eb">애플리케이션</text>
+<rect x="810" y="290" width="260" height="500" rx="18" fill="#7c3aed" fill-opacity="0.045" stroke="#7c3aed" stroke-opacity="0.4" stroke-width="1.6"/>
+<text x="828" y="321" class="ft" fill="#7c3aed">에이전트</text>
+<rect x="1160" y="290" width="590" height="500" rx="18" fill="#059669" fill-opacity="0.045" stroke="#059669" stroke-opacity="0.4" stroke-width="1.6"/>
+<text x="1178" y="321" class="ft" fill="#059669">데이터</text>
+<rect x="1475" y="322" width="255" height="450" rx="18" fill="#0f766e" fill-opacity="0.04" stroke="#0f766e" stroke-opacity="0.4" stroke-width="1.6" stroke-dasharray="7 5"/>
+<text x="1493" y="756" class="ft" fill="#0f766e">데이터 볼륨</text>
+<rect x="1150" y="1060" width="620" height="150" rx="18" fill="#f8fafc" stroke="#64748b" stroke-opacity="0.6" stroke-width="1.6" stroke-dasharray="7 5"/>
+<svg x="1166" y="1073" width="24" height="24" viewBox="0 0 24 24"><g fill="none" stroke="#64748b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
+  <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" />
+  <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" /></g></svg>
+<text x="1198" y="1092" class="ft" fill="#64748b">확장 데이터 원천 <tspan class="fs">MVP 이후</tspan></text>
+<path d="M157 512 H295" fill="none" stroke="#2563eb" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#m2563eb)"/>
+<path d="M387 498 H455 V382 H550" fill="none" stroke="#2563eb" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#m2563eb)"/>
+<path d="M387 526 H455 V602 H550" fill="none" stroke="#2563eb" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#m2563eb)"/>
+<path d="M642 382 H890" fill="none" stroke="#2563eb" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#m2563eb)"/>
+<path d="M622 340 V212" fill="none" stroke="#64748b" stroke-width="2.2" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#m64748b)"/>
+<path d="M642 360 H690 V262 H950 V212" fill="none" stroke="#64748b" stroke-width="2.2" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#m64748b)"/>
+<path d="M970 340 V282 H1310 V182" fill="none" stroke="#64748b" stroke-width="2.2" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#m64748b)"/>
+<path d="M940 482 V537" fill="none" stroke="#7c3aed" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#m7c3aed)"/>
+<path d="M982 572 H1115 V382 H1240" fill="none" stroke="#059669" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#m059669)"/>
+<path d="M982 600 H1240" fill="none" stroke="#059669" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#m059669)"/>
+<path d="M1290 482 V552" fill="none" stroke="#059669" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#m059669)"/>
+<path d="M1558 382 H1340" fill="none" stroke="#059669" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#m059669)"/>
+<path d="M642 410 H765 V805 H1200 V632 H1240" fill="none" stroke="#059669" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#m059669)"/>
+<path d="M940 768 V797 A8 8 0 0 1 940 813 V1052" fill="none" stroke="#64748b" stroke-width="2.2" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#m64748b)"/>
+<path d="M1438 882 H1000 V1052" fill="none" stroke="#64748b" stroke-width="2.2" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#m64748b)"/>
+<path d="M1460 840 V762 H1310 V728" fill="none" stroke="#059669" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#m059669)"/>
+<path d="M1502 840 V792 H1600 V712" fill="none" stroke="#059669" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#m059669)"/>
+<path d="M1522 882 H1760 V382 H1650" fill="none" stroke="#059669" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#m059669)"/>
+<path d="M1480 1004 V1052" fill="none" stroke="#64748b" stroke-width="2.2" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#m64748b)"/>
+<rect x="73" y="470" width="84" height="84" rx="20" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#sh)"/>
+<svg x="90" y="487" width="50" height="50" viewBox="0 0 24 24"><g fill="none" stroke="#ea580c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
   <circle cx="12" cy="7" r="4" /></g></svg>
-<text x="115.0" y="540.5" class="t" fill="#d97706">사용자</text>
-<text x="115.0" y="568.5" class="s">PC · 모바일</text>
-<rect x="270" y="450" width="150" height="140" rx="14" fill="#fffbeb" stroke="#d97706" stroke-width="2" filter="url(#sh)"/>
-<path d="M272 464 A12 12 0 0 1 284 452 H406 A12 12 0 0 1 418 464 V458 H272 Z" fill="#d97706"/>
-<svg x="326.0" y="474.5" width="38" height="38" viewBox="0 0 24 24"><g fill="#009639"><path d="M12 0L1.605 6v12L12 24l10.395-6V6L12 0zm6 16.59c0 .705-.646 1.29-1.529 1.29-.631 0-1.351-.255-1.801-.81l-6-7.141v6.66c0 .721-.57 1.29-1.274 1.29H7.32c-.721 0-1.29-.6-1.29-1.29V7.41c0-.705.63-1.29 1.5-1.29.646 0 1.38.255 1.83.81l5.97 7.141V7.41c0-.721.6-1.29 1.29-1.29h.075c.72 0 1.29.6 1.29 1.29v9.18H18z"/></g></svg>
-<text x="345.0" y="540.5" class="t" fill="#d97706">Nginx</text>
-<text x="345.0" y="568.5" class="s">HTTPS :443</text>
-<rect x="510" y="320" width="200" height="170" rx="14" fill="#eff6ff" stroke="#2563eb" stroke-width="2" filter="url(#sh)"/>
-<path d="M512 334 A12 12 0 0 1 524 322 H696 A12 12 0 0 1 708 334 V328 H512 Z" fill="#2563eb"/>
-<svg x="591.0" y="347.0" width="38" height="38" viewBox="0 0 24 24"><g fill="#009688"><path d="M12 .0387C5.3729.0384.0003 5.3931 0 11.9988c-.001 6.6066 5.372 11.9628 12 11.9625 6.628.0003 12.001-5.3559 12-11.9625-.0003-6.6057-5.3729-11.9604-12-11.96m-.829 5.4153h7.55l-7.5805 5.3284h5.1828L5.279 18.5436q2.9466-6.5444 5.892-13.0896"/></g></svg>
-<text x="610.0" y="413.0" class="t" fill="#2563eb">FastAPI (BFF)</text>
-<text x="610.0" y="441.0" class="s">인증 · 세션 · 이력</text>
-<text x="610.0" y="466.0" class="s">STT/TTS 중계</text>
-<rect x="510" y="570" width="200" height="140" rx="14" fill="#eff6ff" stroke="#2563eb" stroke-width="2" filter="url(#sh)"/>
-<path d="M512 584 A12 12 0 0 1 524 572 H696 A12 12 0 0 1 708 584 V578 H512 Z" fill="#2563eb"/>
-<svg x="591.0" y="594.5" width="38" height="38" viewBox="0 0 24 24"><g fill="#000000"><path d="M18.665 21.978C16.758 23.255 14.465 24 12 24 5.377 24 0 18.623 0 12S5.377 0 12 0s12 5.377 12 12c0 3.583-1.574 6.801-4.067 9.001L9.219 7.2H7.2v9.596h1.615V9.251l9.85 12.727Zm-3.332-8.533 1.6 2.061V7.2h-1.6v6.245Z"/></g></svg>
-<text x="610.0" y="660.5" class="t" fill="#2563eb">Next.js</text>
-<text x="610.0" y="688.5" class="s">채팅 UI · 녹음</text>
-<rect x="840" y="320" width="210" height="130" rx="14" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2" filter="url(#sh)"/>
-<path d="M842 334 A12 12 0 0 1 854 322 H1036 A12 12 0 0 1 1048 334 V328 H842 Z" fill="#7c3aed"/>
-<svg x="926.0" y="339.5" width="38" height="38" viewBox="0 0 24 24"><g fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8" />
+<text x="115" y="584" class="nt">사용자</text>
+<text x="115" y="607" class="ns">PC · 모바일</text>
+<rect x="303" y="470" width="84" height="84" rx="20" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#sh)"/>
+<svg x="320" y="487" width="50" height="50" viewBox="0 0 24 24"><g fill="#009639"><path d="M12 0L1.605 6v12L12 24l10.395-6V6L12 0zm6 16.59c0 .705-.646 1.29-1.529 1.29-.631 0-1.351-.255-1.801-.81l-6-7.141v6.66c0 .721-.57 1.29-1.274 1.29H7.32c-.721 0-1.29-.6-1.29-1.29V7.41c0-.705.63-1.29 1.5-1.29.646 0 1.38.255 1.83.81l5.97 7.141V7.41c0-.721.6-1.29 1.29-1.29h.075c.72 0 1.29.6 1.29 1.29v9.18H18z"/></g></svg>
+<text x="345" y="584" class="nt">Nginx</text>
+<text x="345" y="607" class="ns">HTTPS :443</text>
+<rect x="558" y="340" width="84" height="84" rx="20" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#sh)"/>
+<svg x="575" y="357" width="50" height="50" viewBox="0 0 24 24"><g fill="#009688"><path d="M12 .0387C5.3729.0384.0003 5.3931 0 11.9988c-.001 6.6066 5.372 11.9628 12 11.9625 6.628.0003 12.001-5.3559 12-11.9625-.0003-6.6057-5.3729-11.9604-12-11.96m-.829 5.4153h7.55l-7.5805 5.3284h5.1828L5.279 18.5436q2.9466-6.5444 5.892-13.0896"/></g></svg>
+<text x="600" y="454" class="nt">FastAPI</text>
+<text x="600" y="477" class="ns">BFF · 인증 · 세션</text>
+<rect x="558" y="560" width="84" height="84" rx="20" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#sh)"/>
+<svg x="575" y="577" width="50" height="50" viewBox="0 0 24 24"><g fill="#000000"><path d="M18.665 21.978C16.758 23.255 14.465 24 12 24 5.377 24 0 18.623 0 12S5.377 0 12 0s12 5.377 12 12c0 3.583-1.574 6.801-4.067 9.001L9.219 7.2H7.2v9.596h1.615V9.251l9.85 12.727Zm-3.332-8.533 1.6 2.061V7.2h-1.6v6.245Z"/></g></svg>
+<text x="600" y="674" class="nt">Next.js</text>
+<text x="600" y="697" class="ns">채팅 UI · 녹음</text>
+<rect x="898" y="340" width="84" height="84" rx="20" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#sh)"/>
+<svg x="915" y="357" width="50" height="50" viewBox="0 0 24 24"><g fill="none" stroke="#7c3aed" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8" />
   <rect width="16" height="12" x="4" y="8" rx="2" />
   <path d="M2 14h2" />
   <path d="M20 14h2" />
   <path d="M15 13v2" />
   <path d="M9 13v2" /></g></svg>
-<text x="945.0" y="405.5" class="t" fill="#7c3aed">Hermes Agent</text>
-<text x="945.0" y="433.5" class="s">툴 선택 · 답변 생성</text>
-<rect x="840" y="530" width="210" height="200" rx="14" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2" filter="url(#sh)"/>
-<path d="M842 544 A12 12 0 0 1 854 532 H1036 A12 12 0 0 1 1048 544 V538 H842 Z" fill="#7c3aed"/>
-<svg x="926.0" y="547.0" width="38" height="38" viewBox="0 0 24 24"><g fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></g></svg>
-<text x="945.0" y="613.0" class="t" fill="#7c3aed">tour-tools (MCP)</text>
-<text x="945.0" y="641.0" class="s">rag_query</text>
-<text x="945.0" y="666.0" class="s">data_query</text>
-<text x="945.0" y="691.0" class="s">tour_live</text>
-<text x="945.0" y="716.0" class="s">get_datetime</text>
-<rect x="1180" y="320" width="210" height="140" rx="14" fill="#ecfdf5" stroke="#059669" stroke-width="2" filter="url(#sh)"/>
-<path d="M1182 334 A12 12 0 0 1 1194 322 H1376 A12 12 0 0 1 1388 334 V328 H1182 Z" fill="#059669"/>
-<svg x="1266.0" y="344.5" width="38" height="38" viewBox="0 0 24 24"><g fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.5" r="2.5" />
+<text x="940" y="454" class="nt">Hermes Agent</text>
+<text x="940" y="477" class="ns">툴 선택 · 답변 생성</text>
+<rect x="898" y="545" width="84" height="84" rx="20" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#sh)"/>
+<svg x="915" y="562" width="50" height="50" viewBox="0 0 24 24"><g fill="none" stroke="#7c3aed" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></g></svg>
+<text x="940" y="659" class="nt">tour-tools</text>
+<text x="940" y="682" class="ns">MCP 서버</text>
+<rect x="828" y="698" width="110" height="25" rx="6" fill="#f5f3ff" stroke="#ddd6fe"/>
+<text x="883" y="715.5" class="ch">rag_query</text>
+<rect x="942" y="698" width="110" height="25" rx="6" fill="#f5f3ff" stroke="#ddd6fe"/>
+<text x="997" y="715.5" class="ch">data_query</text>
+<rect x="828" y="728" width="110" height="25" rx="6" fill="#f5f3ff" stroke="#ddd6fe"/>
+<text x="883" y="745.5" class="ch">tour_live</text>
+<rect x="942" y="728" width="110" height="25" rx="6" fill="#f5f3ff" stroke="#ddd6fe"/>
+<text x="997" y="745.5" class="ch">get_datetime</text>
+<rect x="1248" y="340" width="84" height="84" rx="20" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#sh)"/>
+<svg x="1265" y="357" width="50" height="50" viewBox="0 0 24 24"><g fill="none" stroke="#059669" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.5" r="2.5" />
   <path d="m10.2 6.3-3.9 3.9" />
   <circle cx="4.5" cy="12" r="2.5" />
   <path d="M7 12h10" />
   <circle cx="19.5" cy="12" r="2.5" />
   <path d="m13.8 17.7 3.9-3.9" />
   <circle cx="12" cy="19.5" r="2.5" /></g></svg>
-<text x="1285.0" y="410.5" class="t" fill="#059669">LightRAG</text>
-<text x="1285.0" y="438.5" class="s">Graph RAG + 리랭커</text>
-<path d="M1180 546 V714 A105.0 16 0 0 0 1390 714 V546" fill="#ecfdf5" stroke="#059669" stroke-width="2" filter="url(#sh)"/>
-<ellipse cx="1285.0" cy="546" rx="105.0" ry="16" fill="#d1fae5" stroke="#059669" stroke-width="2"/>
-<svg x="1266.0" y="580.0" width="38" height="38" viewBox="0 0 24 24"><g fill="#4169E1"><path d="M23.5594 14.7228a.5269.5269 0 0 0-.0563-.1191c-.139-.2632-.4768-.3418-1.0074-.2321-1.6533.3411-2.2935.1312-2.5256-.0191 1.342-2.0482 2.445-4.522 3.0411-6.8297.2714-1.0507.7982-3.5237.1222-4.7316a1.5641 1.5641 0 0 0-.1509-.235C21.6931.9086 19.8007.0248 17.5099.0005c-1.4947-.0158-2.7705.3461-3.1161.4794a9.449 9.449 0 0 0-.5159-.0816 8.044 8.044 0 0 0-1.3114-.1278c-1.1822-.0184-2.2038.2642-3.0498.8406-.8573-.3211-4.7888-1.645-7.2219.0788C.9359 2.1526.3086 3.8733.4302 6.3043c.0409.818.5069 3.334 1.2423 5.7436.4598 1.5065.9387 2.7019 1.4334 3.582.553.9942 1.1259 1.5933 1.7143 1.7895.4474.1491 1.1327.1441 1.8581-.7279.8012-.9635 1.5903-1.8258 1.9446-2.2069.4351.2355.9064.3625 1.39.3772a.0569.0569 0 0 0 .0004.0041 11.0312 11.0312 0 0 0-.2472.3054c-.3389.4302-.4094.5197-1.5002.7443-.3102.064-1.1344.2339-1.1464.8115-.0025.1224.0329.2309.0919.3268.2269.4231.9216.6097 1.015.6331 1.3345.3335 2.5044.092 3.3714-.6787-.017 2.231.0775 4.4174.3454 5.0874.2212.5529.7618 1.9045 2.4692 1.9043.2505 0 .5263-.0291.8296-.0941 1.7819-.3821 2.5557-1.1696 2.855-2.9059.1503-.8707.4016-2.8753.5388-4.1012.0169-.0703.0357-.1207.057-.1362.0007-.0005.0697-.0471.4272.0307a.3673.3673 0 0 0 .0443.0068l.2539.0223.0149.001c.8468.0384 1.9114-.1426 2.5312-.4308.6438-.2988 1.8057-1.0323 1.5951-1.6698zM2.371 11.8765c-.7435-2.4358-1.1779-4.8851-1.2123-5.5719-.1086-2.1714.4171-3.6829 1.5623-4.4927 1.8367-1.2986 4.8398-.5408 6.108-.13-.0032.0032-.0066.0061-.0098.0094-2.0238 2.044-1.9758 5.536-1.9708 5.7495-.0002.0823.0066.1989.0162.3593.0348.5873.0996 1.6804-.0735 2.9184-.1609 1.1504.1937 2.2764.9728 3.0892.0806.0841.1648.1631.2518.2374-.3468.3714-1.1004 1.1926-1.9025 2.1576-.5677.6825-.9597.5517-1.0886.5087-.3919-.1307-.813-.5871-1.2381-1.3223-.4796-.839-.9635-2.0317-1.4155-3.5126zm6.0072 5.0871c-.1711-.0428-.3271-.1132-.4322-.1772.0889-.0394.2374-.0902.4833-.1409 1.2833-.2641 1.4815-.4506 1.9143-1.0002.0992-.126.2116-.2687.3673-.4426a.3549.3549 0 0 0 .0737-.1298c.1708-.1513.2724-.1099.4369-.0417.156.0646.3078.26.3695.4752.0291.1016.0619.2945-.0452.4444-.9043 1.2658-2.2216 1.2494-3.1676 1.0128zm2.094-3.988-.0525.141c-.133.3566-.2567.6881-.3334 1.003-.6674-.0021-1.3168-.2872-1.8105-.8024-.6279-.6551-.9131-1.5664-.7825-2.5004.1828-1.3079.1153-2.4468.079-3.0586-.005-.0857-.0095-.1607-.0122-.2199.2957-.2621 1.6659-.9962 2.6429-.7724.4459.1022.7176.4057.8305.928.5846 2.7038.0774 3.8307-.3302 4.7363-.084.1866-.1633.3629-.2311.5454zm7.3637 4.5725c-.0169.1768-.0358.376-.0618.5959l-.146.4383a.3547.3547 0 0 0-.0182.1077c-.0059.4747-.054.6489-.115.8693-.0634.2292-.1353.4891-.1794 1.0575-.11 1.4143-.8782 2.2267-2.4172 2.5565-1.5155.3251-1.7843-.4968-2.0212-1.2217a6.5824 6.5824 0 0 0-.0769-.2266c-.2154-.5858-.1911-1.4119-.1574-2.5551.0165-.5612-.0249-1.9013-.3302-2.6462.0044-.2932.0106-.5909.019-.8918a.3529.3529 0 0 0-.0153-.1126 1.4927 1.4927 0 0 0-.0439-.208c-.1226-.4283-.4213-.7866-.7797-.9351-.1424-.059-.4038-.1672-.7178-.0869.067-.276.1831-.5875.309-.9249l.0529-.142c.0595-.16.134-.3257.213-.5012.4265-.9476 1.0106-2.2453.3766-5.1772-.2374-1.0981-1.0304-1.6343-2.2324-1.5098-.7207.0746-1.3799.3654-1.7088.5321a5.6716 5.6716 0 0 0-.1958.1041c.0918-1.1064.4386-3.1741 1.7357-4.4823a4.0306 4.0306 0 0 1 .3033-.276.3532.3532 0 0 0 .1447-.0644c.7524-.5706 1.6945-.8506 2.802-.8325.4091.0067.8017.0339 1.1742.081 1.939.3544 3.2439 1.4468 4.0359 2.3827.8143.9623 1.2552 1.9315 1.4312 2.4543-1.3232-.1346-2.2234.1268-2.6797.779-.9926 1.4189.543 4.1729 1.2811 5.4964.1353.2426.2522.4522.2889.5413.2403.5825.5515.9713.7787 1.2552.0696.087.1372.1714.1885.245-.4008.1155-1.1208.3825-1.0552 1.717-.0123.1563-.0423.4469-.0834.8148-.0461.2077-.0702.4603-.0994.7662zm.8905-1.6211c-.0405-.8316.2691-.9185.5967-1.0105a2.8566 2.8566 0 0 0 .135-.0406 1.202 1.202 0 0 0 .1342.103c.5703.3765 1.5823.4213 3.0068.1344-.2016.1769-.5189.3994-.9533.6011-.4098.1903-1.0957.333-1.7473.3636-.7197.0336-1.0859-.0807-1.1721-.151zm.5695-9.2712c-.0059.3508-.0542.6692-.1054 1.0017-.055.3576-.112.7274-.1264 1.1762-.0142.4368.0404.8909.0932 1.3301.1066.887.216 1.8003-.2075 2.7014a3.5272 3.5272 0 0 1-.1876-.3856c-.0527-.1276-.1669-.3326-.3251-.6162-.6156-1.1041-2.0574-3.6896-1.3193-4.7446.3795-.5427 1.3408-.5661 2.1781-.463zm.2284 7.0137a12.3762 12.3762 0 0 0-.0853-.1074l-.0355-.0444c.7262-1.1995.5842-2.3862.4578-3.4385-.0519-.4318-.1009-.8396-.0885-1.2226.0129-.4061.0666-.7543.1185-1.0911.0639-.415.1288-.8443.1109-1.3505.0134-.0531.0188-.1158.0118-.1902-.0457-.4855-.5999-1.938-1.7294-3.253-.6076-.7073-1.4896-1.4972-2.6889-2.0395.5251-.1066 1.2328-.2035 2.0244-.1859 2.0515.0456 3.6746.8135 4.8242 2.2824a.908.908 0 0 1 .0667.1002c.7231 1.3556-.2762 6.2751-2.9867 10.5405zm-8.8166-6.1162c-.025.1794-.3089.4225-.6211.4225a.5821.5821 0 0 1-.0809-.0056c-.1873-.026-.3765-.144-.5059-.3156-.0458-.0605-.1203-.178-.1055-.2844.0055-.0401.0261-.0985.0925-.1488.1182-.0894.3518-.1226.6096-.0867.3163.0441.6426.1938.6113.4186zm7.9305-.4114c.0111.0792-.049.201-.1531.3102-.0683.0717-.212.1961-.4079.2232a.5456.5456 0 0 1-.075.0052c-.2935 0-.5414-.2344-.5607-.3717-.024-.1765.2641-.3106.5611-.352.297-.0414.6111.0088.6356.1851z"/></g></svg>
-<text x="1285.0" y="646.0" class="t" fill="#059669">PostgreSQL</text>
-<text x="1285.0" y="674.0" class="s">+ pgvector</text>
-<text x="1285.0" y="699.0" class="s">벡터 · 그래프 · 정형</text>
-<rect x="1494" y="320" width="230" height="170" rx="14" fill="#f0fdfa" stroke="#0f766e" stroke-width="2" filter="url(#sh)"/>
-<path d="M1496 334 A12 12 0 0 1 1508 322 H1710 A12 12 0 0 1 1722 334 V328 H1496 Z" fill="#0f766e"/>
-<svg x="1590.0" y="347.0" width="38" height="38" viewBox="0 0 24 24"><g fill="none" stroke="#0f766e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14" />
+<text x="1290" y="454" class="nt">LightRAG</text>
+<text x="1290" y="477" class="ns">Graph RAG + 리랭커</text>
+<rect x="1248" y="560" width="84" height="84" rx="20" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#sh)"/>
+<svg x="1265" y="577" width="50" height="50" viewBox="0 0 24 24"><g fill="#4169E1"><path d="M23.5594 14.7228a.5269.5269 0 0 0-.0563-.1191c-.139-.2632-.4768-.3418-1.0074-.2321-1.6533.3411-2.2935.1312-2.5256-.0191 1.342-2.0482 2.445-4.522 3.0411-6.8297.2714-1.0507.7982-3.5237.1222-4.7316a1.5641 1.5641 0 0 0-.1509-.235C21.6931.9086 19.8007.0248 17.5099.0005c-1.4947-.0158-2.7705.3461-3.1161.4794a9.449 9.449 0 0 0-.5159-.0816 8.044 8.044 0 0 0-1.3114-.1278c-1.1822-.0184-2.2038.2642-3.0498.8406-.8573-.3211-4.7888-1.645-7.2219.0788C.9359 2.1526.3086 3.8733.4302 6.3043c.0409.818.5069 3.334 1.2423 5.7436.4598 1.5065.9387 2.7019 1.4334 3.582.553.9942 1.1259 1.5933 1.7143 1.7895.4474.1491 1.1327.1441 1.8581-.7279.8012-.9635 1.5903-1.8258 1.9446-2.2069.4351.2355.9064.3625 1.39.3772a.0569.0569 0 0 0 .0004.0041 11.0312 11.0312 0 0 0-.2472.3054c-.3389.4302-.4094.5197-1.5002.7443-.3102.064-1.1344.2339-1.1464.8115-.0025.1224.0329.2309.0919.3268.2269.4231.9216.6097 1.015.6331 1.3345.3335 2.5044.092 3.3714-.6787-.017 2.231.0775 4.4174.3454 5.0874.2212.5529.7618 1.9045 2.4692 1.9043.2505 0 .5263-.0291.8296-.0941 1.7819-.3821 2.5557-1.1696 2.855-2.9059.1503-.8707.4016-2.8753.5388-4.1012.0169-.0703.0357-.1207.057-.1362.0007-.0005.0697-.0471.4272.0307a.3673.3673 0 0 0 .0443.0068l.2539.0223.0149.001c.8468.0384 1.9114-.1426 2.5312-.4308.6438-.2988 1.8057-1.0323 1.5951-1.6698zM2.371 11.8765c-.7435-2.4358-1.1779-4.8851-1.2123-5.5719-.1086-2.1714.4171-3.6829 1.5623-4.4927 1.8367-1.2986 4.8398-.5408 6.108-.13-.0032.0032-.0066.0061-.0098.0094-2.0238 2.044-1.9758 5.536-1.9708 5.7495-.0002.0823.0066.1989.0162.3593.0348.5873.0996 1.6804-.0735 2.9184-.1609 1.1504.1937 2.2764.9728 3.0892.0806.0841.1648.1631.2518.2374-.3468.3714-1.1004 1.1926-1.9025 2.1576-.5677.6825-.9597.5517-1.0886.5087-.3919-.1307-.813-.5871-1.2381-1.3223-.4796-.839-.9635-2.0317-1.4155-3.5126zm6.0072 5.0871c-.1711-.0428-.3271-.1132-.4322-.1772.0889-.0394.2374-.0902.4833-.1409 1.2833-.2641 1.4815-.4506 1.9143-1.0002.0992-.126.2116-.2687.3673-.4426a.3549.3549 0 0 0 .0737-.1298c.1708-.1513.2724-.1099.4369-.0417.156.0646.3078.26.3695.4752.0291.1016.0619.2945-.0452.4444-.9043 1.2658-2.2216 1.2494-3.1676 1.0128zm2.094-3.988-.0525.141c-.133.3566-.2567.6881-.3334 1.003-.6674-.0021-1.3168-.2872-1.8105-.8024-.6279-.6551-.9131-1.5664-.7825-2.5004.1828-1.3079.1153-2.4468.079-3.0586-.005-.0857-.0095-.1607-.0122-.2199.2957-.2621 1.6659-.9962 2.6429-.7724.4459.1022.7176.4057.8305.928.5846 2.7038.0774 3.8307-.3302 4.7363-.084.1866-.1633.3629-.2311.5454zm7.3637 4.5725c-.0169.1768-.0358.376-.0618.5959l-.146.4383a.3547.3547 0 0 0-.0182.1077c-.0059.4747-.054.6489-.115.8693-.0634.2292-.1353.4891-.1794 1.0575-.11 1.4143-.8782 2.2267-2.4172 2.5565-1.5155.3251-1.7843-.4968-2.0212-1.2217a6.5824 6.5824 0 0 0-.0769-.2266c-.2154-.5858-.1911-1.4119-.1574-2.5551.0165-.5612-.0249-1.9013-.3302-2.6462.0044-.2932.0106-.5909.019-.8918a.3529.3529 0 0 0-.0153-.1126 1.4927 1.4927 0 0 0-.0439-.208c-.1226-.4283-.4213-.7866-.7797-.9351-.1424-.059-.4038-.1672-.7178-.0869.067-.276.1831-.5875.309-.9249l.0529-.142c.0595-.16.134-.3257.213-.5012.4265-.9476 1.0106-2.2453.3766-5.1772-.2374-1.0981-1.0304-1.6343-2.2324-1.5098-.7207.0746-1.3799.3654-1.7088.5321a5.6716 5.6716 0 0 0-.1958.1041c.0918-1.1064.4386-3.1741 1.7357-4.4823a4.0306 4.0306 0 0 1 .3033-.276.3532.3532 0 0 0 .1447-.0644c.7524-.5706 1.6945-.8506 2.802-.8325.4091.0067.8017.0339 1.1742.081 1.939.3544 3.2439 1.4468 4.0359 2.3827.8143.9623 1.2552 1.9315 1.4312 2.4543-1.3232-.1346-2.2234.1268-2.6797.779-.9926 1.4189.543 4.1729 1.2811 5.4964.1353.2426.2522.4522.2889.5413.2403.5825.5515.9713.7787 1.2552.0696.087.1372.1714.1885.245-.4008.1155-1.1208.3825-1.0552 1.717-.0123.1563-.0423.4469-.0834.8148-.0461.2077-.0702.4603-.0994.7662zm.8905-1.6211c-.0405-.8316.2691-.9185.5967-1.0105a2.8566 2.8566 0 0 0 .135-.0406 1.202 1.202 0 0 0 .1342.103c.5703.3765 1.5823.4213 3.0068.1344-.2016.1769-.5189.3994-.9533.6011-.4098.1903-1.0957.333-1.7473.3636-.7197.0336-1.0859-.0807-1.1721-.151zm.5695-9.2712c-.0059.3508-.0542.6692-.1054 1.0017-.055.3576-.112.7274-.1264 1.1762-.0142.4368.0404.8909.0932 1.3301.1066.887.216 1.8003-.2075 2.7014a3.5272 3.5272 0 0 1-.1876-.3856c-.0527-.1276-.1669-.3326-.3251-.6162-.6156-1.1041-2.0574-3.6896-1.3193-4.7446.3795-.5427 1.3408-.5661 2.1781-.463zm.2284 7.0137a12.3762 12.3762 0 0 0-.0853-.1074l-.0355-.0444c.7262-1.1995.5842-2.3862.4578-3.4385-.0519-.4318-.1009-.8396-.0885-1.2226.0129-.4061.0666-.7543.1185-1.0911.0639-.415.1288-.8443.1109-1.3505.0134-.0531.0188-.1158.0118-.1902-.0457-.4855-.5999-1.938-1.7294-3.253-.6076-.7073-1.4896-1.4972-2.6889-2.0395.5251-.1066 1.2328-.2035 2.0244-.1859 2.0515.0456 3.6746.8135 4.8242 2.2824a.908.908 0 0 1 .0667.1002c.7231 1.3556-.2762 6.2751-2.9867 10.5405zm-8.8166-6.1162c-.025.1794-.3089.4225-.6211.4225a.5821.5821 0 0 1-.0809-.0056c-.1873-.026-.3765-.144-.5059-.3156-.0458-.0605-.1203-.178-.1055-.2844.0055-.0401.0261-.0985.0925-.1488.1182-.0894.3518-.1226.6096-.0867.3163.0441.6426.1938.6113.4186zm7.9305-.4114c.0111.0792-.049.201-.1531.3102-.0683.0717-.212.1961-.4079.2232a.5456.5456 0 0 1-.075.0052c-.2935 0-.5414-.2344-.5607-.3717-.024-.1765.2641-.3106.5611-.352.297-.0414.6111.0088.6356.1851z"/></g></svg>
+<text x="1290" y="674" class="nt">PostgreSQL</text>
+<text x="1290" y="697" class="ns">pgvector · 정형 · 세션</text>
+<rect x="1558" y="340" width="84" height="84" rx="20" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#sh)"/>
+<svg x="1575" y="357" width="50" height="50" viewBox="0 0 24 24"><g fill="none" stroke="#0f766e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14" />
   <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" /></g></svg>
-<text x="1609.0" y="413.0" class="t" fill="#0f766e">LLM Wiki</text>
-<text x="1609.0" y="441.0" class="s">엔티티 · 허브 페이지</text>
-<text x="1609.0" y="466.0" class="s">출처 · 기준일 표기</text>
-<rect x="1494" y="570" width="230" height="140" rx="14" fill="#f0fdfa" stroke="#0f766e" stroke-width="2" filter="url(#sh)"/>
-<path d="M1496 584 A12 12 0 0 1 1508 572 H1710 A12 12 0 0 1 1722 584 V578 H1496 Z" fill="#0f766e"/>
-<svg x="1590.0" y="594.5" width="38" height="38" viewBox="0 0 24 24"><g fill="none" stroke="#0f766e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="5" x="2" y="3" rx="1" />
+<text x="1600" y="454" class="nt">LLM Wiki</text>
+<text x="1600" y="477" class="ns">엔티티 · 허브 페이지</text>
+<rect x="1558" y="560" width="84" height="84" rx="20" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#sh)"/>
+<svg x="1575" y="577" width="50" height="50" viewBox="0 0 24 24"><g fill="none" stroke="#0f766e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="5" x="2" y="3" rx="1" />
   <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8" />
   <path d="M10 12h4" /></g></svg>
-<text x="1609.0" y="660.5" class="t" fill="#0f766e">raw 스냅샷</text>
-<text x="1609.0" y="688.5" class="s">TourAPI 응답 원본</text>
-<rect x="1350" y="830" width="260" height="140" rx="14" fill="#ecfdf5" stroke="#059669" stroke-width="2" filter="url(#sh)"/>
-<path d="M1352 844 A12 12 0 0 1 1364 832 H1596 A12 12 0 0 1 1608 844 V838 H1352 Z" fill="#059669"/>
-<svg x="1461.0" y="842.0" width="38" height="38" viewBox="0 0 24 24"><g fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2" />
+<text x="1600" y="674" class="nt">raw 스냅샷</text>
+<text x="1600" y="697" class="ns">TourAPI 응답 원본</text>
+<rect x="1438" y="840" width="84" height="84" rx="20" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#sh)"/>
+<svg x="1455" y="857" width="50" height="50" viewBox="0 0 24 24"><g fill="none" stroke="#059669" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2" />
   <line x1="12" x2="15" y1="14" y2="11" />
   <circle cx="12" cy="14" r="8" /></g></svg>
-<text x="1480.0" y="908.0" class="t" fill="#059669">ingest (배치)</text>
-<text x="1480.0" y="936.0" class="s">수집 · 위키 생성</text>
-<text x="1480.0" y="961.0" class="s">변경분 현행화</text>
-<rect x="450" y="15" width="240" height="170" rx="14" fill="#fdf2f8" stroke="#db2777" stroke-width="2" filter="url(#sh)"/>
-<path d="M452 29 A12 12 0 0 1 464 17 H676 A12 12 0 0 1 688 29 V23 H452 Z" fill="#db2777"/>
-<svg x="551.0" y="34.5" width="38" height="38" viewBox="0 0 24 24"><g fill="none" stroke="#db2777" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" />
+<text x="1480" y="954" class="nt">ingest</text>
+<text x="1480" y="977" class="ns">수집 · 위키 생성 · 현행화</text>
+<rect x="548" y="30" width="84" height="84" rx="20" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#sh)"/>
+<svg x="565" y="47" width="50" height="50" viewBox="0 0 24 24"><g fill="none" stroke="#db2777" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" />
   <path d="M16 9a5 5 0 0 1 0 6" />
   <path d="M19.364 18.364a9 9 0 0 0 0-12.728" /></g></svg>
-<text x="570.0" y="100.5" class="t" fill="#db2777">TTS</text>
-<text x="570.0" y="128.5" class="s">Edge · ElevenLabs</text>
-<rect x="492.5" y="147.5" width="155.0" height="28" rx="14" fill="#ffffff" stroke="#db2777" stroke-width="1.8" stroke-dasharray="5 4"/>
-<text x="570.0" y="167.0" class="p" fill="#db2777">+ Drama 3 확장</text>
-<rect x="780" y="15" width="240" height="170" rx="14" fill="#fdf2f8" stroke="#db2777" stroke-width="2" filter="url(#sh)"/>
-<path d="M782 29 A12 12 0 0 1 794 17 H1006 A12 12 0 0 1 1018 29 V23 H782 Z" fill="#db2777"/>
-<svg x="881.0" y="34.5" width="38" height="38" viewBox="0 0 24 24"><g fill="none" stroke="#db2777" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+<text x="590" y="144" class="nt">TTS</text>
+<text x="590" y="167" class="ns">Edge · ElevenLabs</text>
+<rect x="537.5" y="181" width="105" height="26" rx="13" fill="#fff" stroke="#db2777" stroke-width="1.6" stroke-dasharray="4 3"/>
+<text x="590" y="199" class="pl" fill="#db2777">+ Drama 3</text>
+<rect x="908" y="30" width="84" height="84" rx="20" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#sh)"/>
+<svg x="925" y="47" width="50" height="50" viewBox="0 0 24 24"><g fill="none" stroke="#db2777" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
   <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
   <line x1="12" x2="12" y1="19" y2="22" /></g></svg>
-<text x="900.0" y="100.5" class="t" fill="#db2777">STT</text>
-<text x="900.0" y="128.5" class="s">OpenAI 전사</text>
-<rect x="789.25" y="147.5" width="221.5" height="28" rx="14" fill="#ffffff" stroke="#db2777" stroke-width="1.8" stroke-dasharray="5 4"/>
-<text x="900.0" y="167.0" class="p" fill="#db2777">+ faster-whisper 확장</text>
-<rect x="1160" y="15" width="240" height="170" rx="14" fill="#f9fafb" stroke="#6b7280" stroke-width="2" filter="url(#sh)"/>
-<path d="M1162 29 A12 12 0 0 1 1174 17 H1386 A12 12 0 0 1 1398 29 V23 H1162 Z" fill="#6b7280"/>
-<svg x="1261.0" y="54.5" width="38" height="38" viewBox="0 0 24 24"><g fill="#000000"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/></g></svg>
-<text x="1280.0" y="120.5" class="t" fill="#6b7280">OpenAI API</text>
-<text x="1280.0" y="148.5" class="s">LLM</text>
-<rect x="840" y="1040" width="210" height="130" rx="14" fill="#f9fafb" stroke="#6b7280" stroke-width="2" filter="url(#sh)"/>
-<path d="M842 1054 A12 12 0 0 1 854 1042 H1036 A12 12 0 0 1 1048 1054 V1048 H842 Z" fill="#6b7280"/>
-<svg x="926.0" y="1059.5" width="38" height="38" viewBox="0 0 24 24"><g fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="22" y2="22" />
+<text x="950" y="144" class="nt">STT</text>
+<text x="950" y="167" class="ns">OpenAI 전사</text>
+<rect x="866.0" y="181" width="168" height="26" rx="13" fill="#fff" stroke="#db2777" stroke-width="1.6" stroke-dasharray="4 3"/>
+<text x="950" y="199" class="pl" fill="#db2777">+ faster-whisper</text>
+<rect x="1268" y="30" width="84" height="84" rx="20" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#sh)"/>
+<svg x="1285" y="47" width="50" height="50" viewBox="0 0 24 24"><g fill="#000000"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/></g></svg>
+<text x="1310" y="144" class="nt">OpenAI API</text>
+<text x="1310" y="167" class="ns">LLM</text>
+<rect x="898" y="1060" width="84" height="84" rx="20" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#sh)"/>
+<svg x="915" y="1077" width="50" height="50" viewBox="0 0 24 24"><g fill="none" stroke="#64748b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="22" y2="22" />
   <line x1="6" x2="6" y1="18" y2="11" />
   <line x1="10" x2="10" y1="18" y2="11" />
   <line x1="14" x2="14" y1="18" y2="11" />
   <line x1="18" x2="18" y1="18" y2="11" />
   <polygon points="12 2 20 7 4 7" /></g></svg>
-<text x="945.0" y="1125.5" class="t" fill="#6b7280">TourAPI 4.0</text>
-<text x="945.0" y="1153.5" class="s">한국관광공사</text>
-<rect x="1130" y="1040" width="640" height="160" rx="16" fill="#f8fafc" stroke="#64748b" stroke-width="2" stroke-dasharray="8 6"/>
-<svg x="1148" y="1054" width="28" height="28" viewBox="0 0 24 24"><g fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
-  <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" />
-  <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" /></g></svg>
-<text x="1186" y="1076" class="g" fill="#475569">확장 데이터 원천 <tspan class="xs">(MVP 이후)</tspan></text>
-<rect x="1150.0" y="1098" width="290" height="36" rx="18" fill="#ffffff" stroke="#64748b" stroke-width="1.6" stroke-dasharray="5 4"/>
-<text x="1295" y="1122" class="xp">비짓제주 관광정보</text>
-<rect x="1460.0" y="1098" width="290" height="36" rx="18" fill="#ffffff" stroke="#64748b" stroke-width="1.6" stroke-dasharray="5 4"/>
-<text x="1605" y="1122" class="xp">서울 실시간 도시데이터</text>
-<rect x="1150.0" y="1146" width="290" height="36" rx="18" fill="#ffffff" stroke="#64748b" stroke-width="1.6" stroke-dasharray="5 4"/>
-<text x="1295" y="1170" class="xp">문화데이터광장 · 전시/공연</text>
-<rect x="1460.0" y="1146" width="290" height="36" rx="18" fill="#ffffff" stroke="#64748b" stroke-width="1.6" stroke-dasharray="5 4"/>
-<text x="1605" y="1170" class="xp">관광빅데이터 · 방문자 수</text>
-<line x1="40" y1="1070" x2="90" y2="1070" class="e"/>
-<text x="102" y="1076" class="lg">내부 호출</text>
-<line x1="40" y1="1105" x2="90" y2="1105" class="e ex"/>
-<text x="102" y="1111" class="lg">외부 서비스 호출</text>
-<rect x="40" y="1128" width="50" height="22" rx="11" fill="#fff" stroke="#db2777" stroke-width="1.8" stroke-dasharray="5 4"/>
-<text x="102" y="1145" class="lg">설정만 바꿔 교체 가능한 구현체 (SttProvider · TtsProvider)</text>
-<text x="40" y="1182" class="lg">외부 노출 포트는 Nginx 443 하나</text>
-<rect x="195.0" y="506" width="72" height="28" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
-<text x="231" y="526" class="l">HTTPS</text>
-<rect x="411.0" y="436" width="82" height="28" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
-<text x="452" y="456" class="l">/api/*</text>
-<rect x="436.0" y="578" width="32" height="28" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
-<text x="452" y="598" class="l">/</text>
-<rect x="745.0" y="371" width="52" height="28" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
-<text x="771" y="391" class="l">SSE</text>
-<rect x="544.0" y="241" width="52" height="28" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
-<text x="570" y="261" class="l">TTS</text>
-<rect x="754.0" y="241" width="52" height="28" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
-<text x="780" y="261" class="l">STT</text>
-<rect x="1119.0" y="226" width="52" height="28" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
-<text x="1145" y="246" class="l">LLM</text>
-<rect x="919.0" y="474" width="52" height="28" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
-<text x="945" y="494" class="l">MCP</text>
-<rect x="1054.0" y="466" width="112" height="28" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
-<text x="1110" y="486" class="l">rag_query</text>
-<rect x="1050.0" y="656" width="122" height="28" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
-<text x="1111" y="676" class="l">data_query</text>
-<rect x="1404.5" y="376" width="73" height="28" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
-<text x="1441" y="396" class="l">인덱싱</text>
-<rect x="899.5" y="781" width="201" height="28" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
-<text x="1000" y="801" class="l">사용자 · 세션 · 대화</text>
-<rect x="864.0" y="916" width="112" height="28" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
-<text x="920" y="936" class="l">tour_live</text>
-<rect x="1113.0" y="906" width="134" height="28" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
-<text x="1180" y="926" class="l">변경분 동기화</text>
-<rect x="1430.0" y="987" width="100" height="28" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
-<text x="1480" y="1007" class="l">추후 연동</text>
-<rect x="1327.0" y="774" width="126" height="28" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
-<text x="1390" y="794" class="l">정형 upsert</text>
-<rect x="1517.0" y="764" width="56" height="28" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
-<text x="1545" y="784" class="l">저장</text>
-<rect x="1718.5" y="636" width="73" height="28" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
-<text x="1755" y="656" class="l">렌더링</text>
+<text x="940" y="1174" class="nt">TourAPI 4.0</text>
+<text x="940" y="1197" class="ns">한국관광공사</text>
+<rect x="1170" y="1114" width="280" height="36" rx="10" fill="#ffffff" stroke="#cbd5e1" filter="url(#sh2)"/>
+<text x="1310" y="1138" class="xp">비짓제주 관광정보</text>
+<rect x="1470" y="1114" width="280" height="36" rx="10" fill="#ffffff" stroke="#cbd5e1" filter="url(#sh2)"/>
+<text x="1610" y="1138" class="xp">서울 실시간 도시데이터</text>
+<rect x="1170" y="1160" width="280" height="36" rx="10" fill="#ffffff" stroke="#cbd5e1" filter="url(#sh2)"/>
+<text x="1310" y="1184" class="xp">문화데이터광장 · 전시/공연</text>
+<rect x="1470" y="1160" width="280" height="36" rx="10" fill="#ffffff" stroke="#cbd5e1" filter="url(#sh2)"/>
+<text x="1610" y="1184" class="xp">관광빅데이터 · 방문자 수</text>
+<text x="226" y="500" class="el" fill="#2563eb" text-anchor="middle">HTTPS</text>
+<text x="465" y="446" class="el" fill="#2563eb" text-anchor="start">/api/*</text>
+<text x="465" y="572" class="el" fill="#2563eb" text-anchor="start">/</text>
+<text x="766" y="370" class="el" fill="#2563eb" text-anchor="middle">SSE 스트리밍</text>
+<text x="632" y="290" class="el" fill="#64748b" text-anchor="start">TTS</text>
+<text x="820" y="252" class="el" fill="#64748b" text-anchor="middle">STT</text>
+<text x="1140" y="272" class="el" fill="#64748b" text-anchor="middle">LLM 호출</text>
+<text x="950" y="516" class="el" fill="#7c3aed" text-anchor="start">MCP</text>
+<text x="1178" y="372" class="el" fill="#059669" text-anchor="middle">rag_query</text>
+<text x="1178" y="590" class="el" fill="#059669" text-anchor="middle">data_query</text>
+<text x="1449" y="372" class="el" fill="#059669" text-anchor="middle">인덱싱</text>
+<text x="1090" y="832" class="el" fill="#059669" text-anchor="middle">사용자 · 세션 · 대화 저장</text>
+<text x="928" y="960" class="el" fill="#64748b" text-anchor="end">tour_live</text>
+<text x="1215" y="872" class="el" fill="#64748b" text-anchor="middle">변경분 동기화</text>
+<text x="1385" y="752" class="el" fill="#059669" text-anchor="middle">정형 upsert</text>
+<text x="1612" y="782" class="el" fill="#059669" text-anchor="start">저장</text>
+<text x="1660" y="872" class="el" fill="#059669" text-anchor="middle">렌더링</text>
+<text x="1492" y="1034" class="el" fill="#64748b" text-anchor="start">추후 연동</text>
+<line x1="40" y1="1078" x2="88" y2="1078" stroke="#2563eb" stroke-width="2.4"/>
+<text x="100" y="1084" class="lg">사용자 요청</text>
+<line x1="40" y1="1110" x2="88" y2="1110" stroke="#059669" stroke-width="2.4"/>
+<text x="100" y="1116" class="lg">데이터 흐름</text>
+<line x1="40" y1="1142" x2="88" y2="1142" stroke="#64748b" stroke-width="2.4" stroke-dasharray="7 5"/>
+<text x="100" y="1148" class="lg">외부 서비스 호출</text>
+<rect x="40" y="1166" width="48" height="22" rx="11" fill="#fff" stroke="#db2777" stroke-width="1.6" stroke-dasharray="4 3"/>
+<text x="100" y="1183" class="lg">교체 가능한 구현체</text>
 </svg>
