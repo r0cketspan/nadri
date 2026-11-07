@@ -1,7 +1,7 @@
 # PROGRESS
-- 현재 단계: Phase 2b — 아키텍처 설계 (시작 전)
-- 게이트: G1 ✅ (2026-11-07) · G2 ✅ (2026-11-07) · G3 ⏳ · G4 · G5 (작업별, 아래 표)
-- 다음 할 일: Phase 2b — `solution-architect`에 requirements.md·stack-options.md(G2 확정)·TECH_STACK.md를 넘겨 architecture.md 작성 → G3. 미검증 가정(Hermes toolset 화이트리스트·memory off·gpt-6-luna 툴 호출, LightRAG `/query/data`·한국어 추출, CPU 리랭커 지연)은 가정+대안으로 표시하고 첫 구현 작업에서 검증. 구성도(architecture.svg) 갱신 포함
+- 현재 단계: Phase 3 — 작업 분해 (시작 전)
+- 게이트: G1 ✅ (2026-11-07) · G2 ✅ (2026-11-07) · G3 ✅ (2026-11-07) · G4 · G5 (작업별, 아래 표)
+- 다음 할 일: Phase 3 — `task-planner`에 requirements.md·architecture.md·erd.md를 넘겨 program_list.md 작성 → G4. 첫 작업은 최소 end-to-end(위험 연동 A1~A10·A15·A16 검증, architecture.md §12)
 - 브랜치: `dev`(작업 기준) · `prod`(릴리스). 2026-11-07 로컬 `master` → `prod` 이름 변경, `dev` 생성. 원격 반영(push·기본 브랜치 변경·원격 master 삭제)은 사용자가 직접
 
 | 작업id | spec/test | 브랜치 | 구현·테스트 | 커밋 | G5 병합 |
@@ -11,6 +11,8 @@
 ## 산출물
 - `docs/harness/requirements.md` — **G1 승인본** (2026-11-07). 확정 전제 D-01~D-22, FR/NFR, G1 직전 확인 O1~O6, G2/PoC 이관 항목, 상충 기록 C1~C12
 - `docs/analysis/01-data-sources.md` — 확장 데이터 원천 조사
+- `docs/harness/architecture.md` — **G3 승인본** (2026-11-07). 컨테이너 9개, 데이터 흐름 6개, DB·API 개요, ADR-01~16, 상충 X1~X9, 미검증 가정 A1~A17, 구성도 갱신 사양, 확인 질문 Q1~Q6
+- `docs/harness/erd.md` + `docs/images/erd.svg·png` — **ERD G3 승인본**, README.md 반영. 한글 명칭 = DDL COMMENT
 - `docs/harness/stack-options.md` — **G2 승인본** (2026-11-07). S1~S21 후보·트레이드오프·사용자 답변, 조사 사실 F1~F12
 
 ## 결정 로그 (게이트에서 바뀐 것)
@@ -24,10 +26,13 @@
 - 2026-11-07 G2: **별도 PoC 없음** — 아키텍처를 바꿀 수 있는 위험 연동을 첫 구현 작업(최소 end-to-end)에서 실행 검증, 나머지는 해당 작업에서 확인
 - 2026-11-07 G2: 실사용자는 사실상 1명(5명은 상한 가정). 예상 월 약 $1.5 + 최초 인덱싱 약 $15~30
 - 2026-11-07: 기술스택 확정·변경 시 README.md도 항상 갱신 (사용자 요청)
+- 2026-11-07 G3: Q1 `backend/` 단일 프로젝트(이미지 2종), 컨테이너명 `ingest` 유지 · Q2 같은 인스턴스 별도 DB `lightrag` · Q3 답변 끝 출처 블록 파싱 · Q4 허브 시군구 27개 · Q5 성공·캐시 적중 차감, 장애 미차감 · Q6 제목·요약은 api 직접 호출, Hermes는 에이전트 루프 전용 유지
+- 2026-11-07 G3: LangGraph·LangChain 검토 후 미사용 (Hermes 유지, FR-71 비교 대상 그대로)
+- 2026-11-07 G3: ERD 승인, 테이블·컬럼 한글 명칭을 DDL COMMENT로 넣는다. 구성도 재작성, 문서 상충 X1~X9 정리
 
 ## 기타 산출물
 - `README.md`, `.gitignore`, `docs/images/architecture.svg`·`architecture.png` (구성도, SVG가 원본)
-- TECH_STACK·README·requirements는 G2 결과 반영 완료. 구성도(architecture.svg)는 아직 백오피스·Tavily·Cloudflare Tunnel 미반영 → G3에서 갱신
+- TECH_STACK·README·requirements는 G2 결과 반영 완료. 구성도(architecture.svg/png)는 G3에서 재작성 완료. SVG는 스크립트로 생성 — 원본 스크립트는 레포에 없음
 
 ## 막힌 것 / 사용자 확인 필요
 - 사용자: `.dev` 도메인 구입(Cloudflare Registrar) — 인프라 작업 전까지. Gmail 발신 계정·앱 비밀번호 — 메일 작업 전까지 `.env`에 직접

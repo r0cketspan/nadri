@@ -35,36 +35,9 @@
 
 ## 2. 시스템 구성도
 
-```
- [PC/모바일 브라우저]
-        │ HTTPS
-        ▼
- ┌─────────────┐   /        ┌──────────────┐
- │   Nginx     │──────────▶ │  Next.js     │  채팅 UI, 녹음(MediaRecorder), TTS 재생
- │ (443)       │   /api/*   ├──────────────┤
- │             │──────────▶ │  FastAPI     │  인증·세션·대화이력·컨텍스트 조립·STT·TTS
- └─────────────┘            └──────┬───────┘
-                                   │ OpenAI 호환 (/v1/chat/completions, SSE)
-                                   ▼
-                            ┌──────────────┐        ┌──────────────┐
-                            │ Hermes Agent │──────▶ │ OpenAI API   │
-                            │ (gateway)    │        └──────────────┘
-                            └──────┬───────┘
-                                   │ MCP (HTTP)
-                                   ▼
-                            ┌──────────────┐  rag_query ──▶ LightRAG ──┐
-                            │ tour-tools   │  data_query ─────────────┤
-                            │ (MCP 서버)   │  tour_live ──▶ TourAPI   │
-                            └──────────────┘                          ▼
-                                                            ┌──────────────────┐
- ┌────────────────────┐  wiki 갱신·인덱싱                    │ PostgreSQL       │
- │ ingest (배치/스케줄)│ ───────────────────────────────────▶│ + pgvector       │
- │ TourAPI → raw →    │                                      │ (RAG·정형·세션)  │
- │ 정형DB + LLM Wiki  │                                      └──────────────────┘
- └────────────────────┘
-```
+![관광 챗봇 아키텍처](docs/images/architecture.png)
 
-외부에 열리는 포트는 **Nginx 443 하나**. Hermes·LightRAG·PostgreSQL·MCP는 Compose 내부 네트워크에만 노출.
+외부 접속은 Cloudflare Named Tunnel(`cloudflared` → Nginx :80)로만 받고, **호스트에 여는 인바운드 포트는 없다**. Hermes·LightRAG·PostgreSQL·MCP는 Compose 내부 네트워크에만 노출. 컨테이너별 책임·데이터 흐름은 [`docs/harness/architecture.md`](docs/harness/architecture.md) (G3 승인본).
 
 ---
 
@@ -74,7 +47,7 @@
 - 기본 URL: `https://apis.data.go.kr/B551011/KorService2`
 - 주요 오퍼레이션: `areaBasedList2`(지역 목록), `locationBasedList2`(좌표 주변), `searchKeyword2`, `searchFestival2`(행사), `searchStay2`(숙박), `detailCommon2`/`detailIntro2`/`detailInfo2`/`detailImage2`(상세), **`areaBasedSyncList2`(변경분 동기화 → 현행화 핵심)** [미확인: 공식 명세서로 최종 확인]
 - 콘텐츠 타입: 관광지·문화시설·행사/축제·여행코스·레포츠·숙박·쇼핑·음식점
-- **트래픽 제약**: 개발계정 일일 호출 한도가 작음(관광공사 API 다수가 1,000건/일) [미확인: KorService2 한도] → 초기 전체 적재에 수일 소요 가능. 대응: **MVP는 지역 1곳으로 범위 축소** 또는 운영계정 트래픽 증설 신청.
+- **트래픽 제약**: 개발계정 일일 호출 한도가 작음(관광공사 API 다수가 1,000건/일) [미확인: KorService2 한도] → 초기 전체 적재에 수일 소요 가능. 대응: **서울+제주를 개발계정으로 나눠 적재**(이어하기, 하루 호출 예산), 부족하면 운영계정 트래픽 증설 신청 (D-22, FR-48).
 - 이미지·저작권: 공공누리 유형 표기 및 "한국관광공사" 출처 표기 필요.
 - **확장 데이터 원천 (MVP 이후)**: 비짓제주 관광정보 API, 서울 실시간 도시데이터(혼잡도), 문화데이터광장(전시·공연), 한국관광공사 관광빅데이터(방문자 수). `ingest`에 원천별로 추가하고, 실시간성 데이터는 `tour-tools` 툴로 노출. 상세는 [`docs/analysis/01-data-sources.md`](docs/analysis/01-data-sources.md).
 
@@ -271,27 +244,27 @@ ElevenLabs `eleven_flash_v2_5`, 기본 보이스 1개(`.env`의 `ELEVENLABS_VOIC
 ## 11. 평가 · 테스트
 - **단위테스트**: pytest(FastAPI·툴·ingest), 외부 API·LLM은 목킹한 결정적 테스트 우선.
 - **골든 Q&A 평가셋**: 관광 질문 + 정답 + 근거 contentid → 정답률·근거 일치율, 리랭커 on/off·임베딩 모델 비교에 사용.
-- **E2E**: 로그인 → 질문 → 스트리밍 답변 → 이력 조회 → 음성 입력 (하네스 Phase 6 `integration_test.md`).
+- **E2E**: 가입 신청 → 관리자 승인 → 로그인 → 질문 → 스트리밍 답변 → 이력 조회 → 음성 입력 → 한도 초과 → 추가 요청 승인 (NFR-71, 하네스 Phase 6 `integration_test.md`).
 
 ---
 
-## 12. 레포 구조 (초안, G3에서 확정)
+## 12. 레포 구조 (G3 확정)
 ```
 myAgent/
-├── apps/
-│   ├── web/            # Next.js
-│   └── api/            # FastAPI (BFF)
-├── services/
-│   ├── tour-tools/     # MCP 서버 (rag_query, data_query, tour_live, get_datetime)
-│   └── ingest/         # TourAPI 수집 · 위키 생성 · LightRAG 인덱싱
-├── infra/
-│   ├── compose.yaml
-│   ├── nginx/nginx.conf
-│   └── hermes/         # config.yaml 템플릿 (비밀값 제외)
+├── compose.yaml        # 9개 서비스, named volume
+├── compose.dev.yaml    # 개발용 덮어쓰기 (소스 마운트·핫리로드)
+├── .env.example        # 비밀값 키 이름만
+├── web/                # Next.js — 챗봇 + /admin + PWA (e2e/ 포함)
+├── backend/            # Python 단일 프로젝트 (uv), 이미지 타깃 2개
+│   ├── alembic/        #   nadri DB 마이그레이션
+│   ├── src/nadri/      #   core/ · api/ · tools/(MCP 서버) · ingest/ · cli.py
+│   └── tests/
+├── infra/              # nginx/, hermes/config.yaml, lightrag/, postgres/init/
 ├── eval/               # 골든 Q&A 평가셋 · 평가 스크립트
 ├── docs/
 │   ├── analysis/       # 사전 분석
-│   └── harness/        # 하네스 산출물 (requirements, architecture, program_list, tasks/…)
+│   ├── harness/        # 하네스 산출물 (requirements, architecture, erd, program_list, tasks/…)
+│   └── images/         # 구성도 · ERD
 ├── CLAUDE.md
 └── TECH_STACK.md
 ```

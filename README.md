@@ -3,8 +3,7 @@
 한국관광공사 **TourAPI 4.0** 공공데이터를 근거로 답하는 관광 챗봇입니다. PC·모바일 브라우저에서 동작합니다.
 
 > **상태: 설계 단계 (구현 전)**
-> 지금은 요구사항을 확정하는 중이고(Phase 1), 아래 내용은 처음 세운 계획을 기준으로 합니다.
-> 세부 사항은 기술스택(G2)과 아키텍처(G3) 승인을 거치며 바뀔 수 있습니다. 진행 상황은 [`docs/harness/PROGRESS.md`](docs/harness/PROGRESS.md)에 있습니다.
+> 요구사항(G1)·기술스택(G2)·아키텍처(G3)가 승인되었고, 다음은 작업 분해(G4)입니다. 진행 상황은 [`docs/harness/PROGRESS.md`](docs/harness/PROGRESS.md)에 있습니다.
 
 ## 무엇을 하나
 
@@ -18,7 +17,7 @@
 
 ![관광 챗봇 아키텍처](./docs/images/architecture.png)
 
-실선은 내부 호출, 점선은 외부 서비스 호출입니다. 외부 접속은 Cloudflare Tunnel(`cloudflared` → Nginx)로만 받아 호스트에 여는 인바운드 포트가 없고, 나머지 서비스는 Docker Compose 내부 네트워크에만 둡니다. (구성도는 G3에서 터널·백오피스·Tavily 반영 예정)
+실선은 내부 호출, 점선은 외부 서비스 호출입니다. 외부 접속은 Cloudflare Tunnel(`cloudflared` → Nginx)로만 받아 호스트에 여는 인바운드 포트가 없고, 나머지 서비스는 Docker Compose 내부 네트워크에만 둡니다.
 
 ## 기술 스택
 
@@ -42,21 +41,25 @@
 
 자세한 내용은 [`TECH_STACK.md`](TECH_STACK.md)에 있습니다.
 
+## DB 구조 (ERD)
+
+![nadri DB ERD](./docs/images/erd.png)
+
+PostgreSQL 한 대 안에 DB를 2개 둡니다. `nadri` DB에는 위 그림의 앱 테이블 14개가 있고, RAG용 벡터·그래프는 별도 DB `lightrag`에 두며 LightRAG가 직접 관리합니다. 테이블·컬럼의 한글 명칭은 실제 DDL에도 `COMMENT`로 들어갑니다. 설계 근거는 [`docs/harness/architecture.md`](docs/harness/architecture.md) §5에 있습니다.
+
 ## 레포 구조 (계획)
 
 ```
 myAgent/
-├── apps/
-│   ├── web/            # Next.js
-│   └── api/            # FastAPI (BFF)
-├── services/
-│   ├── tour-tools/     # MCP 서버
-│   └── ingest/         # TourAPI 수집 · 위키 생성 · 인덱싱
-├── infra/              # compose.yaml, nginx.conf, Hermes 설정 템플릿
+├── compose.yaml        # 9개 서비스 (Docker Compose)
+├── web/                # Next.js — 챗봇 UI + 관리자 백오피스 + PWA
+├── backend/            # Python(uv) — FastAPI(api) · MCP 서버(tools) · 수집(ingest)
+├── infra/              # nginx, Hermes 설정, LightRAG 설정, PostgreSQL 초기화
 ├── eval/               # 골든 Q&A 평가셋 · 평가 스크립트
 └── docs/
     ├── analysis/       # 사전 분석
-    └── harness/        # 요구사항 · 아키텍처 · 작업목록 · 작업별 스펙
+    ├── harness/        # 요구사항 · 아키텍처 · ERD · 작업목록 · 작업별 스펙
+    └── images/         # 구성도 · ERD
 ```
 
 ## 시작하기 (구현 후 채울 예정)
@@ -75,7 +78,7 @@ API 키 같은 비밀값은 `.env` 파일에만 넣고, `.env`는 git에 커밋�
 
 ```
 요구사항(G1) → 기술스택(G2) → 아키텍처(G3) → 작업목록(G4)
-  → 작업별 spec/test → 작업 브랜치 구현 → master 병합(G5) → E2E 테스트 설계
+  → 작업별 spec/test → 작업 브랜치 구현 → dev 병합(G5) → E2E 테스트 설계
 ```
 
 - 각 단계의 산출물은 [`docs/harness/`](docs/harness/)에 있습니다.
