@@ -10,9 +10,10 @@
 
 ## 개발 프로세스 — debugs-choi-harnes
 이 레포는 하네스 플러그인 [`debugs-choi-harnes`](https://github.com/r0cketspan/debugs-choi-harnes)의 승인 게이트 파이프라인을 따른다.
-- 요구사항(G1) → 기술스택(G2) → 아키텍처(G3) → 작업목록(G4) → 작업별 spec/test → 브랜치 구현 → master 병합(G5) → E2E 설계
+- 요구사항(G1) → 기술스택(G2) → 아키텍처(G3) → 작업목록(G4) → 작업별 spec/test → 브랜치 구현 → dev 병합(G5) → E2E 설계
 - **G4 승인 전에는 소스코드를 수정하지 않는다.** Phase 1~4 산출물은 `docs/harness/`에만 쓴다.
-- **master 병합은 G5 승인 후에만.** 작업은 항상 작업 브랜치에서 한다. push는 명시 요청 시에만.
+- 브랜치: 작업 브랜치 → `dev` → `prod`. **dev 병합은 G5 승인 후에만.** 작업은 항상 작업 브랜치에서 한다.
+- 최종 릴리스는 `dev` → `prod` 병합 + `v1.0` 태그(사용자 승인 후). push는 사용자가 직접 한다.
 - 게이트 통과는 사용자가 "승인"/"진행"이라고 말했을 때만. 침묵은 승인이 아니다.
 
 ### 진행 상태 파일 — `docs/harness/PROGRESS.md` (필수)

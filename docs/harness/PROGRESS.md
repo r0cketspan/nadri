@@ -1,23 +1,27 @@
 # PROGRESS
-- 현재 단계: Phase 1 — 요구사항 (초안 작성 완료, 미해결 질문 답변 대기)
+- 현재 단계: Phase 1 — 요구사항 (확정본 작성 완료, **G1 승인 대기**)
 - 게이트: G1 ⏳ · G2 · G3 · G4 · G5 (작업별, 아래 표)
-- 다음 할 일: 사용자에게 Q1~Q18 답변 받기 → `requirements.md`에 반영 → 확정본 제시 → G1 승인 요청
+- 다음 할 일: 사용자에게 requirements.md §6 O1~O6 확인 + G1 "승인" 받기 → PROGRESS 갱신 → Phase 2(solution-architect, 기술스택 후보 G2)
+- 브랜치: `dev`(작업 기준) · `prod`(릴리스). 2026-11-07 로컬 `master` → `prod` 이름 변경, `dev` 생성. 원격 반영(push·기본 브랜치 변경·원격 master 삭제)은 사용자가 직접
 
 | 작업id | spec/test | 브랜치 | 구현·테스트 | 커밋 | G5 병합 |
 |---|---|---|---|---|---|
 | (G4 승인 후 작성) | | | | | |
 
 ## 산출물
-- `docs/harness/requirements.md` — 초안 (2026-10-24). 확정 전제 D-01~D-20, FR/NFR, 미해결 질문 Q1~Q18, 상충 기록 C1~C11
+- `docs/harness/requirements.md` — 확정본 (2026-11-07). 확정 전제 D-01~D-22, FR/NFR, G1 직전 확인 O1~O6, G2/PoC 이관 항목, 상충 기록 C1~C12
+- `docs/analysis/01-data-sources.md` — 확장 데이터 원천 조사
 
 ## 결정 로그 (게이트에서 바뀐 것)
-- 2026-10-25 (G1 전): 리버스 프록시 Caddy → **Nginx** (사용자 결정). requirements D-15·NFR-08, TECH_STACK, README, 구성도 반영. Nginx는 인증서 자동 발급이 없어 인증서 준비 방식은 Q4에서 함께 결정
-- 2026-10-25 (G1 전): 프로젝트 이름 **nadri** 확정 (README·구성도 제목). 로컬 디렉터리는 `myAgent` 유지
-- 2026-10-25 (G1 전): 확장 데이터 원천 4곳(비짓제주, 서울 실시간 도시데이터, 문화데이터광장, 관광빅데이터)을 MVP 이후 항목으로 추가 — requirements FR-49, `docs/analysis/01-data-sources.md`, 구성도 반영. 크롤링은 기본 미사용
+- 2026-10-25 (G1 전): 리버스 프록시 Caddy → **Nginx**
+- 2026-10-25 (G1 전): 프로젝트 이름 **nadri**. 로컬 디렉터리는 `myAgent` 유지
+- 2026-10-25 (G1 전): 확장 데이터 원천 4곳을 MVP 이후 항목으로 추가(FR-49). 크롤링 기본 미사용
+- 2026-11-07 (G1 전, Q1~Q18 답변): 관리자 백오피스 + 챗봇 PWA · 가입 신청→관리자 승인 · 이메일 인증코드 비밀번호 재설정 · 본인 데모 · Cloudflare Tunnel로 HTTPS · 서울+제주 8종 · 매일 01:00 현행화 · 1인 하루 50회(초과 시 추가요청→관리자 승인 +50) · 웹 검색 Tavily · Hermes만 사용(OpenAI SDK 비교는 MVP 이후 실험) · TTS ElevenLabs(Edge 제외) · dev/prod 브랜치 · 위치 정보는 동의 시에만 · 세션 단위 삭제 · 대표 이미지 썸네일 카드
 
 ## 기타 산출물
 - `README.md`, `.gitignore`, `docs/images/architecture.svg`·`architecture.png` (구성도, SVG가 원본)
+- 구성도·TECH_STACK에는 아직 백오피스·Tavily·ElevenLabs 단독·Cloudflare Tunnel 미반영 → G2/G3 결과로 함께 갱신
 
 ## 막힌 것 / 사용자 확인 필요
-- Q1~Q18 답변 대기 (질문·선택지·추천안은 `requirements.md` §6 및 2026-10-24 세션 대화 참조)
-- 미해소 상충: C3(웹 검색 툴 포함 여부 → Q8), C8(기준 브랜치 master/main → Q13)
+- requirements.md §6 O1~O6 (터널 주소 고정 방식, 인증코드 수치, 월 $10 경고, 썸네일 카드, 비교 실험 포함, 관리자 CLI·비활성화)
+- G1 승인
