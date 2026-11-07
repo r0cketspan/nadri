@@ -1,6 +1,6 @@
 # 요구사항 — nadri (한국관광공사 TourAPI 기반 관광 챗봇)
 
-> 하네스 Phase 1 산출물 — **확정본 (G1 승인 대기)**. 작성 2026-10-24 · 사용자 답변 반영 2026-11-07 (O1~O6 확인 완료).
+> 하네스 Phase 1 산출물 — **G1 승인 완료 (2026-11-07)**. 작성 2026-10-24 · 사용자 답변 반영 2026-11-07 (O1~O6 확인 완료).
 > 출처 표기: [CL]=CLAUDE.md, [TS]=TECH_STACK.md, [AN]=docs/analysis/00-initial-analysis.md, [DS]=docs/analysis/01-data-sources.md, [U]=사용자 답변(2026-11-07)
 
 ## 1. 배경 / 목표

@@ -39,6 +39,8 @@
 
 새 세션을 시작하면 **가장 먼저 `PROGRESS.md`를 읽고** 현재 위치를 파악한 뒤 진행한다.
 
+**세션 정리(`/clear`)는 게이트 단위로 한다.** 게이트(G1~G4, 작업별 G5)를 통과해 PROGRESS.md를 갱신·커밋하면 사용자에게 "지금 /clear 해도 된다"고 알린다. 게이트가 없는 Phase 4·6은 그 Phase가 끝났을 때 알린다 (Phase 4는 작업이 많으면 5개 안팎마다).
+
 ## 행동 원칙 (Karpathy-inspired guidelines)
 > 출처: [forrestchang/andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills). 속도보다 신중함 쪽으로 기운 규칙이다. 사소한 작업은 판단껏.
 

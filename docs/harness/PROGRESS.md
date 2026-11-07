@@ -1,7 +1,7 @@
 # PROGRESS
-- 현재 단계: Phase 1 — 요구사항 (확정본 완료, O1~O6 확인 완료, **G1 "승인" 한마디만 남음**)
-- 게이트: G1 ⏳ · G2 · G3 · G4 · G5 (작업별, 아래 표)
-- 다음 할 일: 사용자 G1 "승인" → PROGRESS 갱신(G1 ✅) → Phase 2a: `solution-architect` 에이전트로 기술스택 후보·트레이드오프 제시(G2)
+- 현재 단계: Phase 2a — 기술스택 후보 (시작 전)
+- 게이트: G1 ✅ (2026-11-07) · G2 ⏳ · G3 · G4 · G5 (작업별, 아래 표)
+- 다음 할 일: Phase 2a — `solution-architect` 에이전트에 requirements.md(G1 승인본)·TECH_STACK.md(초안)를 넘겨 기술스택 후보·트레이드오프 제시 → 사용자 선택(G2). requirements §6 "G2/PoC로 넘기는 항목"이 주요 결정 대상
 - 브랜치: `dev`(작업 기준) · `prod`(릴리스). 2026-11-07 로컬 `master` → `prod` 이름 변경, `dev` 생성. 원격 반영(push·기본 브랜치 변경·원격 master 삭제)은 사용자가 직접
 
 | 작업id | spec/test | 브랜치 | 구현·테스트 | 커밋 | G5 병합 |
@@ -9,7 +9,7 @@
 | (G4 승인 후 작성) | | | | | |
 
 ## 산출물
-- `docs/harness/requirements.md` — 확정본 (2026-11-07). 확정 전제 D-01~D-22, FR/NFR, G1 직전 확인 O1~O6, G2/PoC 이관 항목, 상충 기록 C1~C12
+- `docs/harness/requirements.md` — **G1 승인본** (2026-11-07). 확정 전제 D-01~D-22, FR/NFR, G1 직전 확인 O1~O6, G2/PoC 이관 항목, 상충 기록 C1~C12
 - `docs/analysis/01-data-sources.md` — 확장 데이터 원천 조사
 
 ## 결정 로그 (게이트에서 바뀐 것)
@@ -24,4 +24,4 @@
 - 구성도·TECH_STACK에는 아직 백오피스·Tavily·ElevenLabs 단독·Cloudflare Tunnel 미반영 → G2/G3 결과로 함께 갱신
 
 ## 막힌 것 / 사용자 확인 필요
-- G1 승인 (사용자가 "승인"이라고 말해야 통과)
+- 없음 (G2 진행 대기)
