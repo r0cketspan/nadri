@@ -1,6 +1,6 @@
 # 요구사항 — nadri (한국관광공사 TourAPI 기반 관광 챗봇)
 
-> 하네스 Phase 1 산출물 — **G1 승인 완료 (2026-11-07)**. 작성 2026-10-24 · 사용자 답변 반영 2026-11-07 (O1~O6 확인 완료).
+> 하네스 Phase 1 산출물 — **G1 승인 완료 (2026-11-07)**. G2 승인(2026-11-07)으로 D-05·FR-14·FR-16·NFR-22·NFR-41·O1 수정 — 근거 `stack-options.md`. 작성 2026-10-24 · 사용자 답변 반영 2026-11-07 (O1~O6 확인 완료).
 > 출처 표기: [CL]=CLAUDE.md, [TS]=TECH_STACK.md, [AN]=docs/analysis/00-initial-analysis.md, [DS]=docs/analysis/01-data-sources.md, [U]=사용자 답변(2026-11-07)
 
 ## 1. 배경 / 목표
@@ -26,7 +26,7 @@
 | D-02 | 채널: 챗봇은 반응형 웹 + **PWA**(홈 화면 설치), 관리자는 **백오피스 웹**. 네이티브 앱·메신저 게이트웨이는 쓰지 않음 | [AN §9], [U Q11·백오피스] |
 | D-03 | 프론트는 Next.js(App Router, TS), 백엔드(BFF)는 FastAPI. 브라우저는 FastAPI만 호출 | [AN §10], [TS §1] |
 | D-04 | 에이전트는 **Hermes Agent**만 사용. API Server(OpenAI 호환)를 FastAPI가 stateless `/v1/chat/completions`로 호출 | [TS §1, §6], [U Q9] |
-| D-05 | LLM은 OpenAI API만 사용(메인 `gpt-6-luna`, 보조 `gpt-5-nano` — G2에서 가격·가용성 재확인). 로컬 LLM 서빙과 다른 프로바이더 fallback은 하지 않음 | [AN §9, §10], [TS §1] |
+| D-05 | LLM은 OpenAI API만 사용(`gpt-6-luna` 하나로 답변·제목·요약 통일 — G2 S1: `gpt-5-nano` 2026-12-11 종료 예정). 로컬 LLM 서빙과 다른 프로바이더 fallback은 하지 않음 | [AN §9, §10], [TS §1] |
 | D-06 | Graph RAG는 LightRAG이고, 인덱싱 대상은 LLM Wiki 페이지. 리랭커를 사용 | [AN §10], [TS §5] |
 | D-07 | DB는 PostgreSQL+pgvector 하나로 운영(벡터·그래프 테이블·정형·사용자·세션·대화) | [AN §10], [TS §1, §5.1] |
 | D-08 | 관광 툴은 자체 MCP 서버(`tour-tools`)로 Hermes에 연결. 웹 검색은 Hermes 내장 `web_search`/`web_extract` + **Tavily** | [TS §1, §4.2], [U Q8] |
@@ -65,9 +65,9 @@
 | FR-11 | 에이전트가 질문 유형에 따라 툴 선택: 스몰토크·상식은 툴 없이, 관광 지식 `rag_query`, 조건·수치·주변 `data_query`, 실시간 `tour_live`, 날짜 `get_datetime`, DB에 없는 최신 정보 `web_search`/`web_extract` | [TS §4.1–4.2], [U Q8] |
 | FR-12 | 운영시간·요금 같은 관광 사실은 툴 결과로만 답하고, 출처와 기준일을 표기 | [TS §4.1–4.2] |
 | FR-13 | 근거 우선순위: 공공데이터(정형·위키) > 웹 검색. 웹 결과를 쓰면 출처(URL) 표기 | [TS §4.2], [U Q8] |
-| FR-14 | FastAPI가 요청마다 컨텍스트 조립: 최근 10턴 원문 + 이전 대화 누적 요약 1개(`gpt-5-nano`) | [TS §6] |
+| FR-14 | FastAPI가 요청마다 컨텍스트 조립: 최근 10턴 원문 + 이전 대화 누적 요약 1개(`gpt-6-luna`) | [TS §6] |
 | FR-15 | 세션이 50턴을 넘으면 새 대화 시작 안내 | [TS §6] |
-| FR-16 | 첫 문답 후 `gpt-5-nano`로 한 줄 세션 제목 생성, 사이드바 이력 목록에 표시 | [TS §6] |
+| FR-16 | 첫 문답 후 `gpt-6-luna`로 한 줄 세션 제목 생성, 사이드바 이력 목록에 표시 | [TS §6] |
 | FR-17 | 지난 대화 세션 목록·내용 조회 | [TS §6, §11] |
 | FR-18 | LLM 장애 시 "시스템 장애" 안내 + 재시도 버튼 | [TS §10] |
 | FR-19 | "이번 주말", "오늘 하는 축제" 같은 상대 날짜를 `get_datetime`으로 해석 | [TS §4.2] |
@@ -151,7 +151,7 @@
 |---|---|---|
 | NFR-20 | 모든 서비스를 WSL2 Ubuntu-22.04 안의 Docker Compose로 띄운다(터널 클라이언트 포함) | [CL], [TS §9] |
 | NFR-21 | 같은 compose·이미지로 Rocky Linux, Windows Docker Desktop 이식 가능. 데이터는 named volume | [TS §9] |
-| NFR-22 | 브라우저에는 HTTPS로만 노출(모바일 마이크·위치 정보·`Secure` 쿠키·PWA 설치 조건). 개발 중에는 Cloudflare 임시 주소(계정 불필요, 재시작마다 변경), **데모 전에 도메인 구입 후 고정 주소** | [TS §8.1, §9], [U Q4] |
+| NFR-22 | 브라우저에는 HTTPS로만 노출(모바일 마이크·위치 정보·`Secure` 쿠키·PWA 설치 조건). **개발 중부터 `.dev` 도메인 + Cloudflare Named Tunnel**로 고정 주소 (G2 S6: 임시 주소 Quick Tunnel은 SSE 미지원) | [TS §8.1, §9], [U Q4] |
 | NFR-23 | SSE 스트리밍이 Nginx·터널에서 버퍼링되지 않아야 한다 | [TS §1, §9] |
 | NFR-24 | 위키와 raw 데이터는 레포가 아닌 데이터 볼륨 | [TS §12] |
 
@@ -168,7 +168,7 @@
 | ID | 요구사항 | 출처 |
 |---|---|---|
 | NFR-40 | 시스템 프롬프트·툴 정의를 고정 프리픽스로 두어 프롬프트 캐싱, `prompt_cache_key` 사용, `cached_tokens`로 적중률 측정 | [TS §10] |
-| NFR-41 | 답변은 `gpt-6-luna`, 제목·요약·키워드는 `gpt-5-nano` | [TS §10] |
+| NFR-41 | 답변·제목·요약·키워드 모두 `gpt-6-luna`. 제목·요약은 낮은 reasoning effort·짧은 출력으로 비용 절감 (G2 S1) | [TS §10] |
 | NFR-42 | 다른 LLM 프로바이더로 fallback 없음 | [TS §1, §10] |
 | NFR-43 | 외부 유료 API(Tavily 월 1,000크레딧 무료, ElevenLabs 사용자 플랜) 사용량도 대시보드에 기록 | [U Q8, Q10] |
 
@@ -216,7 +216,7 @@
 
 | ID | 확인한 것 | 결정 |
 |---|---|---|
-| O1 | 터널 주소 | 개발 중 Cloudflare 임시 주소, 데모 전 도메인 구입 |
+| O1 | 터널 주소 | ~~개발 중 Cloudflare 임시 주소, 데모 전 도메인 구입~~ → G2 S6: 지금 `.dev` 도메인 구입, 처음부터 Named Tunnel |
 | O2 | 인증코드 유효 10분·입력 5회 (FR-05) | 확정 |
 | O3 | 월 비용 $10 초과 시 경고만 (FR-63) | 확정 |
 | O4 | 답변 이미지 썸네일 카드 | **표시하지 않음** (FR-21) |
@@ -235,7 +235,7 @@
 | Hermes toolset whitelist 설정 키, Tavily 연결 설정(`web.backend`) | [TS §4.3], FR-54 |
 | KorService2 일일 호출 한도·오퍼레이션 명세 | [TS §3.1] |
 | LightRAG 한국어 엔티티 추출 품질·질의 모드·인덱싱용 LLM | [AN §3.2, §3.5, §5] |
-| `gpt-6-luna`·`gpt-5-nano` 가격·가용성 재확인, 버전 고정 | D-05, [TS 서두] |
+| ~~`gpt-6-luna`·`gpt-5-nano` 가격·가용성 재확인, 버전 고정~~ → G2 해소: `gpt-6-luna` 통일, 날짜 스냅샷 없어 응답 모델명 기록으로 대체 | D-05, [TS 서두] |
 | 레포 구조·테이블 스키마 | [TS §6, §12] (G3) |
 
 ## 7. 문서 간 상충 기록

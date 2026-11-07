@@ -1,7 +1,8 @@
 # TECH_STACK.md
 
-관광 챗봇의 기술 구성 문서 (개발자용). **G2(기술스택)·G3(아키텍처) 승인 전 초안**이다.
-`[미확인]` = 문서로 확정 못 해 PoC/G2에서 확인할 항목. 버전은 G2에서 고정한다.
+관광 챗봇의 기술 구성 문서 (개발자용). **G2(기술스택) 승인 반영 (2026-11-07)**, G3(아키텍처) 전.
+결정별 후보·트레이드오프·근거는 [`docs/harness/stack-options.md`](docs/harness/stack-options.md) (S1~S21).
+`[미확인]` = 문서로 확정 못 해 첫 구현 작업에서 실행으로 확인할 항목(별도 PoC 없음). 버전은 G4 이후 첫 작업에서 고정한다.
 
 ---
 
@@ -10,18 +11,24 @@
 | 영역 | 선택 | 비고 |
 |---|---|---|
 | 실행 환경 | WSL2 Ubuntu-22.04 + Docker Compose | Rocky Linux·Windows Docker Desktop으로 이식 가능 |
-| 프론트엔드 | **Next.js** (App Router, TypeScript) | 반응형 채팅 UI, 모바일 브라우저 대응 |
-| 백엔드(BFF) | **FastAPI** (Python) | 브라우저가 호출하는 유일한 API. 인증·세션·대화이력·STT·TTS 중계 |
-| 에이전트 | **Hermes Agent** (Nous Research) | API Server(OpenAI 호환, `:8642`)로 FastAPI가 호출 |
-| LLM | **OpenAI API** — 메인 `gpt-6-luna`, 보조 `gpt-5-nano` | 다른 LLM 프로바이더로 fallback 하지 않음 |
-| Graph RAG | **LightRAG** | 그래프 + 벡터, 문서 단위 삭제·증분 갱신 |
+| 프론트엔드 | **Next.js 16** (App Router, TypeScript) + Tailwind CSS 4 + shadcn/ui | 반응형 채팅 UI + PWA(`app/manifest.ts` + 최소 서비스워커) + 백오피스 `/admin` |
+| 백엔드(BFF) | **FastAPI** (Python 3.12, uv) + SQLAlchemy 2.x(async) + asyncpg + Alembic + argon2-cffi | 브라우저가 호출하는 유일한 API. 인증·세션·대화이력·STT·TTS 중계. Hermes 스트림은 httpx로 SSE 직접 파싱 |
+| 에이전트 | **Hermes Agent** (Nous Research) | API Server(OpenAI 호환, `:8642`)로 FastAPI가 호출. 공식 이미지 **버전 태그 고정**, toolset 화이트리스트, **memory 끔** |
+| LLM | **OpenAI API** — `gpt-6-luna` 하나로 답변·제목·요약·LightRAG 인덱싱 모두 처리 | `gpt-5-nano`는 2026-12-11 종료 예정이라 제외(G2 S1). 다른 프로바이더 fallback 없음 |
+| Graph RAG | **LightRAG** (`PGTableGraphStorage`) | 그래프 + 벡터, 문서 단위 삭제·증분 갱신. 질의 모드 `mix`로 시작 → `hybrid`와 비교해 확정 |
 | DB | **PostgreSQL + pgvector** (단일 DB) | 벡터·그래프 테이블·관광 정형데이터·사용자·세션·대화 |
-| 임베딩 | OpenAI `text-embedding-3-small` (기본) | 로컬 `bge-m3`와 비교 후 G2 확정 — **바꾸면 전체 재인덱싱** |
-| 리랭커 | `BAAI/bge-reranker-v2-m3` (로컬, CPU 가능) | 서빙 방식 G2 확정 (§5.3) |
-| 툴 연결 | **MCP 서버** (Python, 자체 개발) | Hermes `mcp_servers`로 등록 |
-| STT | OpenAI 전사 API (`gpt-4o-mini-transcribe`) | `SttProvider` 인터페이스로 추후 로컬 GPU faster-whisper 전환 |
-| TTS | Edge TTS(개발) → ElevenLabs(데모) | `TtsProvider` 인터페이스, Drama 3는 API로 실험 |
-| 리버스 프록시 | **Nginx** | HTTPS, 단일 진입점, SSE 버퍼링 off |
+| 임베딩 | OpenAI `text-embedding-3-small` | 로컬 `bge-m3`는 소량 샘플 비교 실험용만 — **바꾸면 전체 재인덱싱** |
+| 리랭커 | `BAAI/bge-reranker-v2-m3` CrossEncoder | **tour-tools 안에서 직접 재정렬**(별도 컨테이너 없음). LightRAG는 `/query/data`로 후보만, 자체 리랭크 끔 |
+| 툴 연결 | **MCP 서버** (공식 `mcp` Python SDK/FastMCP, Streamable HTTP) | Hermes `mcp_servers`로 등록 |
+| 웹 검색 | Hermes 내장 `web_search`/`web_extract`, 백엔드 **Tavily** | `web.backend: tavily` |
+| STT | OpenAI 전사 API (**`gpt-transcribe`**, $0.0045/분) | `gpt-4o-mini-transcribe`는 2027-02-26 종료 예정이라 제외(G2 S2). `SttProvider` 인터페이스 |
+| TTS | **ElevenLabs** `eleven_flash_v2_5`, 기본 보이스 1개 고정 | `TtsProvider` 인터페이스. Edge TTS 제외, 사용자 음성 선택 없음 |
+| 리버스 프록시 | **Nginx** | 단일 진입점, SSE 버퍼링 off |
+| 외부 접속(HTTPS) | **Cloudflare Named Tunnel** + `.dev` 도메인 | Quick Tunnel(임시 주소)은 SSE 미지원이라 개발 중에도 Named Tunnel |
+| 메일 | Gmail SMTP + 앱 비밀번호 | 비밀번호 재설정 인증코드 |
+| 스케줄러 | `ingest` 컨테이너 안 APScheduler | 01:00 KST 현행화 + 90일 대화 삭제 |
+| 한도·잠금·지표 저장 | PostgreSQL 테이블 (Redis 없음) | 실제 IP는 `CF-Connecting-IP`(신뢰 프록시에서만) |
+| 테스트 | pytest(백엔드) · Vitest + React Testing Library(프론트) · Playwright(E2E) | |
 | 데이터 원천 | **한국관광공사 TourAPI 4.0** (`KorService2`) | 공공데이터포털 인증키 |
 
 ---
@@ -108,7 +115,7 @@ TourAPI ─▶ raw/ (응답 JSON, 날짜별 스냅샷, 불변)
             ├─ 관광 지식 질문      → rag_query
             ├─ 조건·수치·주변 검색 → data_query
             ├─ 실시간성 필요       → tour_live
-            └─ DB에 없는 최신 정보 → web_search / web_fetch
+            └─ DB에 없는 최신 정보 → web_search / web_extract
        └▶ 툴 결과를 근거로 답변 생성 (출처·기준일 포함) → SSE 스트리밍
 ```
 
@@ -118,7 +125,7 @@ TourAPI ─▶ raw/ (응답 JSON, 날짜별 스냅샷, 불변)
 | `rag_query` | tour-tools | 위키를 임베딩한 **벡터DB(pgvector) + 그래프** 검색 → 리랭크 → 상위 문단 반환 |
 | `data_query` | tour-tools | `tour_items` 정형 조회 (지역·타입·키워드·거리·운영여부). **SQL 직접 생성 금지 — 파라미터화된 조회 함수만** |
 | `tour_live` | tour-tools | TourAPI 실시간 호출 (진행 중 축제, 좌표 주변 등) |
-| `web_search` / `web_fetch` | Hermes 내장 | DuckDuckGo(무료)/Brave/SearXNG 중 G2 확정 |
+| `web_search` / `web_extract` | Hermes 내장 | 백엔드 Tavily (G2 확정) |
 | `get_datetime` | tour-tools | "이번 주말", "오늘 하는 축제" 해석용 |
 
 **우선순위 규칙**(시스템 프롬프트): 공공데이터(정형·위키) > 웹 검색. 웹 결과는 출처 표기. 운영시간·요금 같은 사실은 **LLM 기억으로 답하지 말고 툴 결과로만** 답한다.
@@ -165,10 +172,10 @@ LightRAG 리랭크 바인딩은 `cohere`/`jina`/`aliyun` 형식만 지원 → �
 | 정책 | 값 |
 |---|---|
 | 모델에 보내는 원문 | 최근 **10턴** |
-| 그 이전 대화 | **누적 요약 1개**로 압축 (`gpt-5-nano`) |
+| 그 이전 대화 | **누적 요약 1개**로 압축 (`gpt-6-luna`, 낮은 reasoning effort) |
 | 세션당 최대 | **50턴** → 초과 시 새 대화 안내 |
 | 보관 | **90일** 후 자동 삭제 |
-| 세션 제목 | 첫 문답 후 `gpt-5-nano`로 한 줄 요약 생성 → 사이드바 이력 목록 |
+| 세션 제목 | 첫 문답 후 `gpt-6-luna`로 한 줄 요약 생성 → 사이드바 이력 목록 |
 
 테이블 초안: `users`, `auth_sessions`, `chat_sessions(id, user_id, title, summary, turn_count, created_at, updated_at)`, `chat_messages(id, session_id, role, content, tool_trace, tokens, created_at)`.
 
@@ -219,7 +226,7 @@ class SttProvider(Protocol):
 
 ### 8.2 TTS
 `TtsProvider` 동일 패턴. 답변 옆 🔊 버튼 → `/api/tts` → 오디오 스트림 재생.
-Edge TTS(무료, `ko-KR`) → ElevenLabs(데모). Drama 3는 35B 모델이라 로컬 불가, API로만 실험(라이선스 제한 확인).
+ElevenLabs `eleven_flash_v2_5`, 기본 보이스 1개(`.env`의 `ELEVENLABS_VOICE_ID`). 사용량 기록 + 1회 요청 글자 수 상한. Edge TTS는 쓰지 않는다(G1 C12). Drama 3는 확장 후보로만.
 
 ---
 
@@ -227,15 +234,15 @@ Edge TTS(무료, `ko-KR`) → ElevenLabs(데모). Drama 3는 35B 모델이라 �
 
 | 서비스 | 이미지/빌드 | 외부 노출 |
 |---|---|---|
-| `nginx` | nginx | **443** |
+| `nginx` | nginx | ✗ (`cloudflared` → `nginx:80`) |
+| `cloudflared` | cloudflare/cloudflared (Named Tunnel) | 아웃바운드만, 호스트 인바운드 포트 없음 |
 | `web` | Next.js 빌드 | ✗ |
 | `api` | FastAPI 빌드 | ✗ |
 | `hermes` | `nousresearch/hermes-agent` (`gateway run`) | ✗ |
 | `tour-tools` | 자체 빌드 (MCP 서버) | ✗ |
 | `lightrag` | LightRAG 서버 | ✗ |
 | `postgres` | `pgvector/pgvector:pg18` | ✗ |
-| `reranker` | §5.3 결정에 따름 | ✗ |
-| `ingest` | 자체 빌드 (스케줄 배치) | ✗ |
+| `ingest` | 자체 빌드 (APScheduler 상주 + 초기 적재 CLI) | ✗ |
 | `stt-gpu` | (추후) faster-whisper | ✗ |
 
 **이식성**: 같은 compose + 이미지로 Rocky Linux·Windows(Docker Desktop, WSL2 백엔드)에서 실행 가능. 단,
@@ -244,19 +251,20 @@ Edge TTS(무료, `ko-KR`) → ElevenLabs(데모). Drama 3는 35B 모델이라 �
 - GPU 컨테이너는 호스트에 NVIDIA 드라이버 + NVIDIA Container Toolkit 필요
 - 데이터는 named volume, 비밀값은 `.env` → 서버 이전 시 볼륨 백업/복원
 
-**리버스 프록시(Nginx)를 두는 이유**: ① HTTPS(모바일 마이크 필수, 쿠키 `Secure`. Nginx는 인증서 자동 발급이 없어 인증서를 직접 준비) ② `/`·`/api` 단일 진입점, 내부 서비스 은닉 ③ SSE 스트리밍 버퍼링 설정 일원화. 클라우드 배포는 하지 않는다.
+**리버스 프록시(Nginx)를 두는 이유**: ① HTTPS는 Cloudflare Tunnel이 처리(모바일 마이크 필수, 쿠키 `Secure`) → Nginx는 내부 `:80`만, 인증서 직접 준비 불필요 ② `/`·`/api` 단일 진입점, 내부 서비스 은닉 ③ SSE 스트리밍 버퍼링 설정 일원화. 클라우드 배포는 하지 않는다.
 
 ---
 
 ## 10. 비용 최적화
 - **프롬프트 캐싱**: 시스템 프롬프트·툴 정의를 고정 프리픽스로(1,024토큰 이상이면 자동 캐싱, 캐시 입력은 1/10 가격). `prompt_cache_key` 사용, 응답의 `cached_tokens`로 적중률 측정.
-- **모델 분리**: 답변 `gpt-6-luna` / 제목·요약·키워드 `gpt-5-nano`.
+- **모델 통일**: 답변·제목·요약·키워드 모두 `gpt-6-luna`. 제목·요약은 낮은 reasoning effort·짧은 출력 (G2 S1 — `gpt-5-nano` 종료 예정).
 - **FAQ 응답 캐시**: 동일·유사 질문 결과 재사용 (데이터 기준일 바뀌면 무효화).
 - **위키 엔티티 페이지는 템플릿 렌더링**(LLM 미사용), LLM은 허브 페이지에만.
 - **사용량 대시보드**: 사용자·일자별 토큰/비용.
 - **LLM 장애 시**: 다른 프로바이더로 넘기지 않음 → "시스템 장애" 안내 + 재시도 버튼.
 
-참고 단가(OpenAI 공식, 2026-10-24, $/1M tokens): `gpt-6-luna` 입력 0.10 / 캐시 0.01 / 출력 0.50, `gpt-5-nano` 0.05 / 0.005 / 0.40, `text-embedding-3-small` 0.02, `gpt-4o-mini-transcribe` $0.003/분.
+참고 단가(OpenAI 공식, 2026-11-07 재확인, $/1M tokens): `gpt-6-luna` 입력 0.10 / 캐시 0.01 / **캐시 쓰기 0.125** / 출력 0.50, `text-embedding-3-small` 0.02, `gpt-transcribe` $0.0045/분.
+예상: 질의 1건 약 $0.001, 실사용 1명 기준 월 약 $1.5 + 최초 인덱싱 1회 약 $15~30(추정, 첫 작업에서 50페이지 실측).
 
 ---
 

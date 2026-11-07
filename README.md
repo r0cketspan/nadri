@@ -18,21 +18,26 @@
 
 ![관광 챗봇 아키텍처](./docs/images/architecture.png)
 
-실선은 내부 호출, 점선은 외부 서비스 호출입니다. 외부에 여는 포트는 Nginx의 443 하나뿐이고, 나머지 서비스는 Docker Compose 내부 네트워크에만 둡니다.
+실선은 내부 호출, 점선은 외부 서비스 호출입니다. 외부 접속은 Cloudflare Tunnel(`cloudflared` → Nginx)로만 받아 호스트에 여는 인바운드 포트가 없고, 나머지 서비스는 Docker Compose 내부 네트워크에만 둡니다. (구성도는 G3에서 터널·백오피스·Tavily 반영 예정)
 
 ## 기술 스택
 
 | 영역 | 선택 |
 |---|---|
-| 프론트엔드 | Next.js (App Router, TypeScript) |
-| 백엔드(BFF) | FastAPI (Python) |
-| 에이전트 | Hermes Agent (OpenAI 호환 API Server) |
-| LLM | OpenAI API: 답변은 `gpt-6-luna`, 제목·요약은 `gpt-5-nano` |
-| Graph RAG | LightRAG + 리랭커 (`bge-reranker-v2-m3`) |
+| 프론트엔드 | Next.js 16 (App Router, TypeScript) + Tailwind CSS 4 + shadcn/ui, PWA, 관리자 백오피스(`/admin`) |
+| 백엔드(BFF) | FastAPI (Python 3.12, uv) + SQLAlchemy 2.x(async) + Alembic |
+| 에이전트 | Hermes Agent (OpenAI 호환 API Server, 버전 태그 고정) |
+| LLM | OpenAI API `gpt-6-luna` (답변·제목·요약·인덱싱 통일) |
+| 임베딩 | OpenAI `text-embedding-3-small` |
+| Graph RAG | LightRAG + 리랭커 (`bge-reranker-v2-m3` CrossEncoder, tour-tools 내장) |
 | DB | PostgreSQL + pgvector (단일 DB) |
-| 툴 연결 | 자체 MCP 서버 `tour-tools` |
-| STT / TTS | OpenAI 전사 API / Edge TTS → ElevenLabs (구현체 교체 가능한 인터페이스) |
-| 리버스 프록시 | Nginx (HTTPS, SSE 버퍼링 off) |
+| 툴 연결 | 자체 MCP 서버 `tour-tools` (공식 `mcp` Python SDK) |
+| 웹 검색 | Hermes 내장 웹 검색 + Tavily |
+| STT / TTS | OpenAI `gpt-transcribe` / ElevenLabs `eleven_flash_v2_5` (구현체 교체 가능한 인터페이스) |
+| 리버스 프록시 · 외부 접속 | Nginx (SSE 버퍼링 off) + Cloudflare Named Tunnel (HTTPS, `.dev` 도메인) |
+| 메일 | Gmail SMTP (비밀번호 재설정 인증코드) |
+| 스케줄러 | APScheduler (`ingest` 컨테이너, 매일 01:00 현행화) |
+| 테스트 | pytest · Vitest + React Testing Library · Playwright |
 | 실행 | Docker Compose (WSL2 Ubuntu-22.04에서 개발) |
 
 자세한 내용은 [`TECH_STACK.md`](TECH_STACK.md)에 있습니다.
