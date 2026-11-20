@@ -1,6 +1,6 @@
 # TECH_STACK.md
 
-관광 챗봇의 기술 구성 문서 (개발자용). **G2(기술스택) 승인 반영 (2026-11-07)**, G3(아키텍처) 전.
+관광 챗봇의 기술 구성 문서 (개발자용). G2 승인(2026-11-07) · **G3 재검토 반영(2026-11-21): Hermes 제거 → LangGraph·LangChain, 검증 에이전트, 매일 품질 평가·HITL, AI 보안**. 상세 설계는 [`docs/harness/architecture.md`](docs/harness/architecture.md), AI 보안은 [`SECURITY_GUIDE.md`](SECURITY_GUIDE.md).
 결정별 후보·트레이드오프·근거는 [`docs/harness/stack-options.md`](docs/harness/stack-options.md) (S1~S21).
 `[미확인]` = 문서로 확정 못 해 첫 구현 작업에서 실행으로 확인할 항목(별도 PoC 없음). 버전은 G4 이후 첫 작업에서 고정한다.
 
@@ -12,22 +12,24 @@
 |---|---|---|
 | 실행 환경 | WSL2 Ubuntu-22.04 + Docker Compose | Rocky Linux·Windows Docker Desktop으로 이식 가능 |
 | 프론트엔드 | **Next.js 16** (App Router, TypeScript) + Tailwind CSS 4 + shadcn/ui | 반응형 채팅 UI + PWA(`app/manifest.ts` + 최소 서비스워커) + 백오피스 `/admin` |
-| 백엔드(BFF) | **FastAPI** (Python 3.12, uv) + SQLAlchemy 2.x(async) + asyncpg + Alembic + argon2-cffi | 브라우저가 호출하는 유일한 API. 인증·세션·대화이력·STT·TTS 중계. Hermes 스트림은 httpx로 SSE 직접 파싱 |
-| 에이전트 | **Hermes Agent** (Nous Research) | API Server(OpenAI 호환, `:8642`)로 FastAPI가 호출. 공식 이미지 **버전 태그 고정**, toolset 화이트리스트, **memory 끔** |
-| LLM | **OpenAI API** — `gpt-6-luna` 하나로 답변·제목·요약·LightRAG 인덱싱 모두 처리 | `gpt-5-nano`는 2026-12-11 종료 예정이라 제외(G2 S1). 다른 프로바이더 fallback 없음 |
+| 백엔드(BFF) | **FastAPI** (Python 3.12, uv) + SQLAlchemy 2.x(async) + asyncpg + Alembic + argon2-cffi | 브라우저가 호출하는 유일한 API. 인증·세션·대화이력·STT·TTS 중계. **에이전트(LangGraph)도 이 프로세스 안에서 실행** |
+| 에이전트 | **LangGraph** `StateGraph` — **답변 에이전트**(툴 5개) ⇄ 툴 → **검증 에이전트** → 다시 쓰기(최대 2회) | api 안에서 요청마다 stateless 실행, 체크포인터 미사용. ~~Hermes Agent~~는 2026-11-21 제거 |
+| LLM 호출 | **LangChain** `ChatOpenAI`(답변·검증·입력 분류·제목·요약·평가·개선안·허브), `OpenAIEmbeddings`(FAQ 캐시) | OpenAI SDK 직접은 STT·Moderation만. 고정 후보: `langgraph` 1.2.24, `langchain-openai` 1.8.5, `langchain-mcp-adapters` 0.3.2, `langchain-tavily` 0.2.18 (PyPI 2026-11-21, `uv.lock`으로 고정) |
+| LLM | **OpenAI API** — `gpt-6-luna` 하나로 답변·검증·분류·제목·요약·평가·LightRAG 인덱싱 모두 처리 | `gpt-5-nano`는 2026-12-11 종료 예정이라 제외(G2 S1). 다른 프로바이더 fallback 없음 |
 | Graph RAG | **LightRAG** (`PGTableGraphStorage`) | 그래프 + 벡터, 문서 단위 삭제·증분 갱신. 질의 모드 `mix`로 시작 → `hybrid`와 비교해 확정 |
 | DB | **PostgreSQL + pgvector** (단일 DB) | 벡터·그래프 테이블·관광 정형데이터·사용자·세션·대화 |
 | 임베딩 | OpenAI `text-embedding-3-small` | 로컬 `bge-m3`는 소량 샘플 비교 실험용만 — **바꾸면 전체 재인덱싱** |
 | 리랭커 | `BAAI/bge-reranker-v2-m3` CrossEncoder | **tour-tools 안에서 직접 재정렬**(별도 컨테이너 없음). LightRAG는 `/query/data`로 후보만, 자체 리랭크 끔 |
-| 툴 연결 | **MCP 서버** (공식 `mcp` Python SDK/FastMCP, Streamable HTTP) | Hermes `mcp_servers`로 등록 |
-| 웹 검색 | Hermes 내장 `web_search`/`web_extract`, 백엔드 **Tavily** | `web.backend: tavily` |
+| 툴 연결 | **MCP 서버** `tour-tools` (공식 `mcp` Python SDK **1.30.x**/FastMCP, Streamable HTTP) | api가 `langchain-mcp-adapters`로 연결(내부 토큰 헤더). 어댑터가 `mcp<2`를 요구해 2.x 아님 |
+| 웹 검색 | **`langchain-tavily`** `TavilySearch` (Tavily) | 답변 에이전트에 직접 붙임. 무료 월 1,000크레딧(basic 1회 = 1크레딧) |
+| AI 보안 | 자체 `guard` 모듈 + OpenAI **Moderation API**(`omni-moderation-latest`, 무료) | 입력: 개인정보 가리기 → Moderation → LLM 분류기(순서대로, 실패 시 차단). 출력: Moderation + 코드 검사 + 검증 에이전트. [`SECURITY_GUIDE.md`](SECURITY_GUIDE.md) |
 | STT | OpenAI 전사 API (**`gpt-transcribe`**, $0.0045/분) | `gpt-4o-mini-transcribe`는 2027-02-26 종료 예정이라 제외(G2 S2). `SttProvider` 인터페이스 |
 | TTS | **ElevenLabs** `eleven_flash_v2_5`, 기본 보이스 1개 고정 | `TtsProvider` 인터페이스. Edge TTS 제외, 사용자 음성 선택 없음 |
 | 리버스 프록시 | **Nginx** | 단일 진입점, SSE 버퍼링 off |
 | 외부 접속(HTTPS) | **Cloudflare Named Tunnel** + `.dev` 도메인 | Quick Tunnel(임시 주소)은 SSE 미지원이라 개발 중에도 Named Tunnel |
 | 메일 | Gmail SMTP + 앱 비밀번호 | 비밀번호 재설정 인증코드 |
-| 스케줄러 | `ingest` 컨테이너 안 APScheduler | 01:00 KST 현행화 + 90일 대화 삭제 |
-| 한도·잠금·지표 저장 | PostgreSQL 테이블 (Redis 없음) | 실제 IP는 `CF-Connecting-IP`(신뢰 프록시에서만) |
+| 스케줄러 | `ingest` 컨테이너 안 APScheduler | 01:00 KST 현행화 + 90일 대화 삭제, **03:00 KST 품질 평가 → 개선안 → 관리자 결정(HITL)** |
+| 한도·잠금·지표 저장 | PostgreSQL 테이블 (Redis 없음) | 실제 IP는 `CF-Connecting-IP`(신뢰 프록시에서만). LangSmith 등 외부 추적 서비스 미사용 |
 | 테스트 | pytest(백엔드) · Vitest + React Testing Library(프론트) · Playwright(E2E) | |
 | 데이터 원천 | **한국관광공사 TourAPI 4.0** (`KorService2`) | 공공데이터포털 인증키 |
 
@@ -37,7 +39,7 @@
 
 ![관광 챗봇 아키텍처](docs/images/architecture.png)
 
-외부 접속은 Cloudflare Named Tunnel(`cloudflared` → Nginx :80)로만 받고, **호스트에 여는 인바운드 포트는 없다**. Hermes·LightRAG·PostgreSQL·MCP는 Compose 내부 네트워크에만 노출. 컨테이너별 책임·데이터 흐름은 [`docs/harness/architecture.md`](docs/harness/architecture.md) (G3 승인본).
+외부 접속은 Cloudflare Named Tunnel(`cloudflared` → Nginx :80)로만 받고, **호스트에 여는 인바운드 포트는 없다**. LightRAG·PostgreSQL·MCP(tour-tools)는 Compose 내부 네트워크에만 노출. 컨테이너별 책임·데이터 흐름은 [`docs/harness/architecture.md`](docs/harness/architecture.md) (G3 승인본).
 
 ---
 
@@ -82,14 +84,18 @@ TourAPI ─▶ raw/ (응답 JSON, 날짜별 스냅샷, 불변)
 ### 4.1 흐름
 ```
 사용자 질문
-  └▶ FastAPI: 인증 확인 → 대화 컨텍스트 조립(§6) → Hermes 호출(stream)
-       └▶ Hermes(LLM)가 판단
+  └▶ FastAPI: 인증·한도 확인 → 입력 검사(개인정보 가리기 → Moderation → LLM 분류기, 걸리면 안내 후 종료)
+       └▶ 대화 컨텍스트 조립(§6) → LangGraph 실행
+            [답변 에이전트] 질문 유형에 따라 툴 선택
             ├─ 스몰토크·일반 상식  → 툴 없이 바로 답변
             ├─ 관광 지식 질문      → rag_query
             ├─ 조건·수치·주변 검색 → data_query
             ├─ 실시간성 필요       → tour_live
-            └─ DB에 없는 최신 정보 → web_search / web_extract
-       └▶ 툴 결과를 근거로 답변 생성 (출처·기준일 포함) → SSE 스트리밍
+            └─ DB에 없는 최신 정보 → web_search (Tavily)
+            → 초안을 SSE로 먼저 스트리밍
+            [검증 에이전트] 초안을 툴 결과와 대조 (사실·contentid·지어낸 내용·보안 항목)
+            → 실패하면 피드백과 함께 다시 쓰기 (최대 2회)
+       └▶ 출력 검사 → "✓ 확인됨" 또는 수정본으로 교체 → 저장(툴 결과·검증 기록 포함)
 ```
 
 ### 4.2 툴 목록 (초안)
@@ -98,17 +104,18 @@ TourAPI ─▶ raw/ (응답 JSON, 날짜별 스냅샷, 불변)
 | `rag_query` | tour-tools | 위키를 임베딩한 **벡터DB(pgvector) + 그래프** 검색 → 리랭크 → 상위 문단 반환 |
 | `data_query` | tour-tools | `tour_items` 정형 조회 (지역·타입·키워드·거리·운영여부). **SQL 직접 생성 금지 — 파라미터화된 조회 함수만** |
 | `tour_live` | tour-tools | TourAPI 실시간 호출 (진행 중 축제, 좌표 주변 등) |
-| `web_search` / `web_extract` | Hermes 내장 | 백엔드 Tavily (G2 확정) |
+| `web_search` | `langchain-tavily` (api) | Tavily. 결과는 구분자로 감싼 외부 자료로만 취급 |
 | `get_datetime` | tour-tools | "이번 주말", "오늘 하는 축제" 해석용 |
 
 **우선순위 규칙**(시스템 프롬프트): 공공데이터(정형·위키) > 웹 검색. 웹 결과는 출처 표기. 운영시간·요금 같은 사실은 **LLM 기억으로 답하지 말고 툴 결과로만** 답한다.
 
-### 4.3 Hermes 보안 설정
-- Hermes는 터미널·파일·브라우저 등 범용 툴을 가진 자율 에이전트 → **위 툴만 허용(whitelist)**, 나머지 비활성화 [미확인: 정확한 toolset 설정 키]
-- API Server는 `API_SERVER_KEY` 필수, 내부 네트워크에만 바인딩. 브라우저는 Hermes를 직접 호출하지 않는다.
+### 4.3 AI 보안 (요약)
+- 5겹 방어: 입력 검사 → 답변 에이전트 규칙 → 읽기 전용 툴 5개(최소 권한) → 검증 에이전트 보안 항목 + 출력 검사 → 화면(raw HTML·이미지 끔, 링크는 툴 결과 URL만).
+- 대화 속 개인정보(주민·외국인등록번호, 전화, 이메일, 카드, 여권·운전면허, 계좌, 이름 문맥 패턴)는 가린 뒤에만 LLM·Tavily·DB·평가에 쓴다. 주소는 가리지 않는다.
+- 상세: [`SECURITY_GUIDE.md`](SECURITY_GUIDE.md).
 
-### 4.4 (선택) 최소 에이전트 루프
-역량 증빙용. OpenAI SDK로 "모델 호출 → 툴 호출 요청이면 실행 후 결과를 붙여 재호출 → 툴 요청이 없으면 최종 답변" 루프를 50줄 내외로 직접 구현해 Hermes와 응답 품질·지연·토큰을 비교.
+### 4.4 매일 품질 평가 · 개선 (HITL)
+`ingest`의 03:00 KST 작업: 평가 에이전트가 전날 대화(가린 텍스트, 사용자 익명)를 채점해 품질 보고서를 만들고, 개선안 에이전트가 개선안을 작성한다. 관리자가 `/admin` 품질 리포트에서 개선안마다 채택·보류·기각을 정한다. 에이전트는 코드·프롬프트·설정을 자동으로 바꾸지 않는다. 공격 질문 세트(`eval/attack_set`)도 매일 실행해 방어율을 보고서에 넣는다.
 
 ---
 
@@ -140,7 +147,7 @@ LightRAG 리랭크 바인딩은 `cohere`/`jina`/`aliyun` 형식만 지원 → �
 
 ## 6. 대화 · 세션
 
-**정본은 우리 PostgreSQL.** Hermes는 stateless(`/v1/chat/completions`)로 호출하고, FastAPI가 매 요청마다 컨텍스트를 조립한다 → 유지 범위·요약·삭제 정책을 우리가 통제.
+**정본은 우리 PostgreSQL.** LangGraph는 요청마다 stateless로 실행하고(체크포인터 미사용), FastAPI가 매 요청마다 컨텍스트를 조립한다 → 유지 범위·요약·삭제 정책을 우리가 통제.
 
 | 정책 | 값 |
 |---|---|
@@ -210,12 +217,11 @@ ElevenLabs `eleven_flash_v2_5`, 기본 보이스 1개(`.env`의 `ELEVENLABS_VOIC
 | `nginx` | nginx | ✗ (`cloudflared` → `nginx:80`) |
 | `cloudflared` | cloudflare/cloudflared (Named Tunnel) | 아웃바운드만, 호스트 인바운드 포트 없음 |
 | `web` | Next.js 빌드 | ✗ |
-| `api` | FastAPI 빌드 | ✗ |
-| `hermes` | `nousresearch/hermes-agent` (`gateway run`) | ✗ |
+| `api` | FastAPI 빌드 (LangGraph 에이전트·입력/출력 검사 포함) | ✗ |
 | `tour-tools` | 자체 빌드 (MCP 서버) | ✗ |
 | `lightrag` | LightRAG 서버 | ✗ |
 | `postgres` | `pgvector/pgvector:pg18` | ✗ |
-| `ingest` | 자체 빌드 (APScheduler 상주 + 초기 적재 CLI) | ✗ |
+| `ingest` | 자체 빌드 (APScheduler 상주: 01:00 수집, 03:00 품질 평가 + 초기 적재 CLI) | ✗ |
 | `stt-gpu` | (추후) faster-whisper | ✗ |
 
 **이식성**: 같은 compose + 이미지로 Rocky Linux·Windows(Docker Desktop, WSL2 백엔드)에서 실행 가능. 단,
@@ -230,41 +236,43 @@ ElevenLabs `eleven_flash_v2_5`, 기본 보이스 1개(`.env`의 `ELEVENLABS_VOIC
 
 ## 10. 비용 최적화
 - **프롬프트 캐싱**: 시스템 프롬프트·툴 정의를 고정 프리픽스로(1,024토큰 이상이면 자동 캐싱, 캐시 입력은 1/10 가격). `prompt_cache_key` 사용, 응답의 `cached_tokens`로 적중률 측정.
-- **모델 통일**: 답변·제목·요약·키워드 모두 `gpt-6-luna`. 제목·요약은 낮은 reasoning effort·짧은 출력 (G2 S1 — `gpt-5-nano` 종료 예정).
+- **모델 통일**: 답변·검증·분류·제목·요약·키워드·평가 모두 `gpt-6-luna`. 제목·요약은 낮은 reasoning effort·짧은 출력 (G2 S1 — `gpt-5-nano` 종료 예정).
 - **FAQ 응답 캐시**: 동일·유사 질문 결과 재사용 (데이터 기준일 바뀌면 무효화).
 - **위키 엔티티 페이지는 템플릿 렌더링**(LLM 미사용), LLM은 허브 페이지에만.
 - **사용량 대시보드**: 사용자·일자별 토큰/비용.
 - **LLM 장애 시**: 다른 프로바이더로 넘기지 않음 → "시스템 장애" 안내 + 재시도 버튼.
 
 참고 단가(OpenAI 공식, 2026-11-07 재확인, $/1M tokens): `gpt-6-luna` 입력 0.10 / 캐시 0.01 / **캐시 쓰기 0.125** / 출력 0.50, `text-embedding-3-small` 0.02, `gpt-transcribe` $0.0045/분.
-예상: 질의 1건 약 $0.001, 실사용 1명 기준 월 약 $1.5 + 최초 인덱싱 1회 약 $15~30(추정, 첫 작업에서 50페이지 실측).
+예상(G3 재검토): 질의 1건 평균 약 $0.0019(입력 분류 + 답변 + 검증, 다시 쓰기 포함), 매일 품질 평가 월 약 $1.5 → 실사용 1명 기준 **월 약 $3~4** + 최초 인덱싱 1회 약 $15~30(추정, 첫 작업에서 실측). Moderation은 무료. 상세는 `architecture.md` §10.
 
 ---
 
 ## 11. 평가 · 테스트
 - **단위테스트**: pytest(FastAPI·툴·ingest), 외부 API·LLM은 목킹한 결정적 테스트 우선.
-- **골든 Q&A 평가셋**: 관광 질문 + 정답 + 근거 contentid → 정답률·근거 일치율, 리랭커 on/off·임베딩 모델 비교에 사용.
-- **E2E**: 가입 신청 → 관리자 승인 → 로그인 → 질문 → 스트리밍 답변 → 이력 조회 → 음성 입력 → 한도 초과 → 추가 요청 승인 (NFR-71, 하네스 Phase 6 `integration_test.md`).
+- **골든 Q&A 평가셋**: 관광 질문 + 정답 + 근거 contentid → 정답률·근거 일치율, 리랭커 on/off·임베딩 모델·**검증 에이전트 끔/1회/2회** 비교에 사용.
+- **공격 질문 세트**: 탈옥·직접/간접 인젝션·프롬프트 유출·링크 유출·개인정보·유해·자해·범위 이탈(한국어 포함) → 방어율. 매일 품질 평가에서 실행.
+- **E2E**: 가입 신청 → 관리자 승인 → 로그인 → 질문 → 스트리밍 답변(✓ 확인됨) → 👎 피드백 → 이력 조회 → 음성 입력 → 한도 초과 → 추가 요청 승인 → 공격 입력 차단 → 품질 리포트 개선안 채택 (NFR-71, 하네스 Phase 6 `integration_test.md`).
 
 ---
 
 ## 12. 레포 구조 (G3 확정)
 ```
 myAgent/
-├── compose.yaml        # 9개 서비스, named volume
+├── compose.yaml        # 8개 서비스, named volume
 ├── compose.dev.yaml    # 개발용 덮어쓰기 (소스 마운트·핫리로드)
 ├── .env.example        # 비밀값 키 이름만
+├── SECURITY_GUIDE.md   # AI 보안 가이드
 ├── web/                # Next.js — 챗봇 + /admin + PWA (e2e/ 포함)
 ├── backend/            # Python 단일 프로젝트 (uv), 이미지 타깃 2개
 │   ├── alembic/        #   nadri DB 마이그레이션
-│   ├── src/nadri/      #   core/ · api/ · tools/(MCP 서버) · ingest/ · cli.py
+│   ├── src/nadri/      #   core/ · prompts/ · guard/(입력·출력 검사) · agent/(LangGraph) · api/ · tools/(MCP 서버) · ingest/ · eval/(품질 평가·개선안) · cli.py
 │   └── tests/
-├── infra/              # nginx/, hermes/config.yaml, lightrag/, postgres/init/
-├── eval/               # 골든 Q&A 평가셋 · 평가 스크립트
+├── infra/              # nginx/, lightrag/, postgres/init/
+├── eval/               # 골든 Q&A 평가셋 · 공격 질문 세트
 ├── docs/
 │   ├── analysis/       # 사전 분석
 │   ├── harness/        # 하네스 산출물 (requirements, architecture, erd, program_list, tasks/…)
-│   └── images/         # 구성도 · ERD
+│   └── images/         # 구성도 · ERD (src/에 생성 스크립트)
 ├── CLAUDE.md
 └── TECH_STACK.md
 ```

@@ -3,7 +3,7 @@
 한국관광공사 **TourAPI 4.0** 공공데이터를 근거로 답하는 관광 챗봇입니다. PC·모바일 브라우저에서 동작합니다.
 
 > **상태: 설계 단계 (구현 전)**
-> 요구사항(G1)·기술스택(G2)·아키텍처(G3)가 승인되었고, 다음은 작업 분해(G4)입니다. 진행 상황은 [`docs/harness/PROGRESS.md`](docs/harness/PROGRESS.md)에 있습니다.
+> 요구사항(G1)·기술스택(G2)·아키텍처(G3)가 승인되었고, 2026-11-21 에이전트 구조 변경(Hermes → LangGraph)·품질 평가·AI 보안 추가로 **G3 재검토 중**입니다. 다음은 작업 분해(G4)입니다. 진행 상황은 [`docs/harness/PROGRESS.md`](docs/harness/PROGRESS.md)에 있습니다.
 
 ## 무엇을 하나
 
@@ -12,6 +12,9 @@
 - **최신 데이터 유지**: TourAPI의 변경분 동기화 API로 바뀐 항목만 다시 수집해 반영합니다.
 - **스트리밍 채팅과 대화 이력**: 로그인한 사용자는 답변을 실시간으로 받고, 지난 대화를 다시 볼 수 있습니다.
 - **음성 입출력**: 누르고 말하는(Push-to-talk) 음성 입력과 답변 읽어 주기(TTS)를 지원합니다.
+- **답변 검증**: 답변 에이전트가 쓴 초안을 검증 에이전트가 툴 결과와 대조합니다. 틀리면 다시 쓰고(최대 2회), 통과하면 "✓ 확인됨"을 표시합니다.
+- **매일 품질 평가**: 전날 대화를 평가 에이전트가 채점하고 개선안 에이전트가 개선안을 만듭니다. 적용 여부는 관리자가 직접 정합니다(Human-in-the-loop).
+- **AI 보안**: 탈옥·프롬프트 인젝션·개인정보 노출을 여러 겹으로 막습니다. 자세한 내용은 아래 "보안" 절을 보세요.
 
 ## 아키텍처
 
@@ -25,17 +28,19 @@
 |---|---|
 | 프론트엔드 | Next.js 16 (App Router, TypeScript) + Tailwind CSS 4 + shadcn/ui, PWA, 관리자 백오피스(`/admin`) |
 | 백엔드(BFF) | FastAPI (Python 3.12, uv) + SQLAlchemy 2.x(async) + Alembic |
-| 에이전트 | Hermes Agent (OpenAI 호환 API Server, 버전 태그 고정) |
-| LLM | OpenAI API `gpt-6-luna` (답변·제목·요약·인덱싱 통일) |
+| 에이전트 | **LangGraph** — 답변 에이전트 + 검증 에이전트 (api 안에서 실행) |
+| LLM 호출 | **LangChain** (`ChatOpenAI`, `OpenAIEmbeddings`) · STT·Moderation만 OpenAI SDK |
+| LLM | OpenAI API `gpt-6-luna` (답변·검증·분류·제목·요약·평가·인덱싱 통일) |
 | 임베딩 | OpenAI `text-embedding-3-small` |
 | Graph RAG | LightRAG + 리랭커 (`bge-reranker-v2-m3` CrossEncoder, tour-tools 내장) |
 | DB | PostgreSQL + pgvector (단일 DB) |
 | 툴 연결 | 자체 MCP 서버 `tour-tools` (공식 `mcp` Python SDK) |
-| 웹 검색 | Hermes 내장 웹 검색 + Tavily |
+| 웹 검색 | Tavily (`langchain-tavily`) |
+| AI 보안 | 개인정보 가리기(규칙) + OpenAI Moderation API + LLM 분류기 + 검증 에이전트 |
 | STT / TTS | OpenAI `gpt-transcribe` / ElevenLabs `eleven_flash_v2_5` (구현체 교체 가능한 인터페이스) |
 | 리버스 프록시 · 외부 접속 | Nginx (SSE 버퍼링 off) + Cloudflare Named Tunnel (HTTPS, `.dev` 도메인) |
 | 메일 | Gmail SMTP (비밀번호 재설정 인증코드) |
-| 스케줄러 | APScheduler (`ingest` 컨테이너, 매일 01:00 현행화) |
+| 스케줄러 | APScheduler (`ingest` 컨테이너, 매일 01:00 현행화 · 03:00 품질 평가) |
 | 테스트 | pytest · Vitest + React Testing Library · Playwright |
 | 실행 | Docker Compose (WSL2 Ubuntu-22.04에서 개발) |
 
@@ -45,22 +50,35 @@
 
 ![nadri DB ERD](./docs/images/erd.png)
 
-PostgreSQL 한 대 안에 DB를 2개 둡니다. `nadri` DB에는 위 그림의 앱 테이블 14개가 있고, RAG용 벡터·그래프는 별도 DB `lightrag`에 두며 LightRAG가 직접 관리합니다. 테이블·컬럼의 한글 명칭은 실제 DDL에도 `COMMENT`로 들어갑니다. 설계 근거는 [`docs/harness/architecture.md`](docs/harness/architecture.md) §5에 있습니다.
+PostgreSQL 한 대 안에 DB를 2개 둡니다. `nadri` DB에는 위 그림의 앱 테이블 19개가 있고, RAG용 벡터·그래프는 별도 DB `lightrag`에 두며 LightRAG가 직접 관리합니다. 테이블·컬럼의 한글 명칭은 실제 DDL에도 `COMMENT`로 들어갑니다. 설계 근거는 [`docs/harness/architecture.md`](docs/harness/architecture.md) §5에 있습니다.
 
 ## 레포 구조 (계획)
 
 ```
 myAgent/
-├── compose.yaml        # 9개 서비스 (Docker Compose)
+├── compose.yaml        # 8개 서비스 (Docker Compose)
+├── SECURITY_GUIDE.md   # AI 보안 가이드
 ├── web/                # Next.js — 챗봇 UI + 관리자 백오피스 + PWA
-├── backend/            # Python(uv) — FastAPI(api) · MCP 서버(tools) · 수집(ingest)
-├── infra/              # nginx, Hermes 설정, LightRAG 설정, PostgreSQL 초기화
-├── eval/               # 골든 Q&A 평가셋 · 평가 스크립트
+├── backend/            # Python(uv) — FastAPI(api) · LangGraph 에이전트 · 입력/출력 검사 · MCP 서버(tools) · 수집·평가(ingest)
+├── infra/              # nginx, LightRAG 설정, PostgreSQL 초기화
+├── eval/               # 골든 Q&A 평가셋 · 공격 질문 세트
 └── docs/
     ├── analysis/       # 사전 분석
     ├── harness/        # 요구사항 · 아키텍처 · ERD · 작업목록 · 작업별 스펙
-    └── images/         # 구성도 · ERD
+    └── images/         # 구성도 · ERD (src/에 생성 스크립트)
 ```
+
+## 보안
+
+LLM 보안은 한 번에 완벽히 막을 수 없어서, 여러 겹으로 막고 뚫려도 피해가 없게 권한을 최소로 둡니다.
+
+- **입력 검사**: 대화 속 개인정보(주민번호·전화번호·카드번호 등)를 먼저 가리고, OpenAI Moderation API와 LLM 분류기로 유해 요청·탈옥·프롬프트 인젝션을 거릅니다. 검사가 실패하면 차단합니다.
+- **최소 권한**: 에이전트가 쓸 수 있는 툴은 읽기 전용 5개뿐이고, 관광 툴 서버는 SELECT만 되는 DB 계정을 씁니다.
+- **출력 검사**: 검증 에이전트가 프롬프트 유출·개인정보·관광 범위 이탈을 확인하고, 화면은 HTML·이미지를 렌더링하지 않으며 툴 결과에 있던 링크만 허용합니다.
+- **개인정보**: 가린 텍스트만 저장하고, 위치 좌표는 저장하지 않으며, 대화는 90일 후 삭제합니다. 외부 추적 서비스로 대화를 보내지 않습니다.
+- **점검**: 공격 질문 세트를 매일 돌려 방어율을 품질 보고서에 기록합니다.
+
+자세한 설계는 [`SECURITY_GUIDE.md`](SECURITY_GUIDE.md)에 있습니다.
 
 ## 시작하기 (구현 후 채울 예정)
 

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="2620" height="1850" viewBox="0 0 2620 1850">
+<svg xmlns="http://www.w3.org/2000/svg" width="3920" height="1952" viewBox="0 0 3920 1952">
 <defs>
 <filter id="sh" x="-10%" y="-10%" width="120%" height="125%"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/></filter>
 <style>
@@ -14,9 +14,9 @@ text { font-family: 'Noto Sans CJK KR','Noto Sans KR','Malgun Gothic',sans-serif
 .lg { font-size: 16px; fill: #334155; }
 .nt { font-size: 15px; fill: #475569; }
 </style></defs>
-<rect width="2620" height="1850" fill="#f8fafc"/>
+<rect width="3920" height="1952" fill="#f8fafc"/>
 <text x="40" y="62" style="font-size:34px;font-weight:800;fill:#0f172a">nadri DB 구조 (ERD)</text>
-<text x="40" y="100" style="font-size:17px;fill:#475569">PostgreSQL 1대 안의 <tspan style="font-weight:700">nadri</tspan> DB — 우리 앱 테이블 14개. RAG용 벡터·그래프는 같은 PostgreSQL의 별도 DB <tspan style="font-weight:700">lightrag</tspan>에 있고 LightRAG가 직접 관리 (그림에 없음)</text>
+<text x="40" y="100" style="font-size:17px;fill:#475569">PostgreSQL 1대 안의 <tspan style="font-weight:700">nadri</tspan> DB — 우리 앱 테이블 19개. RAG용 벡터·그래프는 같은 PostgreSQL의 별도 DB <tspan style="font-weight:700">lightrag</tspan>에 있고 LightRAG가 직접 관리 (그림에 없음)</text>
 <path d="M690 224 L647 224 L647 256 L580 256" fill="none" stroke="#64748b" stroke-width="2.2"/>
 <circle cx="690" cy="224.0" r="4" fill="#64748b"/>
 <text x="674.5" y="216.0" class="rl">1</text>
@@ -47,31 +47,56 @@ text { font-family: 'Noto Sans CJK KR','Noto Sans KR','Malgun Gothic',sans-serif
 <text x="1237" y="216.0" class="rl">1</text>
 <circle cx="1340" cy="256.0" r="4" fill="#64748b"/>
 <text x="1324.5" y="248.0" class="rl">N</text>
-<path d="M1880 224 L1902 224 L1902 588 L1880 588" fill="none" stroke="#64748b" stroke-width="2.2"/>
-<circle cx="1880" cy="224.0" r="4" fill="#64748b"/>
-<text x="1887" y="216.0" class="rl">1</text>
-<circle cx="1880" cy="588.0" r="4" fill="#64748b"/>
-<text x="1887" y="580.0" class="rl">N</text>
-<path d="M1880 556 L1928 556 L1928 984 L1880 984" fill="none" stroke="#64748b" stroke-width="2.2"/>
-<circle cx="1880" cy="556.0" r="4" fill="#64748b"/>
-<text x="1887" y="548.0" class="rl">1</text>
-<circle cx="1880" cy="984.0" r="4" fill="#64748b"/>
-<text x="1887" y="976.0" class="rl">0..1</text>
 <path d="M1340 556 L1314 556 L1314 1252 L1230 1252" fill="none" stroke="#64748b" stroke-width="2.2"/>
 <circle cx="1340" cy="556.0" r="4" fill="#64748b"/>
 <text x="1324.5" y="548.0" class="rl">1</text>
 <circle cx="1230" cy="1252.0" r="4" fill="#64748b"/>
 <text x="1237" y="1244.0" class="rl">N</text>
-<path d="M2530 224 L2574 224 L2574 1004 L2530 1004" fill="none" stroke="#64748b" stroke-width="2.2"/>
-<circle cx="2530" cy="224.0" r="4" fill="#64748b"/>
-<text x="2537" y="216.0" class="rl">1</text>
-<circle cx="2530" cy="1004.0" r="4" fill="#64748b"/>
-<text x="2537" y="996.0" class="rl">N</text>
-<path d="M1880 1144 L1958 1144 L1958 224 L1990 224" fill="none" stroke="#059669" stroke-width="2.2" stroke-dasharray="8 6"/>
-<circle cx="1880" cy="1144.0" r="4" fill="#059669"/>
-<text x="1887" y="1136.0" class="rl">N</text>
-<circle cx="1990" cy="224.0" r="4" fill="#059669"/>
-<text x="1974.5" y="216.0" class="rl">N</text>
+<path d="M1340 556 L1330 556 L1330 1176 L1340 1176" fill="none" stroke="#64748b" stroke-width="2.2"/>
+<circle cx="1340" cy="556.0" r="4" fill="#64748b"/>
+<text x="1324.5" y="548.0" class="rl">1</text>
+<circle cx="1340" cy="1176.0" r="4" fill="#64748b"/>
+<text x="1299.0" y="1168.0" class="rl">0..1</text>
+<path d="M1880 224 L1900 224 L1900 588 L1880 588" fill="none" stroke="#64748b" stroke-width="2.2"/>
+<circle cx="1880" cy="224.0" r="4" fill="#64748b"/>
+<text x="1887" y="216.0" class="rl">1</text>
+<circle cx="1880" cy="588.0" r="4" fill="#64748b"/>
+<text x="1887" y="580.0" class="rl">N</text>
+<path d="M1880 556 H1892 A8 8 0 0 1 1908 556 L1920 556 L1920 224 L1990 224" fill="none" stroke="#64748b" stroke-width="2.2"/>
+<circle cx="1880" cy="556.0" r="4" fill="#64748b"/>
+<text x="1887" y="548.0" class="rl">1</text>
+<circle cx="1990" cy="224.0" r="4" fill="#64748b"/>
+<text x="1949.0" y="216.0" class="rl">0..1</text>
+<path d="M1880 556 H1892 A8 8 0 0 1 1908 556 L1938 556 L1938 620 L1990 620" fill="none" stroke="#64748b" stroke-width="2.2"/>
+<circle cx="1880" cy="556.0" r="4" fill="#64748b"/>
+<text x="1887" y="548.0" class="rl">1</text>
+<circle cx="1990" cy="620.0" r="4" fill="#64748b"/>
+<text x="1974.5" y="612.0" class="rl">N</text>
+<path d="M1880 556 H1892 A8 8 0 0 1 1908 556 L1956 556 L1956 1048 L1990 1048" fill="none" stroke="#64748b" stroke-width="2.2"/>
+<circle cx="1880" cy="556.0" r="4" fill="#64748b"/>
+<text x="1887" y="548.0" class="rl">1</text>
+<circle cx="1990" cy="1048.0" r="4" fill="#64748b"/>
+<text x="1974.5" y="1040.0" class="rl">N</text>
+<path d="M2640 224 L2570 224 L2570 1016 L2530 1016" fill="none" stroke="#64748b" stroke-width="2.2"/>
+<circle cx="2640" cy="224.0" r="4" fill="#64748b"/>
+<text x="2624.5" y="216.0" class="rl">1</text>
+<circle cx="2530" cy="1016.0" r="4" fill="#64748b"/>
+<text x="2537" y="1008.0" class="rl">N</text>
+<path d="M3180 224 L3202 224 L3202 652 L3180 652" fill="none" stroke="#64748b" stroke-width="2.2"/>
+<circle cx="3180" cy="224.0" r="4" fill="#64748b"/>
+<text x="3187" y="216.0" class="rl">1</text>
+<circle cx="3180" cy="652.0" r="4" fill="#64748b"/>
+<text x="3187" y="644.0" class="rl">N</text>
+<path d="M3830 224 L3874 224 L3874 1004 L3830 1004" fill="none" stroke="#64748b" stroke-width="2.2"/>
+<circle cx="3830" cy="224.0" r="4" fill="#64748b"/>
+<text x="3837" y="216.0" class="rl">1</text>
+<circle cx="3830" cy="1004.0" r="4" fill="#64748b"/>
+<text x="3837" y="996.0" class="rl">N</text>
+<path d="M1880 1336 L1974 1336 L1974 1678 L3250 1678 L3250 224 L3290 224" fill="none" stroke="#059669" stroke-width="2.2" stroke-dasharray="8 6"/>
+<circle cx="1880" cy="1336.0" r="4" fill="#059669"/>
+<text x="1887" y="1328.0" class="rl">N</text>
+<circle cx="3290" cy="224.0" r="4" fill="#059669"/>
+<text x="3274.5" y="216.0" class="rl">N</text>
 <g filter="url(#sh)"><rect x="690" y="150" width="540" height="346" rx="10" fill="#fff" stroke="#2563eb" stroke-width="1.5"/></g>
 <path d="M690 208 V160 Q690 150 700 150 H1220 Q1230 150 1230 160 V208 Z" fill="#2563eb"/>
 <text x="708" y="187" class="tk mono">users</text>
@@ -292,7 +317,7 @@ text { font-family: 'Noto Sans CJK KR','Noto Sans KR','Malgun Gothic',sans-serif
 <text x="760" y="1053.5" class="ck mono">decided_by</text>
 <text x="960" y="1053.5" class="cn">처리 관리자</text>
 <text x="1216" y="1053.5" class="ct mono" text-anchor="end">bigint</text>
-<g filter="url(#sh)"><rect x="690" y="1114" width="540" height="506" rx="10" fill="#fff" stroke="#d97706" stroke-width="1.5"/></g>
+<g filter="url(#sh)"><rect x="690" y="1114" width="540" height="538" rx="10" fill="#fff" stroke="#d97706" stroke-width="1.5"/></g>
 <path d="M690 1172 V1124 Q690 1114 700 1114 H1220 Q1230 1114 1230 1124 V1172 Z" fill="#d97706"/>
 <text x="708" y="1151" class="tk mono">usage_events</text>
 <text x="1212" y="1151" class="te" text-anchor="end">사용량 이력</text>
@@ -324,33 +349,36 @@ text { font-family: 'Noto Sans CJK KR','Noto Sans KR','Malgun Gothic',sans-serif
 <text x="960" y="1353.5" class="cn">입력 토큰</text>
 <text x="1216" y="1353.5" class="ct mono" text-anchor="end">int</text>
 <text x="760" y="1385.5" class="ck mono">cached_tokens</text>
-<text x="960" y="1385.5" class="cn">캐시 토큰</text>
+<text x="960" y="1385.5" class="cn">캐시 읽기 토큰</text>
 <text x="1216" y="1385.5" class="ct mono" text-anchor="end">int</text>
 <rect x="691.5" y="1396" width="537" height="32" fill="#f1f5f9"/>
-<text x="760" y="1417.5" class="ck mono">output_tokens</text>
-<text x="960" y="1417.5" class="cn">출력 토큰</text>
+<text x="760" y="1417.5" class="ck mono">cache_write_tokens</text>
+<text x="960" y="1417.5" class="cn">캐시 쓰기 토큰</text>
 <text x="1216" y="1417.5" class="ct mono" text-anchor="end">int</text>
-<text x="760" y="1449.5" class="ck mono">units</text>
-<text x="960" y="1449.5" class="cn">사용량</text>
-<text x="1216" y="1449.5" class="ct mono" text-anchor="end">numeric</text>
+<text x="760" y="1449.5" class="ck mono">output_tokens</text>
+<text x="960" y="1449.5" class="cn">출력 토큰</text>
+<text x="1216" y="1449.5" class="ct mono" text-anchor="end">int</text>
 <rect x="691.5" y="1460" width="537" height="32" fill="#f1f5f9"/>
-<text x="760" y="1481.5" class="ck mono">cost_usd</text>
-<text x="960" y="1481.5" class="cn">비용(USD)</text>
+<text x="760" y="1481.5" class="ck mono">units</text>
+<text x="960" y="1481.5" class="cn">사용량</text>
 <text x="1216" y="1481.5" class="ct mono" text-anchor="end">numeric</text>
-<text x="760" y="1513.5" class="ck mono">ttft_ms</text>
-<text x="960" y="1513.5" class="cn">첫 토큰 지연</text>
-<text x="1216" y="1513.5" class="ct mono" text-anchor="end">int</text>
+<text x="760" y="1513.5" class="ck mono">cost_usd</text>
+<text x="960" y="1513.5" class="cn">비용(USD)</text>
+<text x="1216" y="1513.5" class="ct mono" text-anchor="end">numeric</text>
 <rect x="691.5" y="1524" width="537" height="32" fill="#f1f5f9"/>
-<text x="760" y="1545.5" class="ck mono">total_ms</text>
-<text x="960" y="1545.5" class="cn">전체 소요</text>
+<text x="760" y="1545.5" class="ck mono">ttft_ms</text>
+<text x="960" y="1545.5" class="cn">첫 토큰 지연</text>
 <text x="1216" y="1545.5" class="ct mono" text-anchor="end">int</text>
-<text x="760" y="1577.5" class="ck mono">tool_ms</text>
-<text x="960" y="1577.5" class="cn">툴 소요</text>
+<text x="760" y="1577.5" class="ck mono">total_ms</text>
+<text x="960" y="1577.5" class="cn">전체 소요</text>
 <text x="1216" y="1577.5" class="ct mono" text-anchor="end">int</text>
 <rect x="691.5" y="1588" width="537" height="32" fill="#f1f5f9"/>
-<text x="760" y="1609.5" class="ck mono">created_at</text>
-<text x="960" y="1609.5" class="cn">기록 일시</text>
-<text x="1216" y="1609.5" class="ct mono" text-anchor="end">timestamptz</text>
+<text x="760" y="1609.5" class="ck mono">tool_ms</text>
+<text x="960" y="1609.5" class="cn">툴 소요</text>
+<text x="1216" y="1609.5" class="ct mono" text-anchor="end">int</text>
+<text x="760" y="1641.5" class="ck mono">created_at</text>
+<text x="960" y="1641.5" class="cn">기록 일시</text>
+<text x="1216" y="1641.5" class="ct mono" text-anchor="end">timestamptz</text>
 <g filter="url(#sh)"><rect x="1340" y="150" width="540" height="282" rx="10" fill="#fff" stroke="#7c3aed" stroke-width="1.5"/></g>
 <path d="M1340 208 V160 Q1340 150 1350 150 H1870 Q1880 150 1880 160 V208 Z" fill="#7c3aed"/>
 <text x="1358" y="187" class="tk mono">chat_sessions</text>
@@ -383,7 +411,7 @@ text { font-family: 'Noto Sans CJK KR','Noto Sans KR','Malgun Gothic',sans-serif
 <text x="1410" y="421.5" class="ck mono">updated_at</text>
 <text x="1610" y="421.5" class="cn">최종 대화 일시</text>
 <text x="1866" y="421.5" class="ct mono" text-anchor="end">timestamptz</text>
-<g filter="url(#sh)"><rect x="1340" y="482" width="540" height="346" rx="10" fill="#fff" stroke="#7c3aed" stroke-width="1.5"/></g>
+<g filter="url(#sh)"><rect x="1340" y="482" width="540" height="538" rx="10" fill="#fff" stroke="#7c3aed" stroke-width="1.5"/></g>
 <path d="M1340 540 V492 Q1340 482 1350 482 H1870 Q1880 482 1880 492 V540 Z" fill="#7c3aed"/>
 <text x="1358" y="519" class="tk mono">chat_messages</text>
 <text x="1862" y="519" class="te" text-anchor="end">대화 메시지</text>
@@ -406,188 +434,435 @@ text { font-family: 'Noto Sans CJK KR','Noto Sans KR','Malgun Gothic',sans-serif
 <text x="1610" y="657.5" class="cn">발화자</text>
 <text x="1866" y="657.5" class="ct mono" text-anchor="end">text</text>
 <text x="1410" y="689.5" class="ck mono">content</text>
-<text x="1610" y="689.5" class="cn">내용</text>
+<text x="1610" y="689.5" class="cn">내용 (가린 텍스트)</text>
 <text x="1866" y="689.5" class="ct mono" text-anchor="end">text</text>
 <rect x="1341.5" y="700" width="537" height="32" fill="#f1f5f9"/>
-<text x="1410" y="721.5" class="ck mono">tool_trace</text>
-<text x="1610" y="721.5" class="cn">툴 기록</text>
-<text x="1866" y="721.5" class="ct mono" text-anchor="end">jsonb</text>
-<text x="1410" y="753.5" class="ck mono">sources</text>
-<text x="1610" y="753.5" class="cn">출처</text>
+<text x="1410" y="721.5" class="ck mono">pii_types</text>
+<text x="1610" y="721.5" class="cn">가린 개인정보 종류</text>
+<text x="1866" y="721.5" class="ct mono" text-anchor="end">text[]</text>
+<text x="1410" y="753.5" class="ck mono">tool_results</text>
+<text x="1610" y="753.5" class="cn">툴 결과</text>
 <text x="1866" y="753.5" class="ct mono" text-anchor="end">jsonb</text>
 <rect x="1341.5" y="764" width="537" height="32" fill="#f1f5f9"/>
-<text x="1410" y="785.5" class="ck mono">from_cache</text>
-<text x="1610" y="785.5" class="cn">캐시 여부</text>
-<text x="1866" y="785.5" class="ct mono" text-anchor="end">boolean</text>
-<text x="1410" y="817.5" class="ck mono">created_at</text>
-<text x="1610" y="817.5" class="cn">생성 일시</text>
-<text x="1866" y="817.5" class="ct mono" text-anchor="end">timestamptz</text>
-<g filter="url(#sh)"><rect x="1340" y="878" width="540" height="346" rx="10" fill="#fff" stroke="#7c3aed" stroke-width="1.5"/></g>
-<path d="M1340 936 V888 Q1340 878 1350 878 H1870 Q1880 878 1880 888 V936 Z" fill="#7c3aed"/>
-<text x="1358" y="915" class="tk mono">faq_cache</text>
-<text x="1862" y="915" class="te" text-anchor="end">FAQ 캐시</text>
-<rect x="1352" y="943" width="28" height="18" rx="4" fill="#b453091a" stroke="#b45309" stroke-width="1"/>
-<text x="1366.0" y="956.5" class="kb" fill="#b45309" text-anchor="middle">PK</text>
-<text x="1410" y="957.5" class="ck mono">id</text>
-<text x="1610" y="957.5" class="cn">캐시 ID</text>
-<text x="1866" y="957.5" class="ct mono" text-anchor="end">bigint</text>
-<rect x="1341.5" y="968" width="537" height="32" fill="#f1f5f9"/>
-<rect x="1352" y="975" width="28" height="18" rx="4" fill="#1d4ed81a" stroke="#1d4ed8" stroke-width="1"/>
-<text x="1366.0" y="988.5" class="kb" fill="#1d4ed8" text-anchor="middle">FK</text>
-<text x="1410" y="989.5" class="ck mono">source_message_id</text>
-<text x="1610" y="989.5" class="cn">원본 메시지 ID</text>
-<text x="1866" y="989.5" class="ct mono" text-anchor="end">bigint</text>
-<text x="1410" y="1021.5" class="ck mono">question</text>
-<text x="1610" y="1021.5" class="cn">질문</text>
-<text x="1866" y="1021.5" class="ct mono" text-anchor="end">text</text>
-<rect x="1341.5" y="1032" width="537" height="32" fill="#f1f5f9"/>
-<text x="1410" y="1053.5" class="ck mono">embedding</text>
-<text x="1610" y="1053.5" class="cn">질문 임베딩</text>
-<text x="1866" y="1053.5" class="ct mono" text-anchor="end">vector(1536)</text>
-<text x="1410" y="1085.5" class="ck mono">answer</text>
-<text x="1610" y="1085.5" class="cn">답변</text>
-<text x="1866" y="1085.5" class="ct mono" text-anchor="end">text</text>
-<rect x="1341.5" y="1096" width="537" height="32" fill="#f1f5f9"/>
-<text x="1410" y="1117.5" class="ck mono">sources</text>
-<text x="1610" y="1117.5" class="cn">출처</text>
-<text x="1866" y="1117.5" class="ct mono" text-anchor="end">jsonb</text>
-<text x="1410" y="1149.5" class="ck mono">contentids</text>
-<text x="1610" y="1149.5" class="cn">근거 관광지 ID ②</text>
-<text x="1866" y="1149.5" class="ct mono" text-anchor="end">text[]</text>
+<text x="1410" y="785.5" class="ck mono">sources</text>
+<text x="1610" y="785.5" class="cn">출처</text>
+<text x="1866" y="785.5" class="ct mono" text-anchor="end">jsonb</text>
+<text x="1410" y="817.5" class="ck mono">from_cache</text>
+<text x="1610" y="817.5" class="cn">캐시 여부</text>
+<text x="1866" y="817.5" class="ct mono" text-anchor="end">boolean</text>
+<rect x="1341.5" y="828" width="537" height="32" fill="#f1f5f9"/>
+<rect x="1352" y="835" width="28" height="18" rx="4" fill="#1d4ed81a" stroke="#1d4ed8" stroke-width="1"/>
+<text x="1366.0" y="848.5" class="kb" fill="#1d4ed8" text-anchor="middle">FK</text>
+<text x="1410" y="849.5" class="ck mono">faq_cache_id</text>
+<text x="1610" y="849.5" class="cn">FAQ 캐시 ID ⑤</text>
+<text x="1866" y="849.5" class="ct mono" text-anchor="end">bigint</text>
+<text x="1410" y="881.5" class="ck mono">verify_status</text>
+<text x="1610" y="881.5" class="cn">검증 상태</text>
+<text x="1866" y="881.5" class="ct mono" text-anchor="end">text</text>
+<rect x="1341.5" y="892" width="537" height="32" fill="#f1f5f9"/>
+<text x="1410" y="913.5" class="ck mono">rewrite_count</text>
+<text x="1610" y="913.5" class="cn">다시 쓰기 횟수</text>
+<text x="1866" y="913.5" class="ct mono" text-anchor="end">smallint</text>
+<text x="1410" y="945.5" class="ck mono">verification</text>
+<text x="1610" y="945.5" class="cn">검증 기록</text>
+<text x="1866" y="945.5" class="ct mono" text-anchor="end">jsonb</text>
+<rect x="1341.5" y="956" width="537" height="32" fill="#f1f5f9"/>
+<text x="1410" y="977.5" class="ck mono">timings</text>
+<text x="1610" y="977.5" class="cn">지연 기록</text>
+<text x="1866" y="977.5" class="ct mono" text-anchor="end">jsonb</text>
+<text x="1410" y="1009.5" class="ck mono">created_at</text>
+<text x="1610" y="1009.5" class="cn">생성 일시</text>
+<text x="1866" y="1009.5" class="ct mono" text-anchor="end">timestamptz</text>
+<g filter="url(#sh)"><rect x="1340" y="1070" width="540" height="346" rx="10" fill="#fff" stroke="#7c3aed" stroke-width="1.5"/></g>
+<path d="M1340 1128 V1080 Q1340 1070 1350 1070 H1870 Q1880 1070 1880 1080 V1128 Z" fill="#7c3aed"/>
+<text x="1358" y="1107" class="tk mono">faq_cache</text>
+<text x="1862" y="1107" class="te" text-anchor="end">FAQ 캐시</text>
+<rect x="1352" y="1135" width="28" height="18" rx="4" fill="#b453091a" stroke="#b45309" stroke-width="1"/>
+<text x="1366.0" y="1148.5" class="kb" fill="#b45309" text-anchor="middle">PK</text>
+<text x="1410" y="1149.5" class="ck mono">id</text>
+<text x="1610" y="1149.5" class="cn">캐시 ID</text>
+<text x="1866" y="1149.5" class="ct mono" text-anchor="end">bigint</text>
 <rect x="1341.5" y="1160" width="537" height="32" fill="#f1f5f9"/>
-<text x="1410" y="1181.5" class="ck mono">hit_count</text>
-<text x="1610" y="1181.5" class="cn">재사용 횟수</text>
-<text x="1866" y="1181.5" class="ct mono" text-anchor="end">int</text>
-<text x="1410" y="1213.5" class="ck mono">created_at</text>
-<text x="1610" y="1213.5" class="cn">생성 일시</text>
-<text x="1866" y="1213.5" class="ct mono" text-anchor="end">timestamptz</text>
-<g filter="url(#sh)"><rect x="1990" y="150" width="540" height="666" rx="10" fill="#fff" stroke="#059669" stroke-width="1.5"/></g>
-<path d="M1990 208 V160 Q1990 150 2000 150 H2520 Q2530 150 2530 160 V208 Z" fill="#059669"/>
-<text x="2008" y="187" class="tk mono">tour_items</text>
-<text x="2512" y="187" class="te" text-anchor="end">관광 정보</text>
-<rect x="2002" y="215" width="28" height="18" rx="4" fill="#b453091a" stroke="#b45309" stroke-width="1"/>
-<text x="2016.0" y="228.5" class="kb" fill="#b45309" text-anchor="middle">PK</text>
-<text x="2060" y="229.5" class="ck mono">contentid</text>
-<text x="2260" y="229.5" class="cn">관광지 ID</text>
-<text x="2516" y="229.5" class="ct mono" text-anchor="end">text</text>
+<rect x="1352" y="1167" width="28" height="18" rx="4" fill="#1d4ed81a" stroke="#1d4ed8" stroke-width="1"/>
+<text x="1366.0" y="1180.5" class="kb" fill="#1d4ed8" text-anchor="middle">FK</text>
+<text x="1410" y="1181.5" class="ck mono">source_message_id</text>
+<text x="1610" y="1181.5" class="cn">원본 메시지 ID</text>
+<text x="1866" y="1181.5" class="ct mono" text-anchor="end">bigint</text>
+<text x="1410" y="1213.5" class="ck mono">question</text>
+<text x="1610" y="1213.5" class="cn">질문</text>
+<text x="1866" y="1213.5" class="ct mono" text-anchor="end">text</text>
+<rect x="1341.5" y="1224" width="537" height="32" fill="#f1f5f9"/>
+<text x="1410" y="1245.5" class="ck mono">embedding</text>
+<text x="1610" y="1245.5" class="cn">질문 임베딩</text>
+<text x="1866" y="1245.5" class="ct mono" text-anchor="end">vector(1536)</text>
+<text x="1410" y="1277.5" class="ck mono">answer</text>
+<text x="1610" y="1277.5" class="cn">답변</text>
+<text x="1866" y="1277.5" class="ct mono" text-anchor="end">text</text>
+<rect x="1341.5" y="1288" width="537" height="32" fill="#f1f5f9"/>
+<text x="1410" y="1309.5" class="ck mono">sources</text>
+<text x="1610" y="1309.5" class="cn">출처</text>
+<text x="1866" y="1309.5" class="ct mono" text-anchor="end">jsonb</text>
+<text x="1410" y="1341.5" class="ck mono">contentids</text>
+<text x="1610" y="1341.5" class="cn">근거 관광지 ID ②</text>
+<text x="1866" y="1341.5" class="ct mono" text-anchor="end">text[]</text>
+<rect x="1341.5" y="1352" width="537" height="32" fill="#f1f5f9"/>
+<text x="1410" y="1373.5" class="ck mono">hit_count</text>
+<text x="1610" y="1373.5" class="cn">재사용 횟수</text>
+<text x="1866" y="1373.5" class="ct mono" text-anchor="end">int</text>
+<text x="1410" y="1405.5" class="ck mono">created_at</text>
+<text x="1610" y="1405.5" class="cn">생성 일시</text>
+<text x="1866" y="1405.5" class="ct mono" text-anchor="end">timestamptz</text>
+<g filter="url(#sh)"><rect x="1990" y="150" width="540" height="250" rx="10" fill="#fff" stroke="#db2777" stroke-width="1.5"/></g>
+<path d="M1990 208 V160 Q1990 150 2000 150 H2520 Q2530 150 2530 160 V208 Z" fill="#db2777"/>
+<text x="2008" y="187" class="tk mono">message_feedback</text>
+<text x="2512" y="187" class="te" text-anchor="end">답변 피드백</text>
+<rect x="2002" y="215" width="48" height="18" rx="4" fill="#b453091a" stroke="#b45309" stroke-width="1"/>
+<text x="2026.0" y="228.5" class="kb" fill="#b45309" text-anchor="middle">PK FK</text>
+<text x="2060" y="229.5" class="ck mono">message_id</text>
+<text x="2260" y="229.5" class="cn">메시지 ID</text>
+<text x="2516" y="229.5" class="ct mono" text-anchor="end">bigint</text>
 <rect x="1991.5" y="240" width="537" height="32" fill="#f1f5f9"/>
-<text x="2060" y="261.5" class="ck mono">content_type_id</text>
-<text x="2260" y="261.5" class="cn">관광 유형</text>
-<text x="2516" y="261.5" class="ct mono" text-anchor="end">int</text>
-<text x="2060" y="293.5" class="ck mono">area</text>
-<text x="2260" y="293.5" class="cn">지역</text>
+<rect x="2002" y="247" width="28" height="18" rx="4" fill="#1d4ed81a" stroke="#1d4ed8" stroke-width="1"/>
+<text x="2016.0" y="260.5" class="kb" fill="#1d4ed8" text-anchor="middle">FK</text>
+<text x="2060" y="261.5" class="ck mono">user_id</text>
+<text x="2260" y="261.5" class="cn">사용자 ID ⑤</text>
+<text x="2516" y="261.5" class="ct mono" text-anchor="end">bigint</text>
+<text x="2060" y="293.5" class="ck mono">rating</text>
+<text x="2260" y="293.5" class="cn">평가 (up / down)</text>
 <text x="2516" y="293.5" class="ct mono" text-anchor="end">text</text>
 <rect x="1991.5" y="304" width="537" height="32" fill="#f1f5f9"/>
-<text x="2060" y="325.5" class="ck mono">sigungu_code</text>
-<text x="2260" y="325.5" class="cn">시군구 코드</text>
+<text x="2060" y="325.5" class="ck mono">reason</text>
+<text x="2260" y="325.5" class="cn">비추천 사유 (선택)</text>
 <text x="2516" y="325.5" class="ct mono" text-anchor="end">text</text>
-<text x="2060" y="357.5" class="ck mono">title</text>
-<text x="2260" y="357.5" class="cn">명칭</text>
-<text x="2516" y="357.5" class="ct mono" text-anchor="end">text</text>
+<text x="2060" y="357.5" class="ck mono">created_at</text>
+<text x="2260" y="357.5" class="cn">생성 일시</text>
+<text x="2516" y="357.5" class="ct mono" text-anchor="end">timestamptz</text>
 <rect x="1991.5" y="368" width="537" height="32" fill="#f1f5f9"/>
-<text x="2060" y="389.5" class="ck mono">addr</text>
-<text x="2260" y="389.5" class="cn">주소</text>
-<text x="2516" y="389.5" class="ct mono" text-anchor="end">text</text>
-<text x="2060" y="421.5" class="ck mono">lat · lng</text>
-<text x="2260" y="421.5" class="cn">위도 · 경도</text>
-<text x="2516" y="421.5" class="ct mono" text-anchor="end">float8</text>
-<rect x="1991.5" y="432" width="537" height="32" fill="#f1f5f9"/>
-<text x="2060" y="453.5" class="ck mono">tel</text>
-<text x="2260" y="453.5" class="cn">전화번호</text>
-<text x="2516" y="453.5" class="ct mono" text-anchor="end">text</text>
-<text x="2060" y="485.5" class="ck mono">usetime</text>
-<text x="2260" y="485.5" class="cn">이용시간</text>
-<text x="2516" y="485.5" class="ct mono" text-anchor="end">text</text>
-<rect x="1991.5" y="496" width="537" height="32" fill="#f1f5f9"/>
-<text x="2060" y="517.5" class="ck mono">fee</text>
-<text x="2260" y="517.5" class="cn">이용요금</text>
-<text x="2516" y="517.5" class="ct mono" text-anchor="end">text</text>
-<text x="2060" y="549.5" class="ck mono">restdate</text>
-<text x="2260" y="549.5" class="cn">휴무일</text>
-<text x="2516" y="549.5" class="ct mono" text-anchor="end">text</text>
-<rect x="1991.5" y="560" width="537" height="32" fill="#f1f5f9"/>
-<text x="2060" y="581.5" class="ck mono">event_start</text>
-<text x="2260" y="581.5" class="cn">행사 시작일</text>
-<text x="2516" y="581.5" class="ct mono" text-anchor="end">date</text>
-<text x="2060" y="613.5" class="ck mono">event_end</text>
-<text x="2260" y="613.5" class="cn">행사 종료일</text>
-<text x="2516" y="613.5" class="ct mono" text-anchor="end">date</text>
-<rect x="1991.5" y="624" width="537" height="32" fill="#f1f5f9"/>
-<text x="2060" y="645.5" class="ck mono">extra</text>
-<text x="2260" y="645.5" class="cn">유형별 상세</text>
-<text x="2516" y="645.5" class="ct mono" text-anchor="end">jsonb</text>
-<text x="2060" y="677.5" class="ck mono">modifiedtime</text>
-<text x="2260" y="677.5" class="cn">원천 수정 일시</text>
-<text x="2516" y="677.5" class="ct mono" text-anchor="end">timestamptz</text>
-<rect x="1991.5" y="688" width="537" height="32" fill="#f1f5f9"/>
-<text x="2060" y="709.5" class="ck mono">detail_synced_at</text>
-<text x="2260" y="709.5" class="cn">상세 수집 일시</text>
-<text x="2516" y="709.5" class="ct mono" text-anchor="end">timestamptz</text>
-<text x="2060" y="741.5" class="ck mono">as_of</text>
-<text x="2260" y="741.5" class="cn">기준일</text>
-<text x="2516" y="741.5" class="ct mono" text-anchor="end">date</text>
-<rect x="1991.5" y="752" width="537" height="32" fill="#f1f5f9"/>
-<text x="2060" y="773.5" class="ck mono">deleted_at</text>
-<text x="2260" y="773.5" class="cn">삭제 일시</text>
-<text x="2516" y="773.5" class="ct mono" text-anchor="end">timestamptz</text>
-<text x="2060" y="805.5" class="ck mono">updated_at</text>
-<text x="2260" y="805.5" class="cn">수정 일시</text>
-<text x="2516" y="805.5" class="ct mono" text-anchor="end">timestamptz</text>
-<g filter="url(#sh)"><rect x="1990" y="866" width="540" height="378" rx="10" fill="#fff" stroke="#059669" stroke-width="1.5"/></g>
-<path d="M1990 924 V876 Q1990 866 2000 866 H2520 Q2530 866 2530 876 V924 Z" fill="#059669"/>
-<text x="2008" y="903" class="tk mono">wiki_pages</text>
-<text x="2512" y="903" class="te" text-anchor="end">위키 페이지</text>
-<rect x="2002" y="931" width="28" height="18" rx="4" fill="#b453091a" stroke="#b45309" stroke-width="1"/>
-<text x="2016.0" y="944.5" class="kb" fill="#b45309" text-anchor="middle">PK</text>
-<text x="2060" y="945.5" class="ck mono">path</text>
-<text x="2260" y="945.5" class="cn">페이지 경로</text>
-<text x="2516" y="945.5" class="ct mono" text-anchor="end">text</text>
-<rect x="1991.5" y="956" width="537" height="32" fill="#f1f5f9"/>
-<text x="2060" y="977.5" class="ck mono">kind</text>
-<text x="2260" y="977.5" class="cn">페이지 종류</text>
-<text x="2516" y="977.5" class="ct mono" text-anchor="end">text</text>
-<rect x="2002" y="995" width="28" height="18" rx="4" fill="#1d4ed81a" stroke="#1d4ed8" stroke-width="1"/>
-<text x="2016.0" y="1008.5" class="kb" fill="#1d4ed8" text-anchor="middle">FK</text>
-<text x="2060" y="1009.5" class="ck mono">contentid</text>
-<text x="2260" y="1009.5" class="cn">관광지 ID</text>
-<text x="2516" y="1009.5" class="ct mono" text-anchor="end">text</text>
-<rect x="1991.5" y="1020" width="537" height="32" fill="#f1f5f9"/>
-<text x="2060" y="1041.5" class="ck mono">title</text>
-<text x="2260" y="1041.5" class="cn">제목</text>
-<text x="2516" y="1041.5" class="ct mono" text-anchor="end">text</text>
-<text x="2060" y="1073.5" class="ck mono">area</text>
-<text x="2260" y="1073.5" class="cn">지역</text>
-<text x="2516" y="1073.5" class="ct mono" text-anchor="end">text</text>
-<rect x="1991.5" y="1084" width="537" height="32" fill="#f1f5f9"/>
-<text x="2060" y="1105.5" class="ck mono">sigungu_code</text>
-<text x="2260" y="1105.5" class="cn">시군구 코드</text>
-<text x="2516" y="1105.5" class="ct mono" text-anchor="end">text</text>
-<text x="2060" y="1137.5" class="ck mono">as_of</text>
-<text x="2260" y="1137.5" class="cn">기준일</text>
-<text x="2516" y="1137.5" class="ct mono" text-anchor="end">date</text>
-<rect x="1991.5" y="1148" width="537" height="32" fill="#f1f5f9"/>
-<text x="2060" y="1169.5" class="ck mono">content_hash</text>
-<text x="2260" y="1169.5" class="cn">내용 해시</text>
-<text x="2516" y="1169.5" class="ct mono" text-anchor="end">text</text>
-<text x="2060" y="1201.5" class="ck mono">lightrag_doc_id</text>
-<text x="2260" y="1201.5" class="cn">RAG 문서 ID</text>
-<text x="2516" y="1201.5" class="ct mono" text-anchor="end">text</text>
-<rect x="1991.5" y="1212" width="537" height="32" fill="#f1f5f9"/>
-<text x="2060" y="1233.5" class="ck mono">indexed_at</text>
-<text x="2260" y="1233.5" class="cn">인덱싱 일시</text>
-<text x="2516" y="1233.5" class="ct mono" text-anchor="end">timestamptz</text>
-<line x1="40" y1="1648" x2="2580" y2="1648" stroke="#cbd5e1"/>
-<rect x="40" y="1670" width="20" height="20" rx="4" fill="#2563eb"/><text x="68" y="1686" class="lg">계정·인증</text>
-<rect x="205" y="1670" width="20" height="20" rx="4" fill="#7c3aed"/><text x="233" y="1686" class="lg">대화</text>
-<rect x="370" y="1670" width="20" height="20" rx="4" fill="#d97706"/><text x="398" y="1686" class="lg">한도·비용</text>
-<rect x="535" y="1670" width="20" height="20" rx="4" fill="#059669"/><text x="563" y="1686" class="lg">관광 데이터</text>
-<rect x="700" y="1670" width="20" height="20" rx="4" fill="#64748b"/><text x="728" y="1686" class="lg">수집 작업</text>
-<rect x="865" y="1671" width="28" height="18" rx="4" fill="#b453091a" stroke="#b45309"/><text x="879" y="1684.5" class="kb" fill="#b45309" text-anchor="middle">PK</text><text x="901" y="1686" class="lg">기본키 (행을 구분하는 값)</text>
-<rect x="1150" y="1671" width="28" height="18" rx="4" fill="#1d4ed81a" stroke="#1d4ed8"/><text x="1164" y="1684.5" class="kb" fill="#1d4ed8" text-anchor="middle">FK</text><text x="1186" y="1686" class="lg">외래키 (다른 테이블을 가리킴)</text>
-<rect x="1465" y="1671" width="28" height="18" rx="4" fill="#0f766e1a" stroke="#0f766e"/><text x="1479" y="1684.5" class="kb" fill="#0f766e" text-anchor="middle">UK</text><text x="1501" y="1686" class="lg">중복 불가</text>
-<line x1="40" y1="1722" x2="100" y2="1722" stroke="#64748b" stroke-width="2.2"/><text x="112" y="1728" class="lg">관계선 — 끝의 1·N은 개수 (예: 사용자 1명 ─ 대화 N개)</text>
-<line x1="760" y1="1722" x2="820" y2="1722" stroke="#059669" stroke-width="2.2" stroke-dasharray="8 6"/><text x="832" y="1728" class="lg">외래키 없이 ID 값만 저장한 연결</text>
-<text x="40" y="1770" class="nt">① 가입 상태: pending 승인 대기 · active 사용 중 · rejected 거절 · disabled 정지      ② 답변 출처에서 뽑은 관광지 ID 목록 — 밤 수집에서 그 관광지가 바뀌면 이 ID가 든 캐시를 지움</text>
-<text x="40" y="1798" class="nt">③ 예: login:ip:1.2.3.4 (IP별 로그인 실패 횟수)      · 위치 좌표는 어떤 테이블에도 저장하지 않음      · 승인 관리자·처리 관리자는 users의 관리자를 가리킴</text>
-<text x="40" y="1826" class="nt">· 한글 명칭은 실제 DDL의 COMMENT로 그대로 들어감      · 주요 규칙: 세션 유휴 2시간·최대 7일 / 인증코드 10분·5회 / 대화당 질문 50개 / 대화 90일 후 삭제</text>
+<text x="2060" y="389.5" class="ck mono">updated_at</text>
+<text x="2260" y="389.5" class="cn">수정 일시</text>
+<text x="2516" y="389.5" class="ct mono" text-anchor="end">timestamptz</text>
+<g filter="url(#sh)"><rect x="1990" y="450" width="540" height="410" rx="10" fill="#fff" stroke="#db2777" stroke-width="1.5"/></g>
+<path d="M1990 508 V460 Q1990 450 2000 450 H2520 Q2530 450 2530 460 V508 Z" fill="#db2777"/>
+<text x="2008" y="487" class="tk mono">security_events</text>
+<text x="2512" y="487" class="te" text-anchor="end">보안 이벤트</text>
+<rect x="2002" y="515" width="28" height="18" rx="4" fill="#b453091a" stroke="#b45309" stroke-width="1"/>
+<text x="2016.0" y="528.5" class="kb" fill="#b45309" text-anchor="middle">PK</text>
+<text x="2060" y="529.5" class="ck mono">id</text>
+<text x="2260" y="529.5" class="cn">이벤트 ID</text>
+<text x="2516" y="529.5" class="ct mono" text-anchor="end">bigint</text>
+<rect x="1991.5" y="540" width="537" height="32" fill="#f1f5f9"/>
+<rect x="2002" y="547" width="28" height="18" rx="4" fill="#1d4ed81a" stroke="#1d4ed8" stroke-width="1"/>
+<text x="2016.0" y="560.5" class="kb" fill="#1d4ed8" text-anchor="middle">FK</text>
+<text x="2060" y="561.5" class="ck mono">user_id</text>
+<text x="2260" y="561.5" class="cn">사용자 ID ⑤</text>
+<text x="2516" y="561.5" class="ct mono" text-anchor="end">bigint</text>
+<rect x="2002" y="579" width="28" height="18" rx="4" fill="#1d4ed81a" stroke="#1d4ed8" stroke-width="1"/>
+<text x="2016.0" y="592.5" class="kb" fill="#1d4ed8" text-anchor="middle">FK</text>
+<text x="2060" y="593.5" class="ck mono">session_id</text>
+<text x="2260" y="593.5" class="cn">대화 ID ⑤</text>
+<text x="2516" y="593.5" class="ct mono" text-anchor="end">uuid</text>
+<rect x="1991.5" y="604" width="537" height="32" fill="#f1f5f9"/>
+<rect x="2002" y="611" width="28" height="18" rx="4" fill="#1d4ed81a" stroke="#1d4ed8" stroke-width="1"/>
+<text x="2016.0" y="624.5" class="kb" fill="#1d4ed8" text-anchor="middle">FK</text>
+<text x="2060" y="625.5" class="ck mono">message_id</text>
+<text x="2260" y="625.5" class="cn">메시지 ID</text>
+<text x="2516" y="625.5" class="ct mono" text-anchor="end">bigint</text>
+<text x="2060" y="657.5" class="ck mono">stage</text>
+<text x="2260" y="657.5" class="cn">검사 단계 (입력·출력)</text>
+<text x="2516" y="657.5" class="ct mono" text-anchor="end">text</text>
+<rect x="1991.5" y="668" width="537" height="32" fill="#f1f5f9"/>
+<text x="2060" y="689.5" class="ck mono">check_name</text>
+<text x="2260" y="689.5" class="cn">검사 종류</text>
+<text x="2516" y="689.5" class="ct mono" text-anchor="end">text</text>
+<text x="2060" y="721.5" class="ck mono">outcome</text>
+<text x="2260" y="721.5" class="cn">처리 결과</text>
+<text x="2516" y="721.5" class="ct mono" text-anchor="end">text</text>
+<rect x="1991.5" y="732" width="537" height="32" fill="#f1f5f9"/>
+<text x="2060" y="753.5" class="ck mono">categories</text>
+<text x="2260" y="753.5" class="cn">탐지 분류</text>
+<text x="2516" y="753.5" class="ct mono" text-anchor="end">text[]</text>
+<text x="2060" y="785.5" class="ck mono">excerpt</text>
+<text x="2260" y="785.5" class="cn">발췌 (가린 텍스트)</text>
+<text x="2516" y="785.5" class="ct mono" text-anchor="end">text</text>
+<rect x="1991.5" y="796" width="537" height="32" fill="#f1f5f9"/>
+<text x="2060" y="817.5" class="ck mono">detail</text>
+<text x="2260" y="817.5" class="cn">세부 정보</text>
+<text x="2516" y="817.5" class="ct mono" text-anchor="end">jsonb</text>
+<text x="2060" y="849.5" class="ck mono">created_at</text>
+<text x="2260" y="849.5" class="cn">발생 일시</text>
+<text x="2516" y="849.5" class="ct mono" text-anchor="end">timestamptz</text>
+<g filter="url(#sh)"><rect x="1990" y="910" width="540" height="250" rx="10" fill="#fff" stroke="#db2777" stroke-width="1.5"/></g>
+<path d="M1990 968 V920 Q1990 910 2000 910 H2520 Q2530 910 2530 920 V968 Z" fill="#db2777"/>
+<text x="2008" y="947" class="tk mono">eval_scores</text>
+<text x="2512" y="947" class="te" text-anchor="end">턴별 채점</text>
+<rect x="2002" y="975" width="28" height="18" rx="4" fill="#b453091a" stroke="#b45309" stroke-width="1"/>
+<text x="2016.0" y="988.5" class="kb" fill="#b45309" text-anchor="middle">PK</text>
+<text x="2060" y="989.5" class="ck mono">id</text>
+<text x="2260" y="989.5" class="cn">채점 ID</text>
+<text x="2516" y="989.5" class="ct mono" text-anchor="end">bigint</text>
+<rect x="1991.5" y="1000" width="537" height="32" fill="#f1f5f9"/>
+<rect x="2002" y="1007" width="28" height="18" rx="4" fill="#1d4ed81a" stroke="#1d4ed8" stroke-width="1"/>
+<text x="2016.0" y="1020.5" class="kb" fill="#1d4ed8" text-anchor="middle">FK</text>
+<text x="2060" y="1021.5" class="ck mono">report_id</text>
+<text x="2260" y="1021.5" class="cn">보고서 ID</text>
+<text x="2516" y="1021.5" class="ct mono" text-anchor="end">bigint</text>
+<rect x="2002" y="1039" width="28" height="18" rx="4" fill="#1d4ed81a" stroke="#1d4ed8" stroke-width="1"/>
+<text x="2016.0" y="1052.5" class="kb" fill="#1d4ed8" text-anchor="middle">FK</text>
+<text x="2060" y="1053.5" class="ck mono">message_id</text>
+<text x="2260" y="1053.5" class="cn">메시지 ID</text>
+<text x="2516" y="1053.5" class="ct mono" text-anchor="end">bigint</text>
+<rect x="1991.5" y="1064" width="537" height="32" fill="#f1f5f9"/>
+<text x="2060" y="1085.5" class="ck mono">scores</text>
+<text x="2260" y="1085.5" class="cn">항목별 점수</text>
+<text x="2516" y="1085.5" class="ct mono" text-anchor="end">jsonb</text>
+<text x="2060" y="1117.5" class="ck mono">issues</text>
+<text x="2260" y="1117.5" class="cn">지적 사항</text>
+<text x="2516" y="1117.5" class="ct mono" text-anchor="end">text</text>
+<rect x="1991.5" y="1128" width="537" height="32" fill="#f1f5f9"/>
+<text x="2060" y="1149.5" class="ck mono">created_at</text>
+<text x="2260" y="1149.5" class="cn">생성 일시</text>
+<text x="2516" y="1149.5" class="ct mono" text-anchor="end">timestamptz</text>
+<g filter="url(#sh)"><rect x="2640" y="150" width="540" height="346" rx="10" fill="#fff" stroke="#db2777" stroke-width="1.5"/></g>
+<path d="M2640 208 V160 Q2640 150 2650 150 H3170 Q3180 150 3180 160 V208 Z" fill="#db2777"/>
+<text x="2658" y="187" class="tk mono">eval_reports</text>
+<text x="3162" y="187" class="te" text-anchor="end">품질 보고서</text>
+<rect x="2652" y="215" width="28" height="18" rx="4" fill="#b453091a" stroke="#b45309" stroke-width="1"/>
+<text x="2666.0" y="228.5" class="kb" fill="#b45309" text-anchor="middle">PK</text>
+<text x="2710" y="229.5" class="ck mono">id</text>
+<text x="2910" y="229.5" class="cn">보고서 ID</text>
+<text x="3166" y="229.5" class="ct mono" text-anchor="end">bigint</text>
+<rect x="2641.5" y="240" width="537" height="32" fill="#f1f5f9"/>
+<rect x="2652" y="247" width="28" height="18" rx="4" fill="#0f766e1a" stroke="#0f766e" stroke-width="1"/>
+<text x="2666.0" y="260.5" class="kb" fill="#0f766e" text-anchor="middle">UK</text>
+<text x="2710" y="261.5" class="ck mono">report_date</text>
+<text x="2910" y="261.5" class="cn">대상 날짜</text>
+<text x="3166" y="261.5" class="ct mono" text-anchor="end">date</text>
+<text x="2710" y="293.5" class="ck mono">status</text>
+<text x="2910" y="293.5" class="cn">상태</text>
+<text x="3166" y="293.5" class="ct mono" text-anchor="end">text</text>
+<rect x="2641.5" y="304" width="537" height="32" fill="#f1f5f9"/>
+<text x="2710" y="325.5" class="ck mono">stats</text>
+<text x="2910" y="325.5" class="cn">집계</text>
+<text x="3166" y="325.5" class="ct mono" text-anchor="end">jsonb</text>
+<text x="2710" y="357.5" class="ck mono">body_md</text>
+<text x="2910" y="357.5" class="cn">보고서 본문</text>
+<text x="3166" y="357.5" class="ct mono" text-anchor="end">text</text>
+<rect x="2641.5" y="368" width="537" height="32" fill="#f1f5f9"/>
+<text x="2710" y="389.5" class="ck mono">model</text>
+<text x="2910" y="389.5" class="cn">모델명</text>
+<text x="3166" y="389.5" class="ct mono" text-anchor="end">text</text>
+<text x="2710" y="421.5" class="ck mono">started_at</text>
+<text x="2910" y="421.5" class="cn">시작 일시</text>
+<text x="3166" y="421.5" class="ct mono" text-anchor="end">timestamptz</text>
+<rect x="2641.5" y="432" width="537" height="32" fill="#f1f5f9"/>
+<text x="2710" y="453.5" class="ck mono">finished_at</text>
+<text x="2910" y="453.5" class="cn">종료 일시</text>
+<text x="3166" y="453.5" class="ct mono" text-anchor="end">timestamptz</text>
+<text x="2710" y="485.5" class="ck mono">error</text>
+<text x="2910" y="485.5" class="cn">오류 메시지</text>
+<text x="3166" y="485.5" class="ct mono" text-anchor="end">text</text>
+<g filter="url(#sh)"><rect x="2640" y="546" width="540" height="634" rx="10" fill="#fff" stroke="#db2777" stroke-width="1.5"/></g>
+<path d="M2640 604 V556 Q2640 546 2650 546 H3170 Q3180 546 3180 556 V604 Z" fill="#db2777"/>
+<text x="2658" y="583" class="tk mono">improvement_proposals</text>
+<text x="3162" y="583" class="te" text-anchor="end">개선안</text>
+<rect x="2652" y="611" width="28" height="18" rx="4" fill="#b453091a" stroke="#b45309" stroke-width="1"/>
+<text x="2666.0" y="624.5" class="kb" fill="#b45309" text-anchor="middle">PK</text>
+<text x="2710" y="625.5" class="ck mono">id</text>
+<text x="2910" y="625.5" class="cn">개선안 ID</text>
+<text x="3166" y="625.5" class="ct mono" text-anchor="end">bigint</text>
+<rect x="2641.5" y="636" width="537" height="32" fill="#f1f5f9"/>
+<rect x="2652" y="643" width="28" height="18" rx="4" fill="#1d4ed81a" stroke="#1d4ed8" stroke-width="1"/>
+<text x="2666.0" y="656.5" class="kb" fill="#1d4ed8" text-anchor="middle">FK</text>
+<text x="2710" y="657.5" class="ck mono">report_id</text>
+<text x="2910" y="657.5" class="cn">보고서 ID</text>
+<text x="3166" y="657.5" class="ct mono" text-anchor="end">bigint</text>
+<text x="2710" y="689.5" class="ck mono">seq</text>
+<text x="2910" y="689.5" class="cn">순번</text>
+<text x="3166" y="689.5" class="ct mono" text-anchor="end">int</text>
+<rect x="2641.5" y="700" width="537" height="32" fill="#f1f5f9"/>
+<text x="2710" y="721.5" class="ck mono">target</text>
+<text x="2910" y="721.5" class="cn">개선 대상</text>
+<text x="3166" y="721.5" class="ct mono" text-anchor="end">text</text>
+<text x="2710" y="753.5" class="ck mono">title</text>
+<text x="2910" y="753.5" class="cn">제목</text>
+<text x="3166" y="753.5" class="ct mono" text-anchor="end">text</text>
+<rect x="2641.5" y="764" width="537" height="32" fill="#f1f5f9"/>
+<text x="2710" y="785.5" class="ck mono">problem</text>
+<text x="2910" y="785.5" class="cn">문제</text>
+<text x="3166" y="785.5" class="ct mono" text-anchor="end">text</text>
+<text x="2710" y="817.5" class="ck mono">evidence</text>
+<text x="2910" y="817.5" class="cn">근거 발췌</text>
+<text x="3166" y="817.5" class="ct mono" text-anchor="end">jsonb</text>
+<rect x="2641.5" y="828" width="537" height="32" fill="#f1f5f9"/>
+<text x="2710" y="849.5" class="ck mono">cause</text>
+<text x="2910" y="849.5" class="cn">원인 추정</text>
+<text x="3166" y="849.5" class="ct mono" text-anchor="end">text</text>
+<text x="2710" y="881.5" class="ck mono">proposal</text>
+<text x="2910" y="881.5" class="cn">제안</text>
+<text x="3166" y="881.5" class="ct mono" text-anchor="end">text</text>
+<rect x="2641.5" y="892" width="537" height="32" fill="#f1f5f9"/>
+<text x="2710" y="913.5" class="ck mono">expected_effect</text>
+<text x="2910" y="913.5" class="cn">예상 효과</text>
+<text x="3166" y="913.5" class="ct mono" text-anchor="end">text</text>
+<text x="2710" y="945.5" class="ck mono">cost_note</text>
+<text x="2910" y="945.5" class="cn">비용</text>
+<text x="3166" y="945.5" class="ct mono" text-anchor="end">text</text>
+<rect x="2641.5" y="956" width="537" height="32" fill="#f1f5f9"/>
+<text x="2710" y="977.5" class="ck mono">risk</text>
+<text x="2910" y="977.5" class="cn">위험</text>
+<text x="3166" y="977.5" class="ct mono" text-anchor="end">text</text>
+<text x="2710" y="1009.5" class="ck mono">priority</text>
+<text x="2910" y="1009.5" class="cn">우선순위</text>
+<text x="3166" y="1009.5" class="ct mono" text-anchor="end">text</text>
+<rect x="2641.5" y="1020" width="537" height="32" fill="#f1f5f9"/>
+<text x="2710" y="1041.5" class="ck mono">status</text>
+<text x="2910" y="1041.5" class="cn">결정 상태 ④</text>
+<text x="3166" y="1041.5" class="ct mono" text-anchor="end">text</text>
+<text x="2710" y="1073.5" class="ck mono">decision_note</text>
+<text x="2910" y="1073.5" class="cn">결정 메모</text>
+<text x="3166" y="1073.5" class="ct mono" text-anchor="end">text</text>
+<rect x="2641.5" y="1084" width="537" height="32" fill="#f1f5f9"/>
+<rect x="2652" y="1091" width="28" height="18" rx="4" fill="#1d4ed81a" stroke="#1d4ed8" stroke-width="1"/>
+<text x="2666.0" y="1104.5" class="kb" fill="#1d4ed8" text-anchor="middle">FK</text>
+<text x="2710" y="1105.5" class="ck mono">decided_by</text>
+<text x="2910" y="1105.5" class="cn">결정 관리자 ⑤</text>
+<text x="3166" y="1105.5" class="ct mono" text-anchor="end">bigint</text>
+<text x="2710" y="1137.5" class="ck mono">decided_at</text>
+<text x="2910" y="1137.5" class="cn">결정 일시</text>
+<text x="3166" y="1137.5" class="ct mono" text-anchor="end">timestamptz</text>
+<rect x="2641.5" y="1148" width="537" height="32" fill="#f1f5f9"/>
+<text x="2710" y="1169.5" class="ck mono">created_at</text>
+<text x="2910" y="1169.5" class="cn">생성 일시</text>
+<text x="3166" y="1169.5" class="ct mono" text-anchor="end">timestamptz</text>
+<g filter="url(#sh)"><rect x="3290" y="150" width="540" height="666" rx="10" fill="#fff" stroke="#059669" stroke-width="1.5"/></g>
+<path d="M3290 208 V160 Q3290 150 3300 150 H3820 Q3830 150 3830 160 V208 Z" fill="#059669"/>
+<text x="3308" y="187" class="tk mono">tour_items</text>
+<text x="3812" y="187" class="te" text-anchor="end">관광 정보</text>
+<rect x="3302" y="215" width="28" height="18" rx="4" fill="#b453091a" stroke="#b45309" stroke-width="1"/>
+<text x="3316.0" y="228.5" class="kb" fill="#b45309" text-anchor="middle">PK</text>
+<text x="3360" y="229.5" class="ck mono">contentid</text>
+<text x="3560" y="229.5" class="cn">관광지 ID</text>
+<text x="3816" y="229.5" class="ct mono" text-anchor="end">text</text>
+<rect x="3291.5" y="240" width="537" height="32" fill="#f1f5f9"/>
+<text x="3360" y="261.5" class="ck mono">content_type_id</text>
+<text x="3560" y="261.5" class="cn">관광 유형</text>
+<text x="3816" y="261.5" class="ct mono" text-anchor="end">int</text>
+<text x="3360" y="293.5" class="ck mono">area</text>
+<text x="3560" y="293.5" class="cn">지역</text>
+<text x="3816" y="293.5" class="ct mono" text-anchor="end">text</text>
+<rect x="3291.5" y="304" width="537" height="32" fill="#f1f5f9"/>
+<text x="3360" y="325.5" class="ck mono">sigungu_code</text>
+<text x="3560" y="325.5" class="cn">시군구 코드</text>
+<text x="3816" y="325.5" class="ct mono" text-anchor="end">text</text>
+<text x="3360" y="357.5" class="ck mono">title</text>
+<text x="3560" y="357.5" class="cn">명칭</text>
+<text x="3816" y="357.5" class="ct mono" text-anchor="end">text</text>
+<rect x="3291.5" y="368" width="537" height="32" fill="#f1f5f9"/>
+<text x="3360" y="389.5" class="ck mono">addr</text>
+<text x="3560" y="389.5" class="cn">주소</text>
+<text x="3816" y="389.5" class="ct mono" text-anchor="end">text</text>
+<text x="3360" y="421.5" class="ck mono">lat · lng</text>
+<text x="3560" y="421.5" class="cn">위도 · 경도</text>
+<text x="3816" y="421.5" class="ct mono" text-anchor="end">float8</text>
+<rect x="3291.5" y="432" width="537" height="32" fill="#f1f5f9"/>
+<text x="3360" y="453.5" class="ck mono">tel</text>
+<text x="3560" y="453.5" class="cn">전화번호</text>
+<text x="3816" y="453.5" class="ct mono" text-anchor="end">text</text>
+<text x="3360" y="485.5" class="ck mono">usetime</text>
+<text x="3560" y="485.5" class="cn">이용시간</text>
+<text x="3816" y="485.5" class="ct mono" text-anchor="end">text</text>
+<rect x="3291.5" y="496" width="537" height="32" fill="#f1f5f9"/>
+<text x="3360" y="517.5" class="ck mono">fee</text>
+<text x="3560" y="517.5" class="cn">이용요금</text>
+<text x="3816" y="517.5" class="ct mono" text-anchor="end">text</text>
+<text x="3360" y="549.5" class="ck mono">restdate</text>
+<text x="3560" y="549.5" class="cn">휴무일</text>
+<text x="3816" y="549.5" class="ct mono" text-anchor="end">text</text>
+<rect x="3291.5" y="560" width="537" height="32" fill="#f1f5f9"/>
+<text x="3360" y="581.5" class="ck mono">event_start</text>
+<text x="3560" y="581.5" class="cn">행사 시작일</text>
+<text x="3816" y="581.5" class="ct mono" text-anchor="end">date</text>
+<text x="3360" y="613.5" class="ck mono">event_end</text>
+<text x="3560" y="613.5" class="cn">행사 종료일</text>
+<text x="3816" y="613.5" class="ct mono" text-anchor="end">date</text>
+<rect x="3291.5" y="624" width="537" height="32" fill="#f1f5f9"/>
+<text x="3360" y="645.5" class="ck mono">extra</text>
+<text x="3560" y="645.5" class="cn">유형별 상세</text>
+<text x="3816" y="645.5" class="ct mono" text-anchor="end">jsonb</text>
+<text x="3360" y="677.5" class="ck mono">modifiedtime</text>
+<text x="3560" y="677.5" class="cn">원천 수정 일시</text>
+<text x="3816" y="677.5" class="ct mono" text-anchor="end">timestamptz</text>
+<rect x="3291.5" y="688" width="537" height="32" fill="#f1f5f9"/>
+<text x="3360" y="709.5" class="ck mono">detail_synced_at</text>
+<text x="3560" y="709.5" class="cn">상세 수집 일시</text>
+<text x="3816" y="709.5" class="ct mono" text-anchor="end">timestamptz</text>
+<text x="3360" y="741.5" class="ck mono">as_of</text>
+<text x="3560" y="741.5" class="cn">기준일</text>
+<text x="3816" y="741.5" class="ct mono" text-anchor="end">date</text>
+<rect x="3291.5" y="752" width="537" height="32" fill="#f1f5f9"/>
+<text x="3360" y="773.5" class="ck mono">deleted_at</text>
+<text x="3560" y="773.5" class="cn">삭제 일시</text>
+<text x="3816" y="773.5" class="ct mono" text-anchor="end">timestamptz</text>
+<text x="3360" y="805.5" class="ck mono">updated_at</text>
+<text x="3560" y="805.5" class="cn">수정 일시</text>
+<text x="3816" y="805.5" class="ct mono" text-anchor="end">timestamptz</text>
+<g filter="url(#sh)"><rect x="3290" y="866" width="540" height="378" rx="10" fill="#fff" stroke="#059669" stroke-width="1.5"/></g>
+<path d="M3290 924 V876 Q3290 866 3300 866 H3820 Q3830 866 3830 876 V924 Z" fill="#059669"/>
+<text x="3308" y="903" class="tk mono">wiki_pages</text>
+<text x="3812" y="903" class="te" text-anchor="end">위키 페이지</text>
+<rect x="3302" y="931" width="28" height="18" rx="4" fill="#b453091a" stroke="#b45309" stroke-width="1"/>
+<text x="3316.0" y="944.5" class="kb" fill="#b45309" text-anchor="middle">PK</text>
+<text x="3360" y="945.5" class="ck mono">path</text>
+<text x="3560" y="945.5" class="cn">페이지 경로</text>
+<text x="3816" y="945.5" class="ct mono" text-anchor="end">text</text>
+<rect x="3291.5" y="956" width="537" height="32" fill="#f1f5f9"/>
+<text x="3360" y="977.5" class="ck mono">kind</text>
+<text x="3560" y="977.5" class="cn">페이지 종류</text>
+<text x="3816" y="977.5" class="ct mono" text-anchor="end">text</text>
+<rect x="3302" y="995" width="28" height="18" rx="4" fill="#1d4ed81a" stroke="#1d4ed8" stroke-width="1"/>
+<text x="3316.0" y="1008.5" class="kb" fill="#1d4ed8" text-anchor="middle">FK</text>
+<text x="3360" y="1009.5" class="ck mono">contentid</text>
+<text x="3560" y="1009.5" class="cn">관광지 ID</text>
+<text x="3816" y="1009.5" class="ct mono" text-anchor="end">text</text>
+<rect x="3291.5" y="1020" width="537" height="32" fill="#f1f5f9"/>
+<text x="3360" y="1041.5" class="ck mono">title</text>
+<text x="3560" y="1041.5" class="cn">제목</text>
+<text x="3816" y="1041.5" class="ct mono" text-anchor="end">text</text>
+<text x="3360" y="1073.5" class="ck mono">area</text>
+<text x="3560" y="1073.5" class="cn">지역</text>
+<text x="3816" y="1073.5" class="ct mono" text-anchor="end">text</text>
+<rect x="3291.5" y="1084" width="537" height="32" fill="#f1f5f9"/>
+<text x="3360" y="1105.5" class="ck mono">sigungu_code</text>
+<text x="3560" y="1105.5" class="cn">시군구 코드</text>
+<text x="3816" y="1105.5" class="ct mono" text-anchor="end">text</text>
+<text x="3360" y="1137.5" class="ck mono">as_of</text>
+<text x="3560" y="1137.5" class="cn">기준일</text>
+<text x="3816" y="1137.5" class="ct mono" text-anchor="end">date</text>
+<rect x="3291.5" y="1148" width="537" height="32" fill="#f1f5f9"/>
+<text x="3360" y="1169.5" class="ck mono">content_hash</text>
+<text x="3560" y="1169.5" class="cn">내용 해시</text>
+<text x="3816" y="1169.5" class="ct mono" text-anchor="end">text</text>
+<text x="3360" y="1201.5" class="ck mono">lightrag_doc_id</text>
+<text x="3560" y="1201.5" class="cn">RAG 문서 ID</text>
+<text x="3816" y="1201.5" class="ct mono" text-anchor="end">text</text>
+<rect x="3291.5" y="1212" width="537" height="32" fill="#f1f5f9"/>
+<text x="3360" y="1233.5" class="ck mono">indexed_at</text>
+<text x="3560" y="1233.5" class="cn">인덱싱 일시</text>
+<text x="3816" y="1233.5" class="ct mono" text-anchor="end">timestamptz</text>
+<line x1="40" y1="1710" x2="3880" y2="1710" stroke="#cbd5e1"/>
+<rect x="40" y="1732" width="20" height="20" rx="4" fill="#2563eb"/><text x="68" y="1748" class="lg">계정·인증</text>
+<rect x="205" y="1732" width="20" height="20" rx="4" fill="#7c3aed"/><text x="233" y="1748" class="lg">대화</text>
+<rect x="370" y="1732" width="20" height="20" rx="4" fill="#d97706"/><text x="398" y="1748" class="lg">한도·비용</text>
+<rect x="535" y="1732" width="20" height="20" rx="4" fill="#db2777"/><text x="563" y="1748" class="lg">품질·보안</text>
+<rect x="700" y="1732" width="20" height="20" rx="4" fill="#059669"/><text x="728" y="1748" class="lg">관광 데이터</text>
+<rect x="865" y="1732" width="20" height="20" rx="4" fill="#64748b"/><text x="893" y="1748" class="lg">수집 작업</text>
+<rect x="1030" y="1733" width="28" height="18" rx="4" fill="#b453091a" stroke="#b45309"/><text x="1044" y="1746.5" class="kb" fill="#b45309" text-anchor="middle">PK</text><text x="1066" y="1748" class="lg">기본키 (행을 구분하는 값)</text>
+<rect x="1315" y="1733" width="28" height="18" rx="4" fill="#1d4ed81a" stroke="#1d4ed8"/><text x="1329" y="1746.5" class="kb" fill="#1d4ed8" text-anchor="middle">FK</text><text x="1351" y="1748" class="lg">외래키 (다른 테이블을 가리킴)</text>
+<rect x="1630" y="1733" width="28" height="18" rx="4" fill="#0f766e1a" stroke="#0f766e"/><text x="1644" y="1746.5" class="kb" fill="#0f766e" text-anchor="middle">UK</text><text x="1666" y="1748" class="lg">중복 불가</text>
+<line x1="40" y1="1784" x2="100" y2="1784" stroke="#64748b" stroke-width="2.2"/><text x="112" y="1790" class="lg">관계선 — 끝의 1·N은 개수 (예: 사용자 1명 ─ 대화 N개)</text>
+<line x1="760" y1="1784" x2="820" y2="1784" stroke="#059669" stroke-width="2.2" stroke-dasharray="8 6"/><text x="832" y="1790" class="lg">외래키 없이 ID 값만 저장한 연결</text>
+<text x="40" y="1832" class="nt">① 가입 상태: pending 승인 대기 · active 사용 중 · rejected 거절 · disabled 정지      ② 답변 출처에서 뽑은 관광지 ID 목록 — 밤 수집에서 그 관광지가 바뀌면 이 ID가 든 캐시를 지움</text>
+<text x="40" y="1860" class="nt">③ 예: login:ip:1.2.3.4 (IP별 로그인 실패 횟수)      ④ 결정 상태: new 미결정 · adopted 채택 · held 보류 · rejected 기각 (관리자가 결정, 자동 적용 없음)</text>
+<text x="40" y="1888" class="nt">⑤ 선을 생략한 외래키: 사용자 ID → users, 대화 ID → chat_sessions, FAQ 캐시 ID → faq_cache, 결정 관리자 → users      · 위치 좌표·대화 원문(가리기 전)은 어떤 테이블에도 저장하지 않음</text>
+<text x="40" y="1916" class="nt">· 한글 명칭은 실제 DDL의 COMMENT로 그대로 들어감      · 주요 규칙: 세션 유휴 2시간·최대 7일 / 인증코드 10분·5회 / 대화당 질문 50개 / 대화·피드백·보안 이벤트·보고서 90일 후 삭제</text>
 </svg>

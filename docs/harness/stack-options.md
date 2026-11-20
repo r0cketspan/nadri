@@ -1,5 +1,7 @@
 # 기술스택 후보 — nadri (Phase 2a, **G2 승인 2026-11-07**)
 
+> **2026-11-21 G3 재검토로 대체된 항목**: S9(Hermes 배포·보안)·S12(Hermes 스트림 수신)·F8~F10(Hermes 사실)은 Hermes 제거로 **해당 없음**. 에이전트는 LangGraph, LLM 호출은 LangChain, 웹 검색은 `langchain-tavily`, S10의 `mcp` 버전은 2.x가 아니라 **1.30.x**(어댑터가 `mcp<2` 요구) — 근거는 `architecture.md` §1·§12.1. 아래 본문은 G2 당시 기록으로 그대로 둔다.
+
 > **G2 결과**: 각 S 항목은 `PROGRESS.md` 결정 로그대로 확정. 아래 "PoC" 항목은 **별도 PoC 없이 첫 구현 작업(최소 end-to-end)에서 검증**하는 것으로 바뀌었다 — 검증 목록은 `architecture.md` §12(A1~A17).
 
 > 입력: `docs/harness/requirements.md`(G1 승인본), `TECH_STACK.md`(초안), `docs/analysis/00·01`, `docs/harness/PROGRESS.md` 결정 로그.
