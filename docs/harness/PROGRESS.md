@@ -1,18 +1,18 @@
 # PROGRESS
-- 현재 단계: Phase 4 — 작업별 spec/test 작성 (01·02 확정, 03~07 초안 작성·확인 질문 답변 대기)
+- 현재 단계: Phase 4 — 작업별 spec/test 작성 (01~07 spec/test 확정, 08~12 작성 중)
 - 게이트: G1 ✅ (2026-11-07) · G2 ✅ (2026-11-07) · G3 ✅ (2026-11-07, 재검토 재승인 2026-11-21) · G4 ✅ (2026-11-21) · G5 (작업별, 아래 표)
-- 다음 할 일: 03~07 확인 질문(각 spec 끝 표) 사용자 답변 반영 → 08~12 spec/test 작성. (원래 계획: `spec-writer`로 `docs/harness/tasks/<작업id>/spec.md`·`test.md` 작성. 26개라 M0(01·02)부터 5개 안팎씩 묶어 진행. 02 시작 직전에 TourAPI 키·`.dev` 도메인·Named Tunnel 토큰·Tavily 키 발급 방법 안내(G4 Q2))
+- 다음 할 일: 08~12 spec/test 작성 → 확인 질문 사용자 답변 반영 → 13~ 이어서. (원래 계획: `spec-writer`로 `docs/harness/tasks/<작업id>/spec.md`·`test.md` 작성. 26개라 M0(01·02)부터 5개 안팎씩 묶어 진행. 02 시작 직전에 TourAPI 키·`.dev` 도메인·Named Tunnel 토큰·Tavily 키 발급 방법 안내(G4 Q2))
 - 브랜치: `dev`(작업 기준) · `prod`(릴리스). 2026-11-07 로컬 `master` → `prod` 이름 변경, `dev` 생성. 원격 반영(push·기본 브랜치 변경·원격 master 삭제)은 사용자가 직접
 
 | 작업id | spec/test | 브랜치 | 구현·테스트 | 커밋 | G5 병합 |
 |---|---|---|---|---|---|
 | 01-e2e-tools-slice | ✅ | feat/01-e2e-tools-slice | | | |
 | 02-e2e-chat-slice | ✅ | feat/02-e2e-chat-slice | | | |
-| 03-ingest-bootstrap | 초안 (Q1~Q11 대기) | feat/03-ingest-bootstrap | | | |
-| 04-db-schema | 초안 (Q1~Q4 대기) | feat/04-db-schema | | | |
-| 05-auth-core | 초안 (Q1~Q9 대기) | feat/05-auth-core | | | |
-| 06-password-reset-mail | 초안 (Q1~Q6 대기) | feat/06-password-reset-mail | | | |
-| 07-guard-pii | 초안 (Q1~Q8 대기) | feat/07-guard-pii | | | |
+| 03-ingest-bootstrap | ✅ | feat/03-ingest-bootstrap | | | |
+| 04-db-schema | ✅ | feat/04-db-schema | | | |
+| 05-auth-core | ✅ | feat/05-auth-core | | | |
+| 06-password-reset-mail | ✅ | feat/06-password-reset-mail | | | |
+| 07-guard-pii | ✅ | feat/07-guard-pii | | | |
 | 08-guard-pipeline | | feat/08-guard-pipeline | | | |
 | 09-chat-sessions | | feat/09-chat-sessions | | | |
 | 10-tool-tour-live | | feat/10-tool-tour-live | | | |
@@ -44,7 +44,7 @@
 - `docs/harness/stack-options.md` — **G2 승인본** (2026-11-07). S1~S21 후보·트레이드오프·사용자 답변, 조사 사실 F1~F12
 
 - `docs/harness/tasks/01-e2e-tools-slice/`, `02-e2e-chat-slice/` — spec.md·test.md (2026-11-21, 확인 질문 결정 반영)
-- `docs/harness/tasks/03`~`07` — spec.md·test.md 초안 (2026-11-21). 앞 작업 테스트를 고치는 부분: 03은 01 예산 함수·테스트 교체, 04는 02의 네트워크 차단 테스트 설정에 DB 테스트 허용, 05는 02 채팅 테스트에 인증·CSRF 반영
+- `docs/harness/tasks/03`~`07` — spec.md·test.md (2026-11-21, 확인 질문 결정 반영). 앞 작업 테스트를 고치는 부분: 03은 01 예산 함수·테스트 교체, 04는 02의 네트워크 차단 테스트 설정에 DB 테스트 허용, 05는 02 채팅 테스트에 인증·CSRF 반영
 
 ## 결정 로그 (게이트에서 바뀐 것)
 - 2026-10-25 (G1 전): 리버스 프록시 Caddy → **Nginx**
@@ -64,6 +64,7 @@
 - 2026-11-21 G4 Q1~Q9: Q1 05 병합 전까지 cloudflared는 SSE 검증 때만 기동 · Q2 01은 TourAPI·OpenAI 키로 시작(OpenAI 키 보유), 나머지 키 발급 방법은 02 직전 안내 · Q3 bge-m3 임베딩 비교 v1.1 이후 · Q4 lint 모순 탐지 = 코드 규칙만(휴무일·주소·전화 등 핵심 필드 ↔ tour_items 대조, 삭제된 contentid 링크) · Q5 골든셋은 에이전트 초안 40~60 → 사용자 검수 · Q6 TourAPI 카운터 공유(적재 800 + 실시간 200) · Q7 흔한 비밀번호는 SecLists 공개 목록 10자 이상, 가입·재설정·변경 화면에 규칙 미리 표시 · Q8 DB 초기화 `01-init.sh` · Q9 01 적재 서울 30 + 제주 20
 - 2026-11-21 G4: 리랭커는 tour-tools CrossEncoder로 켜 둠(LightRAG 내장 리랭크만 off). 구성도 LightRAG 부제 "리랭크 off" → "Graph RAG (후보 30개 검색)"
 - 2026-11-21 Phase 4 M0 확인 질문: 01-Q1 Alembic 유지(문서 명칭은 "테이블 생성 스크립트", ingest가 기동 시 실행 후 종료) · 01-Q4 개발 도구는 WSL2 Ubuntu에 uv + `backend/.venv`, 테스트도 WSL에서(CLAUDE.md 작업 환경 갱신: 호스트 OS = Windows 11) · 01-Q7 `lightrag-data` 볼륨 처음부터 · 01-Q5 측정용 CLI 4개 추가 · 01-Q6 카운터 쓰기 권한은 10에서 최소 권한으로 · 02-Q2 `blocked` 이벤트 02부터 · 02-Q5 터널 토큰 환경변수 · 02-Q8 Moderation 재시도 0회, 08에서 재검토 · 02-Q9 nginx `127.0.0.1:8080`(Windows 브라우저 `localhost:8080` 접속 확인) · 02-Q7 §4.6 고정 문구 초안 그대로 사용 · 나머지 추천안
+- 2026-11-21 Phase 4 03~07 확인 질문: 전부 추천안대로 — 05-Q3 가입 시 이미 쓰인 이메일은 409로 알려 줌(06 재설정의 가입 여부 숨김과 다르지만 수용) · 07-Q1 질문에 쓴 관광지 대표 전화도 가림, SECURITY_GUIDE §4.2 문구 수정(답변에선 안 가림) · 03-Q1 TourAPI 호출 전 카운터 예약(01 예산 함수·테스트 교체) · 03-Q2 오류 22는 그날 중단, 23은 이번 실행만 중단 · 03-Q6 상세 전 껍데기 행도 검색에 노출 · 03-Q9 예상 남은 일수 14일 초과 시 운영계정 증설 문의
 - 2026-11-07 G3: ERD 승인, 테이블·컬럼 한글 명칭을 DDL COMMENT로 넣는다. 구성도 재작성, 문서 상충 X1~X9 정리
 
 ## 기타 산출물
