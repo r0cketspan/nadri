@@ -392,7 +392,7 @@ MATERIAL_SOURCES["tour_live"] = "한국관광공사 공공데이터(실시간 �
 ## 14. 확인 질문
 | # | 질문 | 추천안 | 대안 |
 |---|---|---|---|
-| Q1 | `nadri_tools`가 카운터를 쓰는 방식(01-Q6에서 10으로 넘김) | **SECURITY DEFINER 함수 2개(`tourapi_live_reserve`·`tourapi_live_mark_quota_hit`) 실행 권한만** — `ingest_state` 테이블 권한 없음, live 카운터 +1·quota_hit 표시만 가능. NFR-07·[A] §5.1에 "카운터 함수 실행 권한 예외" 한 줄 추가 | B: `GRANT SELECT, INSERT, UPDATE ON ingest_state TO nadri_tools`(간단, 대신 적재 커서·실패 기록·ingest 카운터까지 바꿀 수 있음) / C: B + 행 단위 보안(RLS)으로 `tourapi_calls:*` 키만 허용(설정 증가) |
+| Q1 | `nadri_tools`가 카운터를 쓰는 방식(01-Q6에서 10으로 넘김) | **결정(2026-11-21): 추천안대로** — **SECURITY DEFINER 함수 2개(`tourapi_live_reserve`·`tourapi_live_mark_quota_hit`) 실행 권한만** — `ingest_state` 테이블 권한 없음, live 카운터 +1·quota_hit 표시만 가능. NFR-07·[A] §5.1에 "카운터 함수 실행 권한 예외" 한 줄 추가 | B: `GRANT SELECT, INSERT, UPDATE ON ingest_state TO nadri_tools`(간단, 대신 적재 커서·실패 기록·ingest 카운터까지 바꿀 수 있음) / C: B + 행 단위 보안(RLS)으로 `tourapi_calls:*` 키만 허용(설정 증가) |
 | Q2 | `nearby` 좌표가 서울·제주 밖이면 거부할까 | **거부**(대략 상자 2개로 검사, TourAPI·예산 안 씀). 서비스 범위가 서울·제주 | 검사 없음(경기 등 경계 밖 질문에도 실시간 조회가 나가고 범위 밖 답변이 생김) |
 | Q3 | `answer.md` 툴 선택 규칙에 `tour_live` 기준을 넣을까([PL] 파일 목록 밖, 08과 같은 파일) | **넣는다**(§8.2 3줄: 축제는 tour_live / 주변은 data_query 먼저 / 실시간 불가면 data_query로 대신하고 기준일 밝힘) | 툴 설명 문자열만으로 안내(파일 충돌 없음, 대신 모델이 언제 쓰는지 덜 분명) |
 | Q4 | 결과 항목 `source` 값 | **[A] 그대로 `"실시간 조회"`**, 제공처는 `<자료 출처="한국관광공사 공공데이터(실시간 조회)">`로 LLM에 전달 | `"한국관광공사 TourAPI 4.0 (실시간 조회)"`(화면 출처 목록에서 제공처가 바로 보임, [A] 문구와 다름) |

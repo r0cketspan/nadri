@@ -162,7 +162,7 @@
 | NFR-04 | 세션: 서버측 `auth_sessions`, `__Host-session` 쿠키(`HttpOnly`, `Secure`, `SameSite=Lax`, `Path=/`), localStorage 토큰 금지, **유휴 2시간·절대 7일** 만료 | [TS §7], [U Q12] |
 | NFR-05 | CSRF: SameSite + 상태 변경 요청에 double-submit CSRF 토큰 | [TS §7] |
 | NFR-06 | rate limit: 로그인·비밀번호 재설정·STT·채팅(채팅 **분당 10회**) | [TS §7], [U Q12] |
-| NFR-07 | 에이전트에는 **읽기 전용 툴 5개만**(tour-tools 4종 + `web_search`). 쓰기·실행·파일 툴 없음. tour-tools는 관광 테이블 SELECT만 되는 DB 계정 사용 (최소 권한) | [U Q8], [U 2026-11-20] |
+| NFR-07 | 에이전트에는 **읽기 전용 툴 5개만**(tour-tools 4종 + `web_search`). 쓰기·실행·파일 툴 없음. tour-tools는 관광 테이블 SELECT만 되는 DB 계정 사용 (최소 권한). 예외: TourAPI 실시간 호출 수를 세는 DB 함수 2개(`tourapi_live_reserve`·`tourapi_live_mark_quota_hit`) 실행 권한만 추가 (2026-11-21, 10-Q1) | [U Q8], [U 2026-11-20] |
 | NFR-08 | 외부 진입은 Cloudflare Tunnel → Nginx 하나. LightRAG·PostgreSQL·MCP(tour-tools)·리랭커는 Compose 내부망. LightRAG에 `LIGHTRAG_API_KEY` | [TS §2, §9], [U Q4] |
 | NFR-09 | 비밀값(OpenAI·TourAPI·Tavily·ElevenLabs·메일·터널 키 등)은 `.env`에만, 커밋 금지 | [CL], [TS §9] |
 | NFR-10 | `/`, `/admin`, `/api`를 같은 출처로 묶는다(CORS 불필요) | [TS §7] |

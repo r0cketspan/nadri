@@ -363,7 +363,7 @@ DELETE 같은 경로 → 피드백 취소
 | `eval_scores` (턴별 채점) | id(채점 ID), report_id(보고서 ID, fk cascade), message_id(메시지 ID, fk cascade), scores jsonb(항목별 점수), issues text(지적 사항), created_at | FR-100. 메시지·보고서 삭제 시 함께 삭제 |
 | `improvement_proposals` (개선안) | id(개선안 ID), report_id(보고서 ID, fk cascade — 미결정분만, 아래 비고), seq(순번), target(대상: `system_prompt`/`tool_description`/`reranker`/`verifier`/`guard`/`data_scope`/`other`), title(제목), problem(문제), evidence jsonb(근거 발췌 — 익명·가린 텍스트), cause(원인 추정), proposal(제안), expected_effect(예상 효과), cost_note(비용), risk(위험), priority(우선순위: `high`/`medium`/`low`), status(결정: `new`/`adopted`/`held`/`rejected`), decision_note(결정 메모), decided_by(결정 관리자), decided_at(결정 시각), created_at | FR-101·102. report_id는 fk **set null**로 두고, 90일 정리 때 `new`·`rejected`는 삭제, `adopted`·`held`는 evidence만 비우고 남김(개발 후보 보존) |
 
-DB 롤(3개, 변경 없음): `nadri_app`(api·ingest) · `nadri_tools`(tour-tools, `tour_items`·`wiki_pages` SELECT만) · `lightrag`. 초기화 `infra/postgres/init/*.sql`.
+DB 롤(3개, 변경 없음): `nadri_app`(api·ingest) · `nadri_tools`(tour-tools, `tour_items`·`wiki_pages` SELECT만 + TourAPI 실시간 호출 수 세기 함수 2개 실행 권한 — 2026-11-21 10-Q1) · `lightrag`. 초기화 `infra/postgres/init/*.sql`.
 
 ### 5.2 `lightrag` DB
 변경 없음. LightRAG가 생성·관리, HTTP API로만 접근. 벡터 차원 1536 고정, 임베딩 변경 시 전체 재인덱싱 [S F12], [R NFR-32].
