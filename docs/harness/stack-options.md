@@ -93,7 +93,7 @@
 | TTS | ElevenLabs 단독, `TtsProvider`, Edge TTS 제외 | D-13, C12, 결정로그 |
 | 실행 환경 | WSL2 Ubuntu-22.04 + Docker Compose, named volume | D-14, NFR-20·21 |
 | 프록시·외부 접속 | Nginx 단일 진입점(SSE 버퍼링 off) + Cloudflare Tunnel | D-15, 결정로그 (개발 중 주소 방식은 S6) |
-| 비용 정책 | 캐싱·모델 분리·FAQ 캐시·대시보드·1일 50회(+50 추가 승인)·월 $10 경고 | D-16, FR-62·63 |
+| 비용 정책 | 캐싱·모델 분리·FAQ 캐시·대시보드·1일 50회(추가 승인 없음 — 2026-11-22 변경)·월 $10 경고 | D-16, FR-62·63 |
 | 평가 | 골든 Q&A + E2E, 단위테스트 pytest | D-18, NFR-70 |
 | 현행화 | 매일 01:00 KST, `areaBasedSyncList2` 변경분만 반영 | FR-45 |
 | 범위 밖 | 소셜 로그인, 네이티브 앱, 로컬 LLM, 클라우드 배포, 답변 이미지, 별도 DB(DuckDB·AGE·Neo4j·Qdrant) 등 | requirements §5 |
@@ -249,7 +249,7 @@ LightRAG 테이블은 LightRAG가 관리, Alembic은 **우리 테이블만**(스
 ### S13. rate limit·로그인 잠금·일일 한도 저장소
 | 안 | 비고 |
 |---|---|
-| **A (추천)** | **PostgreSQL만** — 실패 횟수·잠금·일일 50회·추가 승인·분당 채팅 횟수를 테이블로. 동시 사용자 1~5명(NFR-61) |
+| **A (추천)** | **PostgreSQL만** — 실패 횟수·잠금·일일 50회·분당 채팅 횟수를 테이블로. 동시 사용자 1~5명(NFR-61) |
 | B | A + Nginx `limit_req` IP 1차 방어 (선택) |
 | C | Redis 추가 — D-07 취지와 맞지 않음 |
 

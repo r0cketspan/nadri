@@ -1,6 +1,6 @@
 # 13-feedback — 👍/👎 피드백 API (spec)
 
-> 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-21). 상태: **초안 — 사용자 검토 대기**. 브랜치 `feat/13-feedback`, 의존 작업 12-faq-cache(→ 11·09·08·05·04).
+> 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-21). 상태: **확정(2026-11-22)** — 확인 질문은 모두 추천안대로 결정(마지막 절 표). 브랜치 `feat/13-feedback`, 의존 작업 12-faq-cache(→ 11·09·08·05·04).
 > 근거: [PL]=program_list.md(G4 승인본) §2 표·§3 "13-feedback" · [A]=architecture.md(G3 재승인본) §2.1 `feedback`·§3.9·§5.1 `message_feedback`·`faq_cache`(비고 "저장 조건에 검증 통과·👎 없음")·§6.1·ADR-13 · [R]=requirements.md FR-103·104, NFR-31.
 > **이어받는 확정 spec**: [04](`MessageFeedback`·`FEEDBACK_RATINGS`·`FEEDBACK_REASONS`·`ck_message_feedback_reason`·`pk_message_feedback`·FK CASCADE) · [05](`require_active`·`CurrentUser`·`get_db`·`get_now`·`ApiError`·`errors.py`·CSRF 미들웨어) · [09](`MessageOut`·`SessionDetailOut`·`GET /api/chat/sessions/{id}`·`make_session` 헬퍼) · [12](`faq_cache.py`·`save`·`FaqCache`·`chat_messages.faq_cache_id` SET NULL·`run_after_turn` 캐시 저장 단계).
 > **미확인** = 문서·공식 자료로 확인하지 못한 사실.
@@ -248,8 +248,8 @@ RETURNING id
 
 | # | 질문 | 추천안 | 대안 |
 |---|---|---|---|
-| 13-Q1 | 12 spec의 캐시 저장 조건에 "👎 없음"이 빠져 있다([A] §5.1에는 있음). 13에서 `faq_cache.save`를 고쳐 채울까 | **채운다**(`INSERT … WHERE NOT EXISTS(👎)` 한 줄 — 답변 직후 👎 경합 방지) | 고치지 않음(👎를 다시 누르면 지워지므로 드문 경합은 그대로 둠) |
-| 13-Q2 | §7의 동시 커밋 극단 경합(밀리초 단위)까지 막을까 | **받아들임**(사람 클릭 속도에서 사실상 없음, 생겨도 21 무효화·재클릭으로 지워짐) | `message_feedback` 행 잠금·직렬화 격리 수준(코드 복잡) |
-| 13-Q3 | `DELETE`를 피드백이 없을 때도 204로 할까 | **204**(멱등 — 화면이 빠르게 두 번 눌러도 오류 없음) | 404 `feedback_not_found` |
-| 13-Q4 | 13과 17이 같은 "본인 assistant 메시지 확인"·`message_not_found`를 쓴다. 정의 위치 | **13 `feedback.py`의 `load_owned_assistant`·`MSG_MESSAGE_NOT_FOUND`를 17이 재사용**(병합 순서가 17이 먼저면 17이 같은 이름으로 만들고 13이 재사용) | 각자 따로 만듦(중복) |
-| 13-Q5 | 👎 → 👍로 바꾸면 지운 캐시를 되살릴까 | **되살리지 않음**(요구사항 없음, 캐시는 다음 첫 질문에서 다시 생김) | 되살림(지운 행 보관 필요) |
+| 13-Q1 | 12 spec의 캐시 저장 조건에 "👎 없음"이 빠져 있다([A] §5.1에는 있음). 13에서 `faq_cache.save`를 고쳐 채울까 | **결정(2026-11-22): 추천안대로** — **채운다**(`INSERT … WHERE NOT EXISTS(👎)` 한 줄 — 답변 직후 👎 경합 방지) | 고치지 않음(👎를 다시 누르면 지워지므로 드문 경합은 그대로 둠) |
+| 13-Q2 | §7의 동시 커밋 극단 경합(밀리초 단위)까지 막을까 | **결정(2026-11-22): 추천안대로** — **받아들임**(사람 클릭 속도에서 사실상 없음, 생겨도 21 무효화·재클릭으로 지워짐) | `message_feedback` 행 잠금·직렬화 격리 수준(코드 복잡) |
+| 13-Q3 | `DELETE`를 피드백이 없을 때도 204로 할까 | **결정(2026-11-22): 추천안대로** — **204**(멱등 — 화면이 빠르게 두 번 눌러도 오류 없음) | 404 `feedback_not_found` |
+| 13-Q4 | 13과 17이 같은 "본인 assistant 메시지 확인"·`message_not_found`를 쓴다. 정의 위치 | **결정(2026-11-22): 추천안대로** — **13 `feedback.py`의 `load_owned_assistant`·`MSG_MESSAGE_NOT_FOUND`를 17이 재사용**(병합 순서가 17이 먼저면 17이 같은 이름으로 만들고 13이 재사용) | 각자 따로 만듦(중복) |
+| 13-Q5 | 👎 → 👍로 바꾸면 지운 캐시를 되살릴까 | **결정(2026-11-22): 추천안대로** — **되살리지 않음**(요구사항 없음, 캐시는 다음 첫 질문에서 다시 생김) | 되살림(지운 행 보관 필요) |

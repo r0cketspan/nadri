@@ -122,7 +122,7 @@ DB_HOST=127.0.0.1 TOOLS_URL=http://127.0.0.1:8001/mcp uv run pytest -m integrati
 
 [04] §7 픽스처(`pg_container`, `db_sf`, `super_engine`)를 쓴다. 추가 픽스처(이 파일 안):
 - `tools_engine`: `postgresql+asyncpg://nadri_tools:test-tools@{pg_container.host}:{pg_container.port}/nadri` 엔진(테스트마다).
-- `live_day`: 테스트마다 다른 먼 미래 날짜(2099-01-01부터 순서대로)를 주고, 끝나면 `super_engine`으로 `DELETE FROM ingest_state WHERE key LIKE 'tourapi_calls:2099-%'`([04] `db_engine`은 앱 테이블 15개만 비우므로 직접 정리).
+- `live_day`: 테스트마다 다른 먼 미래 날짜(2099-01-01부터 순서대로)를 주고, 끝나면 `super_engine`으로 `DELETE FROM ingest_state WHERE key LIKE 'tourapi_calls:2099-%'`([04] `db_engine`은 앱 테이블 14개만 비우므로 직접 정리).
 
 | ID | 대상 | 기대 |
 |---|---|---|
@@ -137,7 +137,7 @@ DB_HOST=127.0.0.1 TOOLS_URL=http://127.0.0.1:8001/mcp uv run pytest -m integrati
 | D-LB-9 | `nadri_tools`로 `tourapi_live_mark_quota_hit(:d)` → 같은 날 [03] ingest `Budget.reserve` / live 예약 | `quota_hit == true` / `BudgetExhausted` / NULL (03-Q2 "22면 그날 둘 다 중단") |
 | D-LB-10 | 행이 없는 날짜에 `mark_quota_hit` | 행 생성, 초기값 + `quota_hit == true` |
 | D-LB-11 | `nadri_tools`로 `SELECT/INSERT/UPDATE/DELETE` on `ingest_state` | 4개 모두 권한 오류(`InsufficientPrivilegeError`). `has_table_privilege` 4개 false |
-| D-LB-12 | 회귀(01 I-5·04 D-PRV) | `nadri_tools`: `tour_items`·`wiki_pages` SELECT true, `ingest_runs` SELECT false, 앱 테이블 15개 권한 없음 그대로 |
+| D-LB-12 | 회귀(01 I-5·04 D-PRV) | `nadri_tools`: `tour_items`·`wiki_pages` SELECT true, `ingest_runs` SELECT false, 앱 테이블 14개 권한 없음 그대로 |
 | D-LB-13 | `LiveBudget`(실제 클래스, `tools_engine` 세션, 고정 시계 = `live_day`) limit 1 | 첫 `reserve` 정상, 두 번째 `BudgetExhausted`, `mark_quota_hit()` 후 값 `quota_hit == true` |
 | D-LB-14 | 되돌리기·재적용: `alembic downgrade -1` → 함수 없음(`to_regprocedure` NULL) → `upgrade head` → 함수·권한 다시 있음 | 이 테스트는 공유 컨테이너를 head로 되돌려 놓고 끝낸다(실패해도 `finally`에서 `upgrade head`) |
 

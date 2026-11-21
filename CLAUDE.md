@@ -7,6 +7,7 @@
 - 모든 개발·실행은 **WSL2 Ubuntu-22.04** 안에서 한다. 레포 위치: `~/code/myAgent` (Windows `/mnt/*` 경로에 두지 않는다 — 느리고 권한·파일감시가 불안정).
 - 호스트 OS는 **Windows 11**이다. Windows에는 개발 도구를 설치하지 않는다.
 - 개발 도구(Python 3.12·uv, `backend/.venv`)는 **WSL2 Ubuntu**에 둔다. 코드 작성·단위/통합 테스트는 WSL에서 `uv run pytest`로 한다.
+- 웹(`web/`) 개발 도구(Node LTS — `fnm`으로 설치, npm, Playwright 브라우저)도 **WSL2 Ubuntu**에 둔다. 웹 테스트는 WSL에서 Vitest·Playwright로 한다.
 - 서비스(DB·LightRAG·API 등)는 전부 **Docker Compose**로 띄운다.
 - 비밀값(API 키 등)은 `.env`에만 둔다. 커밋 금지.
 

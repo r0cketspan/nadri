@@ -1,6 +1,6 @@
 # 14-web-foundation — 테스트 설계 (test)
 
-> spec.md와 짝. 절 번호 §n은 spec.md 기준. 작성 2026-11-21. 상태: 초안 — 사용자 검토 대기.
+> spec.md와 짝. 절 번호 §n은 spec.md 기준. 작성 2026-11-21. 상태: 확정(2026-11-22).
 > ① 자동 테스트 — A: Vitest + React Testing Library(결정적, 서버 없음, `fetch` 가짜) / B: Playwright(실제 compose) ② HITL(휴대폰 PWA 설치 등 사용자가 직접).
 
 ---
@@ -51,7 +51,7 @@ E2E_BASE_URL=https://<HOST> npm run e2e   # 05 A17이 localhost 실패였으면
 | V-API-14 | 204 | `apiJson` | `undefined` |
 | V-API-15 | 본문 `FormData` | POST | `Content-Type`을 직접 넣지 않음, CSRF 헤더 있음 |
 | V-API-16 | AbortController로 중단 | — | `AbortError` 그대로 던짐(ApiError 아님) |
-| V-API-17 | 429 `{code:"quota_exceeded", …, request_status:null}` | — | `err.body.request_status === null`(16이 사용) |
+| V-API-17 | 429 `{code:"quota_exceeded", message, limit:50, used:50}` | — | `err.code === "quota_exceeded"`, `err.body.limit === 50`, 메시지 그대로(15 알림에 사용) |
 
 #### A2. `tests/unit/validation.test.ts` (§6.5)
 

@@ -16,7 +16,7 @@
 |---|---|
 | `make_session(db_sf, user_id, *, turns=0, title=None, summary=None)` | 세션 + `turns`개 턴(user `"질문 n"`·assistant `"답변 n"`) 직접 생성, `turn_count=turns` |
 | `chat(client, session_id, text, location=None)` | CSRF 헤더 붙여 POST → SSE 본문을 02 `parse_sse`로 파싱해 반환 |
-| `dump_text(db_sf)` | 앱 테이블 15개의 모든 text·text[]·jsonb 컬럼 값을 한 문자열로 이어 붙여 반환(좌표·원문 검색용) |
+| `dump_text(db_sf)` | 앱 테이블 14개의 모든 text·text[]·jsonb 컬럼 값을 한 문자열로 이어 붙여 반환(좌표·원문 검색용) |
 | `FakeBgModel(outputs)` | 제목·요약용 가짜 Runnable — 호출마다 다음 `AIMessage`(usage 포함) 반환, 받은 메시지 기록, 옵션 `raise_on_call` |
 | `run_spawned()` | 08 `spawn`이 만든 태스크가 끝날 때까지 기다림(테스트 전용 — 모듈 set을 `asyncio.gather`) |
 

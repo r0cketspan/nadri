@@ -1,24 +1,24 @@
-# 16-web-chat-actions — 피드백·한도 추가 요청·위치 동의 UI (spec)
+# 16-web-chat-actions — 피드백·위치 동의 UI (spec)
 
-> 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-21). 상태: **초안 — 사용자 검토 대기**. 브랜치 `feat/16-web-chat-actions`, 의존 작업 13-feedback, 15-web-chat.
-> 근거: [PL]=program_list.md(G4 승인본) §2 표·§3 "16-web-chat-actions" · [A]=architecture.md(G3 재승인본) §2.1 web(👍/👎·위치 동의·추가 요청)·§3.6·§3.9·§6.1 · [R]=requirements.md FR-55·62·103, NFR-33.
-> **이어받는 확정 spec**: [09](`ChatRequest.location{lat,lng}` 범위 −90~90·−180~180, 좌표는 질문 처리에만·저장 안 함) · [11](429 `quota_exceeded` 본문 `{code,message,limit,used,request_status}`·`POST /api/quota/requests` 201 `{id,day,status,message}`·409 `quota_not_exhausted`·`quota_request_exists`·문구 §4.4·"`request_status`가 null일 때만 버튼, pending이면 대기 표시") · [12](위치가 있으면 FAQ 캐시 안 씀) · [13](`PUT`·`DELETE /api/chat/messages/{id}/feedback`·`FeedbackIn`·`FeedbackOut`·`MessageOut.feedback`·사유 코드 4개·404 `message_not_found`) · [14](`apiJson`·`ApiError`) · [15](`ChatView` 전송 순서·`notice`·`MessageBubble.actions` 자리·`streamChat(…, body{text, location?})`·`AssistantMessage`·`fromHistory`).
+> 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-21). 상태: **확정(2026-11-22)** — 확인 질문은 모두 추천안대로 결정(마지막 절 표). 브랜치 `feat/16-web-chat-actions`, 의존 작업 13-feedback, 15-web-chat.
+> 근거: [PL]=program_list.md(G4 승인본) §2 표·§3 "16-web-chat-actions" · [A]=architecture.md(G3 재승인본) §2.1 web(👍/👎·위치 동의)·§3.9·§6.1 · [R]=requirements.md FR-55·103, NFR-33.
+> **이어받는 확정 spec**: [09](`ChatRequest.location{lat,lng}` 범위 −90~90·−180~180, 좌표는 질문 처리에만·저장 안 함) · [12](위치가 있으면 FAQ 캐시 안 씀) · [13](`PUT`·`DELETE /api/chat/messages/{id}/feedback`·`FeedbackIn`·`FeedbackOut`·`MessageOut.feedback`·사유 코드 4개·404 `message_not_found`) · [14](`apiJson`·`ApiError`) · [15](`ChatView` 전송 순서·`notice`·`MessageBubble.actions` 자리·`streamChat(…, body{text, location?})`·`AssistantMessage`·`fromHistory`).
 > **미확인** = 문서·공식 자료로 확인하지 못한 사실.
+> **2026-11-22 변경(사용자 요청)**: 한도 추가 요청 기능 삭제(FR-62 변경·FR-82 삭제)로 `QuotaRequestButton`·`requestMoreQuota`와 16-Q5를 뺐다. 하루 한도 초과 화면은 15의 SSE 전 오류 처리(입력창 되돌림 + 서버 문구 알림)로 충분하다 — 15 §7.1·P-CH-12.
 
 ---
 
 ## 1. 작업 목표
 
-15 채팅 화면에 세 가지를 붙인다 [PL §3].
+15 채팅 화면에 두 가지를 붙인다 [PL §3].
 1. **👍/👎**(FR-103): 저장된 답변마다 버튼 2개, 👎를 누르면 사유 4개(틀린 정보·오래된 정보·질문 이해 못함·기타)를 **선택 입력**으로 보여 준다. 다시 누르면 취소.
-2. **한도 추가 요청**(FR-62): 429 `quota_exceeded`이고 오늘 요청이 없으면 "추가 요청" 버튼 → 보낸 뒤 "요청 대기 중".
-3. **위치 동의**(FR-55, NFR-33): 입력창 옆 토글. 켠 상태에서만 질문을 보낼 때 `navigator.geolocation`으로 그 순간 좌표를 받아 **그 요청 본문에만** 넣는다. 브라우저에 저장하지 않는다. 거부·실패면 좌표 없이 보낸다(지명 기준으로 답함).
+2. **위치 동의**(FR-55, NFR-33): 입력창 옆 토글. 켠 상태에서만 질문을 보낼 때 `navigator.geolocation`으로 그 순간 좌표를 받아 **그 요청 본문에만** 넣는다. 브라우저에 저장하지 않는다. 거부·실패면 좌표 없이 보낸다(지명 기준으로 답함).
 
 ### 1.1 넣지 않는 것
 | 빠지는 것 | 이유 |
 |---|---|
 | 👎 사유 자유 입력 | FR-103은 선택지만 |
-| 추가 요청 승인 여부 자동 확인(폴링)·알림 | 요구사항 없음. 승인되면 사용자가 다시 질문하면 됨 |
+| 한도 초과 화면·"추가 요청" 버튼 | 한도 초과 안내는 15가 함, 추가 요청 기능은 삭제(2026-11-22) |
 | 오늘 한도 상태 조회 API·남은 횟수 표시 | 11에 조회 API 없음, 요구사항 없음 |
 | 위치 동의 설정 기억(새로고침 후 유지) | NFR-33 취지 — 매번 켬(16-Q2) |
 | 좌표를 지도에 표시 | 요구사항 없음 |
@@ -31,14 +31,13 @@
 | 파일 | 신규/수정 | 역할 |
 |---|---|---|
 | `web/components/chat/FeedbackButtons.tsx` | 신규 | 👍/👎·사유 선택·취소, 낙관적 갱신 (§4) |
-| `web/components/chat/QuotaRequestButton.tsx` | 신규 | 추가 요청 버튼·대기 표시 (§5) |
-| `web/components/chat/LocationToggle.tsx` | 신규 | 위치 동의 토글 + `getCurrentLocation()` (§6) |
-| `web/lib/chat-api.ts` | 수정(15) | `putFeedback`·`deleteFeedback`·`requestMoreQuota` 함수 (§3) |
+| `web/components/chat/LocationToggle.tsx` | 신규 | 위치 동의 토글 + `getCurrentLocation()` (§5) |
+| `web/lib/chat-api.ts` | 수정(15) | `putFeedback`·`deleteFeedback` 함수 (§3) |
 | `web/lib/chat-state.ts` | 수정(15) | `AssistantMessage.feedback` 필드, `fromHistory`가 13 `feedback` 채움 |
-| `web/components/chat/ChatView.tsx` | 수정(15) | 위치 토글 상태·전송 시 좌표 첨부, `quota_exceeded` 알림에 `QuotaRequestButton`, 답변 `actions`에 `FeedbackButtons` (§7) |
+| `web/components/chat/ChatView.tsx` | 수정(15) | 위치 토글 상태·전송 시 좌표 첨부, 답변 `actions`에 `FeedbackButtons` (§6) |
 | `web/tests/unit/*`, `web/e2e/chat-actions.spec.ts` | 신규 | test.md |
 
-> [PL] 파일 목록 밖: `chat-api.ts`·`chat-state.ts`·`ChatView.tsx` 수정 — 세 컴포넌트를 15 화면에 끼우는 자리. 백엔드 변경 없음.
+> [PL] 파일 목록 밖: `chat-api.ts`·`chat-state.ts`·`ChatView.tsx` 수정 — 두 컴포넌트를 15 화면에 끼우는 자리. 백엔드 변경 없음.
 
 ---
 
@@ -52,8 +51,6 @@ export type Feedback = { rating: "up" | "down"; reason: FeedbackReason | null };
 export function putFeedback(messageId: number, fb: Feedback): Promise<Feedback>;
 /** DELETE 같은 경로(204). */
 export function deleteFeedback(messageId: number): Promise<void>;
-/** POST /api/quota/requests(본문 없음) — 201 {id, day, status, message}. */
-export function requestMoreQuota(): Promise<{ id: number; day: string; status: "pending"; message: string }>;
 ```
 - `putFeedback`은 `rating == "up"`이면 `reason`을 보내지 않는다(13: up + reason은 422).
 
@@ -94,32 +91,7 @@ export function FeedbackButtons(props: { messageId: number; initial: Feedback | 
 
 ---
 
-## 5. `QuotaRequestButton`
-
-```tsx
-/**
- * 하루 한도 초과(429 quota_exceeded) 알림 안의 '추가 요청' 영역.
- * @param requestStatus - 429 본문의 request_status (null | "pending" | "approved" | "rejected")
- */
-export function QuotaRequestButton(props: { requestStatus: "pending" | "approved" | "rejected" | null }): JSX.Element | null;
-```
-| `requestStatus` | 표시 |
-|---|---|
-| `null` | 버튼 "추가 요청" |
-| `"pending"` | 회색 글 "요청 대기 중"(버튼 없음) |
-| `"approved"`·`"rejected"` | 없음(null) — 알림 본문 서버 문구("오늘은 더 질문할 수 없어요…")만 |
-
-버튼 클릭 → `requestMoreQuota()`:
-- 201 → 버튼 자리를 "요청 대기 중" + 서버 `message`("추가 요청을 보냈어요. 관리자가 승인하면…")로 바꿈.
-- 409 `quota_request_exists` → "요청 대기 중" + 서버 문구.
-- 409 `quota_not_exhausted` → 서버 문구("아직 오늘 질문이 남아 있어요…") — 버튼 숨김(드묾: 자정이 지났을 때 등).
-- 그 밖 → 서버 문구, 버튼 다시 누를 수 있게.
-- 요청 중 버튼 비활성.
-- 승인 뒤: 사용자가 질문을 다시 보내면 11이 통과시킨다(자동 확인 없음).
-
----
-
-## 6. `LocationToggle`
+## 5. `LocationToggle`
 
 ```tsx
 /** 입력창 옆 "내 위치 사용" 토글. 켜는 순간 권한을 묻고, 거부되면 다시 꺼진다. */
@@ -144,21 +116,20 @@ export function getCurrentLocation(geo?: Geolocation):
 
 ---
 
-## 7. `ChatView` 수정 (15 §7.1 전송 순서에 끼움)
+## 6. `ChatView` 수정 (15 §7.1 전송 순서에 끼움)
 
 1. (15-1) 뒤에 **1a)**: `location = undefined`; `locationEnabled`면 `r = await getCurrentLocation()`:
    - `ok` → `location = {lat: r.lat, lng: r.lng}`
    - 실패 → 토글 끄기 + `notice` "위치를 가져오지 못해 위치 없이 보냈어요. 지명으로 물어봐 주세요." (전송은 계속 — FR-55 "거부·미동의면 지명 기준")
 2. (15-4) `streamChat(id, location ? { text, location } : { text }, signal)` — 좌표 변수는 이 함수 지역 변수로만, 상태·로그(`console.*`)에 넣지 않는다. 재시도(`retryText`)는 **다시 위치를 받는다**(좌표를 들고 있지 않으므로).
-3. (15-7) `quota_exceeded` 알림 안에 `<QuotaRequestButton requestStatus={notice.body?.request_status ?? null} />`.
-4. 답변 `MessageBubble`의 `actions` = `<FeedbackButtons messageId={m.id} initial={m.feedback} />` — `phase == "done"`이고 `id != null`일 때(15 §7.2 규칙 그대로 — 차단·오류·id null이면 안 나옴). 실시간 답변은 `initial = null`.
-5. 입력창 옆에 `<LocationToggle enabled={locationEnabled} onChange={setLocationEnabled} />`.
+3. 답변 `MessageBubble`의 `actions` = `<FeedbackButtons messageId={m.id} initial={m.feedback} />` — `phase == "done"`이고 `id != null`일 때(15 §7.2 규칙 그대로 — 차단·오류·id null이면 안 나옴). 실시간 답변은 `initial = null`.
+4. 입력창 옆에 `<LocationToggle enabled={locationEnabled} onChange={setLocationEnabled} />`.
 
 `chat-state.ts`: `AssistantMessage`에 `feedback: Feedback | null` 추가, `fromHistory`는 `m.feedback ?? null`, `startTurn`은 null.
 
 ---
 
-## 8. 엣지케이스
+## 7. 엣지케이스
 
 | 상황 | 동작 |
 |---|---|
@@ -168,10 +139,7 @@ export function getCurrentLocation(geo?: Geolocation):
 | 새로고침 | 이력의 `feedback`으로 버튼 상태 복원, 👎면 사유 칩 펼침 |
 | 차단·오류 답변 | 버튼 없음 |
 | `security_replaced`·`failed` 답변 | 버튼 있음(평가 재료) |
-| 한도 초과 + 요청 없음 | 버튼 |
-| 한도 초과 + 대기 중 | "요청 대기 중" |
-| 추가분까지 다 씀(승인됨) | 서버 문구만 |
-| 추가 요청 동시 두 번(두 탭) | 하나 201, 하나 409 → 둘 다 "요청 대기 중" |
+| 하루 한도 초과(429) | 15 그대로 — 입력창 되돌림 + 서버 문구, 버튼 없음 |
 | 위치 지원 안 하는 브라우저 | 토글 안 보임 |
 | http 주소(보안 출처 아님) | 브라우저가 `geolocation`을 막음 → `denied`/`unsupported` 처리(터널 https·localhost는 정상) |
 | 토글 켬 → 권한 거부 | 토글 꺼짐 + 안내 |
@@ -182,33 +150,32 @@ export function getCurrentLocation(geo?: Geolocation):
 
 ---
 
-## 9. 앞 작업과 달라지는 점 · 앞 작업 테스트 수정
+## 8. 앞 작업과 달라지는 점 · 앞 작업 테스트 수정
 
 | # | 내용 | 대상 | 처리 |
 |---|---|---|---|
 | 1 | `AssistantMessage.feedback` 추가 | 15 V-CS(객체 전체 비교가 있으면) | 기대에 `feedback: null` 추가 |
-| 2 | `quota_exceeded` 알림에 버튼 | 15 V-CV-06 | 기대에 "추가 요청" 버튼(본문 `request_status:null`) 추가 |
-| 3 | 답변 아래 👍/👎 | 15 V-MB-06·P-CH-04 | actions가 FeedbackButtons로 채워짐 — 차단 답변에 없음 기대는 그대로 |
-| 4 | 백엔드 변경 없음 | — | — |
+| 2 | 답변 아래 👍/👎 | 15 V-MB-06·P-CH-04 | actions가 FeedbackButtons로 채워짐 — 차단 답변에 없음 기대는 그대로 |
+| 3 | 백엔드 변경 없음 | — | — |
 
 ---
 
-## 10. 완료 기준 (DoD)
+## 9. 완료 기준 (DoD)
 
 1. `npm run typecheck && npm run test` 통과(컴포넌트 상태 — test.md ①-A).
-2. Playwright(①-B): 피드백 변경·취소(요청 방법·본문 확인), 한도 초과 화면 → 추가 요청 → 대기, 위치 거부 시 **요청 본문에 `location` 없음**, 허용 시 있음.
+2. Playwright(①-B): 피드백 변경·취소(요청 방법·본문 확인), 위치 거부 시 **요청 본문에 `location` 없음**, 허용 시 있음.
 3. 좌표가 `localStorage`·`sessionStorage`·쿠키·`console` 출력에 없음(테스트).
-4. HITL-1~3 결과 보고.
+4. HITL-1·2 결과 보고.
 5. 한국어 JSDoc·단계 주석([CL]). 커밋 `feat/16-web-chat-actions`, `[Feat] …` + 작업 목록 + `Author:`, AI 공동작성 표기 없음. `dev` 병합은 G5 후. `PROGRESS.md` 갱신.
 
 ---
 
-## 11. 확인 질문
+## 10. 확인 질문
 
 | # | 질문 | 추천안 | 대안 |
 |---|---|---|---|
-| 16-Q1 | 👎를 누르면 바로 저장할까, 사유를 고른 뒤 저장할까 | **바로 저장(사유 null) 후 사유 칩을 보여 줌**(사유는 선택 입력 — FR-103, 칩을 안 눌러도 👎는 남음) | 사유 창을 먼저 띄우고 "보내기"로 저장 |
-| 16-Q2 | 위치 동의 토글 상태를 새로고침 뒤에도 기억할까 | **기억 안 함**(매번 꺼진 상태로 시작 — 좌표·동의 흔적을 브라우저에 남기지 않음, NFR-33 취지) | localStorage에 켬/끔만 저장 |
-| 16-Q3 | 위치 토글을 켤 때 권한을 바로 물을까 | **켜는 순간 1번 물음**(거부하면 바로 꺼져 사용자가 알 수 있음), 좌표는 전송 때 새로 받음 | 전송할 때 처음 물음 |
-| 16-Q4 | 좌표 정밀도 | **브라우저 값 그대로**(`enableHighAccuracy: false` — 대략 위치), 반올림 없음(서버가 저장 전 지움) | 소수 3자리(약 100m)로 반올림해 보냄 |
-| 16-Q5 | 추가 요청 뒤 승인됐는지 자동으로 확인할까 | **안 함**(사용자가 다시 질문하면 통과 — 조회 API 없음) | 11에 오늘 한도 조회 API를 추가하고 주기 확인 |
+| 16-Q1 | 👎를 누르면 바로 저장할까, 사유를 고른 뒤 저장할까 | **결정(2026-11-22): 추천안대로** — **바로 저장(사유 null) 후 사유 칩을 보여 줌**(사유는 선택 입력 — FR-103, 칩을 안 눌러도 👎는 남음) | 사유 창을 먼저 띄우고 "보내기"로 저장 |
+| 16-Q2 | 위치 동의 토글 상태를 새로고침 뒤에도 기억할까 | **결정(2026-11-22): 추천안대로** — **기억 안 함**(매번 꺼진 상태로 시작 — 좌표·동의 흔적을 브라우저에 남기지 않음, NFR-33 취지) | localStorage에 켬/끔만 저장 |
+| 16-Q3 | 위치 토글을 켤 때 권한을 바로 물을까 | **결정(2026-11-22): 추천안대로** — **켜는 순간 1번 물음**(거부하면 바로 꺼져 사용자가 알 수 있음), 좌표는 전송 때 새로 받음 | 전송할 때 처음 물음 |
+| 16-Q4 | 좌표 정밀도 | **결정(2026-11-22): 추천안대로** — **브라우저 값 그대로**(`enableHighAccuracy: false` — 대략 위치), 반올림 없음(서버가 저장 전 지움) | 소수 3자리(약 100m)로 반올림해 보냄 |
+| ~~16-Q5~~ | ~~추가 요청 뒤 승인됐는지 자동으로 확인할까~~ | **질문 없어짐(2026-11-22)** — 한도 추가 요청 기능 삭제 | — |

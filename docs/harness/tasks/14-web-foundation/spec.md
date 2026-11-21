@@ -1,6 +1,6 @@
 # 14-web-foundation — Next.js 기반·인증 화면·PWA (spec)
 
-> 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-21). 상태: **초안 — 사용자 검토 대기**. 브랜치 `feat/14-web-foundation`, 의존 작업 05-auth-core, 06-password-reset-mail.
+> 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-21). 상태: **확정(2026-11-22)** — 확인 질문은 모두 추천안대로 결정(마지막 절 표). 브랜치 `feat/14-web-foundation`, 의존 작업 05-auth-core, 06-password-reset-mail.
 > 근거: [PL]=program_list.md(G4 승인본) §2 표·§3 "14-web-foundation"·§5 Q7 · [A]=architecture.md(G3 재승인본) §1(프론트·PWA)·§2 컨테이너 표(`web`·`nginx`)·§2.1 web·§7 디렉터리·§9(컨테이너 격리)·ADR-12 · [R]=requirements.md FR-01~05, NFR-04·05·10·20·52·70 · [S]=stack-options.md S16·S17·S18·S19 · [CL]=CLAUDE.md(작업 환경·주석 규칙).
 > **이어받는 확정 spec**: [02](`infra/nginx/nginx.conf` `/api/` 블록·`location / { return 404; }`·`compose.dev.yaml` nginx `127.0.0.1:8080`) · [05](엔드포인트·`UserOut`·오류 본문 `{"code","message"}`·문구 §4.3·쿠키 `__Host-session`/`__Host-csrf`·헤더 `X-CSRF-Token`·`GET /api/auth/csrf`·"csrf_failed면 토큰 새로 받아 1번만 재시도"·422 화면 문구·A17 결과) · [06](`password-reset/request`·`confirm`·문구 `MSG_RESET_*`).
 > **미확인** = 문서·공식 자료로 확인하지 못한 사실(라이브러리 버전 동작 등).
@@ -72,10 +72,9 @@
 | `compose.yaml` | 수정 | `web` 서비스, nginx `depends_on`에 web (§9) |
 | `compose.dev.yaml` | 수정 | web 개발 모드(소스 마운트·`next dev`) (§9, 14-Q3) |
 | `infra/nginx/nginx.conf` | 수정(02) | `location / { return 404; }` → web 프록시 (§9) |
-| `CLAUDE.md` | 수정 | "명령어" 절에 web 명령 추가([CL] 지시), "작업 환경"에 Node 추가(14-Q1 결정 시) |
-| `README.md` | 수정 | 기술스택 표에 Node 버전 한 줄(메모리 규칙: 스택 확정 시 README 갱신) |
+| `CLAUDE.md` | 수정 | "명령어" 절에 web 명령 추가([CL] 지시). ("작업 환경"의 WSL Node(fnm) 줄·README 스택 표는 14-Q1 결정(2026-11-22) 때 문서 담당이 이미 반영 — 구현 때 Node 실제 버전만 맞춰 고침) |
 
-> [PL] 파일 목록 밖: `(auth)/layout.tsx`, `(chat)/layout.tsx`, 임시 `(chat)/page.tsx`, `AuthGate.tsx`, `validation.ts`, shadcn 생성 파일, `tsconfig`·PostCSS·`globals.css`, 테스트 폴더, `compose.dev.yaml`, `CLAUDE.md`·`README.md`. 모두 화면 뼈대·로그인 확인·테스트 실행에 필요한 최소분.
+> [PL] 파일 목록 밖: `(auth)/layout.tsx`, `(chat)/layout.tsx`, 임시 `(chat)/page.tsx`, `AuthGate.tsx`, `validation.ts`, shadcn 생성 파일, `tsconfig`·PostCSS·`globals.css`, 테스트 폴더, `compose.dev.yaml`, `CLAUDE.md`. 모두 화면 뼈대·로그인 확인·테스트 실행에 필요한 최소분.
 
 ---
 
@@ -135,7 +134,7 @@ export class ApiError extends Error {
     public readonly status: number,              // HTTP 상태, 네트워크 오류면 0
     public readonly code: string,                // 05 code 또는 아래 화면 전용 코드
     message: string,                             // 사용자에게 그대로 보여 줄 문구
-    public readonly body: Record<string, unknown>, // 원 본문(예: 11 quota_exceeded의 request_status)
+    public readonly body: Record<string, unknown>, // 원 본문(예: 11 quota_exceeded의 limit·used)
     public readonly retryAfterS: number | null,  // Retry-After 헤더(초)
   ) { super(message); }
 }
@@ -417,7 +416,7 @@ Playwright가 쓰는 브라우저는 WSL에 설치한다: `npx playwright instal
 |---|---|---|---|
 | 1 | nginx `location /`가 404 → web 프록시 | 02 nginx 관련 테스트·HITL(`/`가 404라는 기대가 있으면) | 기대를 "web 응답(200)"으로. `/api/` 동작은 불변 |
 | 2 | compose에 `web` 추가 | 26 `test_compose_hardening.py`(아직 없음) | 26에서 web도 점검 대상에 포함 |
-| 3 | `CLAUDE.md` 작업 환경에 Node 추가(14-Q1) | 문서 | 결정 후 반영 |
+| 3 | `CLAUDE.md` 작업 환경에 Node(fnm) 추가(14-Q1 결정 2026-11-22) | 문서 | 문서 담당이 반영 완료 — 구현 때 버전만 확인 |
 | 4 | 백엔드 코드 변경 없음 | — | — |
 
 상위 문서와의 차이(구현 판단):
@@ -437,7 +436,7 @@ Playwright가 쓰는 브라우저는 WSL에 설치한다: `npx playwright instal
 6. web 컨테이너 비루트·`cap_drop: [ALL]`·`no-new-privileges`, 호스트 포트 없음.
 7. localStorage·sessionStorage 사용 코드 없음(grep 테스트).
 8. 모든 함수·컴포넌트에 한국어 JSDoc(요약·인자·반환), 함수 안 단계 주석([CL]).
-9. `CLAUDE.md` 명령어 절·`README.md` 스택 표 갱신. 커밋 `feat/14-web-foundation`, `[Feat] …` + 작업 목록 + `Author:`, AI 공동작성 표기 없음. `dev` 병합은 G5 후. `PROGRESS.md` 갱신.
+9. `CLAUDE.md` 명령어 절에 web 명령 추가(Node 실제 버전이 문서와 다르면 CLAUDE.md·README도 맞춤). 커밋 `feat/14-web-foundation`, `[Feat] …` + 작업 목록 + `Author:`, AI 공동작성 표기 없음. `dev` 병합은 G5 후. `PROGRESS.md` 갱신.
 
 ---
 
@@ -445,10 +444,10 @@ Playwright가 쓰는 브라우저는 WSL에 설치한다: `npx playwright instal
 
 | # | 질문 | 추천안 | 대안 |
 |---|---|---|---|
-| 14-Q1 | 웹 테스트(Vitest·Playwright)와 `npm ci`를 어디서 돌릴까. CLAUDE.md는 WSL 개발 도구를 Python·uv만 적어 두었다 | **WSL Ubuntu에 Node LTS 설치**(버전 관리 도구 `fnm` 또는 NodeSource 중 하나 — 추천 `fnm`), Playwright 브라우저도 WSL에. CLAUDE.md "작업 환경"에 한 줄 추가 | 웹 테스트도 Docker 컨테이너 안에서만 실행(WSL에 Node 없음, 명령이 길어지고 Playwright 이미지 필요) |
-| 14-Q2 | 패키지 관리자 | **npm**(Node 기본 포함, 추가 설치 없음) | pnpm(빠르고 디스크 절약, 도구 추가) |
-| 14-Q3 | 개발 중 화면 수정을 어떻게 바로 볼까 | **`compose.dev.yaml`에서 web을 `next dev`(소스 마운트)로** — api의 `--reload`와 같은 방식, 같은 `localhost:8080` 주소 | WSL에서 `npm run dev`를 직접 띄우고 nginx가 호스트로 넘기게(설정 추가) / 매번 `--build` |
-| 14-Q4 | 가입·재설정·변경 화면에 "비밀번호 확인"(두 번 입력) 칸을 둘까(요구사항엔 없음) | **둔다**(오타로 가입하면 메일 재설정을 거쳐야 함 — 칸 1개, 서버 변경 없음) | 두지 않음(요구사항 그대로) |
-| 14-Q5 | 앱 아이콘 디자인 | **임시 단색 아이콘("나" 글자, 청록 `#0f766e`)** — 나중에 파일만 바꾸면 됨 | 사용자가 아이콘을 준비 |
-| 14-Q6 | Playwright가 테스트 사용자를 만들고 승인하는 방법(관리자 API는 18) | **`docker compose exec postgres psql`로 직접 승인·정리**(`e2e_` 접두어 사용자만, 가입·로그인 요청 제한 카운터도 지움) | 테스트 전용 API 추가(운영 코드에 테스트 경로가 생김) |
-| 14-Q7 | 승인 대기 화면에서 자동으로 승인 여부를 확인할까 | **안 함 — "승인됐는지 확인" 버튼만**(폴링 없음) | 30초마다 `me` 조회 |
+| 14-Q1 | 웹 테스트(Vitest·Playwright)와 `npm ci`를 어디서 돌릴까. CLAUDE.md는 WSL 개발 도구를 Python·uv만 적어 두었다 | **결정(2026-11-22): 추천안대로** — **WSL Ubuntu에 Node LTS 설치**(버전 관리 도구 `fnm` 또는 NodeSource 중 하나 — 추천 `fnm`), Playwright 브라우저도 WSL에. CLAUDE.md "작업 환경"에 한 줄 추가 | 웹 테스트도 Docker 컨테이너 안에서만 실행(WSL에 Node 없음, 명령이 길어지고 Playwright 이미지 필요) |
+| 14-Q2 | 패키지 관리자 | **결정(2026-11-22): 추천안대로** — **npm**(Node 기본 포함, 추가 설치 없음) | pnpm(빠르고 디스크 절약, 도구 추가) |
+| 14-Q3 | 개발 중 화면 수정을 어떻게 바로 볼까 | **결정(2026-11-22): 추천안대로** — **`compose.dev.yaml`에서 web을 `next dev`(소스 마운트)로** — api의 `--reload`와 같은 방식, 같은 `localhost:8080` 주소 | WSL에서 `npm run dev`를 직접 띄우고 nginx가 호스트로 넘기게(설정 추가) / 매번 `--build` |
+| 14-Q4 | 가입·재설정·변경 화면에 "비밀번호 확인"(두 번 입력) 칸을 둘까(요구사항엔 없음) | **결정(2026-11-22): 추천안대로** — **둔다**(오타로 가입하면 메일 재설정을 거쳐야 함 — 칸 1개, 서버 변경 없음) | 두지 않음(요구사항 그대로) |
+| 14-Q5 | 앱 아이콘 디자인 | **결정(2026-11-22): 추천안대로** — **임시 단색 아이콘("나" 글자, 청록 `#0f766e`)** — 나중에 파일만 바꾸면 됨 | 사용자가 아이콘을 준비 |
+| 14-Q6 | Playwright가 테스트 사용자를 만들고 승인하는 방법(관리자 API는 18) | **결정(2026-11-22): 추천안대로** — **`docker compose exec postgres psql`로 직접 승인·정리**(`e2e_` 접두어 사용자만, 가입·로그인 요청 제한 카운터도 지움) | 테스트 전용 API 추가(운영 코드에 테스트 경로가 생김) |
+| 14-Q7 | 승인 대기 화면에서 자동으로 승인 여부를 확인할까 | **결정(2026-11-22): 추천안대로** — **안 함 — "승인됐는지 확인" 버튼만**(폴링 없음) | 30초마다 `me` 조회 |

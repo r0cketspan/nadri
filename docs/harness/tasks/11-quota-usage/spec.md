@@ -1,26 +1,25 @@
 # 11-quota-usage — 일일 한도·분당 제한·사용량 기록 (spec)
 
 > 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-21). 상태: **초안 — 사용자 검토 대기**. 브랜치 `feat/11-quota-usage`, 의존 작업 09-chat-sessions(→ 08·05·04·02).
-> 근거: [PL]=program_list.md(G4 승인본) §2 표·§3 "11-quota-usage"·§4 · [A]=architecture.md(G3 재승인본) §2.1 `quota`·`usage`·`ratelimit`·§3.1 2)·3)·10)·§3.6·§5.1 `daily_quota`·`quota_requests`·`usage_events`·§10·ADR-10·27 · [R]=requirements.md FR-61·62, NFR-06·40·43·60 · [PG]=PROGRESS.md G3 Q5("성공·캐시 적중 차감, 장애 미차감")·G3 재검토 Q2("입력 차단 +1, Moderation 장애 미차감").
-> **이어받는 확정 spec**: [02](`UsageRecord`·`usage_from_message`) · [04](`DailyQuota`·`QuotaRequest`·`UsageEvent`·`USAGE_KINDS`·`QUOTA_REQUEST_STATUSES`·`uq_quota_requests_user_id_day`) · [05](`RateRule`·`allow`·`retry_after`·`too_many`·`ApiError`·`constraint_name`·`get_now`·`require_active`·키 `chat:user:{user_id}`) · [08](`TurnStore`·`DbTurnStore.finish_*`·`spawn`) · [09](`DbTurnStore.finish_done` 트랜잭션·`chat_turn_context`·`BackgroundDeps.on_usage`) · [10](`tour_live` — TourAPI 실시간 몫은 `LiveBudget`가 따로 셈).
+> 근거: [PL]=program_list.md(G4 승인본) §2 표·§3 "11-quota-usage"·§4 · [A]=architecture.md(G3 재승인본) §2.1 `quota`·`usage`·`ratelimit`·§3.1 2)·3)·10)·§3.6·§5.1 `daily_quota`·`usage_events`·§10·ADR-10·27 · [R]=requirements.md FR-61·62, NFR-06·40·43·60 · [PG]=PROGRESS.md G3 Q5("성공·캐시 적중 차감, 장애 미차감")·G3 재검토 Q2("입력 차단 +1, Moderation 장애 미차감").
+> **이어받는 확정 spec**: [02](`UsageRecord`·`usage_from_message`) · [04](`DailyQuota`·`UsageEvent`·`USAGE_KINDS`) · [05](`RateRule`·`allow`·`retry_after`·`too_many`·`ApiError`·`constraint_name`·`get_now`·`require_active`·키 `chat:user:{user_id}`) · [08](`TurnStore`·`DbTurnStore.finish_*`·`spawn`) · [09](`DbTurnStore.finish_done` 트랜잭션·`chat_turn_context`·`BackgroundDeps.on_usage`) · [10](`tour_live` — TourAPI 실시간 몫은 `LiveBudget`가 따로 셈).
 > **미확인** = 문서·공식 자료로 확인하지 못한 사실.
+> **2026-11-22 변경(사용자 요청)**: 한도 추가 요청 기능 삭제(FR-62 변경·FR-82 삭제). `POST /api/quota/requests`·`EXTRA_STEP`·`create_request`·`request_status`·`daily_quota.extra`·추가 요청 문구를 뺐다. 한도는 하루 50회 고정, 넘으면 그날 차단(requirements.md §8).
 
 ---
 
 ## 1. 작업 목표
 
-- 채팅 메시지 요청에 **분당 10회**(NFR-06)와 **일일 한도 50 + 승인 추가분**(FR-62)을 건다. 넘으면 SSE 시작 전 429.
+- 채팅 메시지 요청에 **분당 10회**(NFR-06)와 **일일 한도 50**(FR-62)을 건다. 넘으면 SSE 시작 전 429.
 - [A] §3.6 차감 규칙을 턴 결과마다 한 곳(`DbTurnStore`)에서 적용한다: 성공·캐시 적중 +1, 입력 검사 차단 +1, 장애·중단·Moderation 장애 0.
-- `POST /api/quota/requests` — 그날 1건 추가 요청(승인은 18).
 - 모든 LLM·외부 호출을 `usage_events`에 1행씩(종류·모델명·입력/캐시 읽기/캐시 쓰기/출력 토큰·건수·비용) 남긴다(FR-61, NFR-40·43). 단가표는 `core/pricing.py`.
 - `done.quota_remaining`을 채운다.
 
 ### 1.1 넣지 않는 것
 | 빠지는 것 | 들어오는 작업 |
 |---|---|
-| 추가 요청 승인·거절(extra += 50) API·화면 | 18 (11은 `EXTRA_STEP` 상수만 둠) |
 | 사용량 대시보드·월 $10 경고 | 19 |
-| 429 화면·"추가 요청" 버튼 | 16 |
+| 429 화면(입력창 되돌림 + 안내) | 15 |
 | STT·TTS·허브·평가·개선안 사용량 **기록 호출** — 11은 `record_usage`·단가를 만들고, 호출은 각 작업이 함 | 17·20·24 |
 | FAQ 캐시 임베딩 사용량(`embed`) 생성 | 12 (11 단가표에 임베딩 단가는 둠) |
 | TourAPI 호출 수(적재·`tour_live`) | 03·10의 `ingest_state` 공유 카운터(`tourapi_calls:<날짜>`의 `ingest`·`live`). `usage_events` 종류에 TourAPI가 없고(04 `USAGE_KINDS`) 비용도 없으므로 기록하지 않는다 |
@@ -31,13 +30,12 @@
 
 | 파일 | 신규/수정 | 역할 |
 |---|---|---|
-| `nadri/api/quota.py` | 신규 | 한도 계산·검사·차감, 추가 요청 서비스·라우터, 채팅 입장 검사 의존성 (§4·§5) |
+| `nadri/api/quota.py` | 신규 | 한도 계산·검사·차감, 채팅 입장 검사 의존성 (§4·§5) |
 | `nadri/api/usage.py` | 신규 | `UsageRecord` → `usage_events` 행(비용 포함) (§6) |
 | `nadri/core/pricing.py` | 신규 | 단가표·비용 계산 (§7) |
 | `nadri/api/chat/router.py` | 수정(09) | `chat_turn_context`의 사용자 의존성을 `chat_admission`으로 교체 |
 | `nadri/api/chat/store.py` | 수정(09) | `finish_done`·`finish_blocked`·`finish_error`에 차감·사용량 기록, `clock` 주입 (§8) |
 | `nadri/api/chat/background.py` | 수정(09) | `on_usage`를 로그 → `usage_events` 저장으로 |
-| `nadri/api/main.py` | 수정 | quota 라우터 등록 |
 | `nadri/api/errors.py` | 수정(05) | 한도 관련 코드·문구 (§4.4) |
 | `backend/tests/...` | 신규·수정 | test.md, 앞 작업 테스트 수정(§10) |
 
@@ -52,7 +50,6 @@
 | 상수 | 위치 | 값 | 근거 |
 |---|---|---|---|
 | `DAILY_LIMIT` | `quota.py` | `50` | FR-62 |
-| `EXTRA_STEP` | `quota.py` | `50` | FR-62 (18이 승인 때 사용) |
 | `CHAT_RULE` | `quota.py` | `RateRule(limit=10, window=timedelta(minutes=1))` (잠금 없음) | NFR-06 |
 | 레이트 키 | — | `chat:user:{user_id}` | 05 §6.5 정본 |
 | `KST` | `core/tourapi.py`(01) | `ZoneInfo("Asia/Seoul")` | 재사용 |
@@ -62,7 +59,7 @@
 ## 4. 한도 (`api/quota.py`)
 
 ### 4.1 규칙
-- 하루 = **KST 날짜**. 한도 = `DAILY_LIMIT + extra`, 남은 횟수 = `max(0, 한도 − used)`. 행이 없으면 used 0·extra 0.
+- 하루 = **KST 날짜**. 한도 = `DAILY_LIMIT`(50 고정), 남은 횟수 = `max(0, 50 − used)`. 행이 없으면 used 0.
 - **검사는 요청 시작 때, 차감은 턴이 끝날 때**(답변 결과를 알아야 차감 여부가 정해짐 — [A] §3.6). 그래서 동시에 진행 중인 요청 수만큼(분당 10회 안) 한도를 넘을 수 있다 — 1~5명 규모에서 받아들임(§12 Q3). 차감 쿼리는 상한 없이 +1 한다.
 - 차감 날짜 = **차감 시각**의 KST 날짜(자정 넘어 끝난 턴은 다음 날로).
 
@@ -75,7 +72,6 @@ class QuotaStatus:
     limit: int
     used: int
     remaining: int
-    request_status: Literal["pending", "approved", "rejected"] | None   # 오늘 추가 요청 상태(없으면 None)
 
 def kst_day(now: datetime) -> date:
     """tz-aware 시각의 KST 날짜. naive면 ValueError."""
@@ -83,11 +79,9 @@ def seconds_to_kst_midnight(now: datetime) -> int:
     """다음 KST 00:00까지 남은 초(올림, 최소 1) — 429 Retry-After."""
 async def get_status(db: AsyncSession, user_id: int, now: datetime) -> QuotaStatus: ...
 async def ensure_quota(db: AsyncSession, user_id: int, now: datetime) -> QuotaStatus:
-    """남은 횟수가 0이면 ApiError(429, quota_exceeded) — §4.4 문구·extra 필드·Retry-After."""
+    """남은 횟수가 0이면 ApiError(429, quota_exceeded) — §4.4 문구·본문 필드·Retry-After."""
 async def charge(db: AsyncSession, user_id: int, now: datetime) -> int:
     """used +1 (upsert) 후 남은 횟수를 돌려준다. 커밋은 호출자."""
-async def create_request(db: AsyncSession, user_id: int, now: datetime) -> QuotaRequest:
-    """오늘 추가 요청 1건. 남은 횟수가 있으면 409 quota_not_exhausted, 이미 있으면 409 quota_request_exists. 커밋까지."""
 async def chat_admission(cu: CurrentUser = Depends(require_active), db: AsyncSession = Depends(get_db),
                          now: datetime = Depends(get_now)) -> CurrentUser:
     """채팅 메시지 입장 검사: ① 분당 10회(allow → 커밋, 거부면 429 too_many_requests) ② ensure_quota."""
@@ -96,7 +90,7 @@ async def chat_admission(cu: CurrentUser = Depends(require_active), db: AsyncSes
 ```sql
 INSERT INTO daily_quota (user_id, day, used) VALUES (:uid, :day, 1)
 ON CONFLICT (user_id, day) DO UPDATE SET used = daily_quota.used + 1
-RETURNING used, extra
+RETURNING used
 ```
 
 ### 4.3 채팅 엔드포인트 순서 ([A] §3.1 1)~4))
@@ -105,24 +99,14 @@ RETURNING used, extra
 3. **일일 한도** → 429 `quota_exceeded`
 4. (09) 세션 소유 404 → 50턴 409
 
-구현: 09 `chat_turn_context`의 `cu: CurrentUser = Depends(require_active)`를 **`Depends(chat_admission)`** 으로 바꾼다(의존성 사슬로 순서 보장). 세션 CRUD·추가 요청에는 분당 제한을 걸지 않는다.
+구현: 09 `chat_turn_context`의 `cu: CurrentUser = Depends(require_active)`를 **`Depends(chat_admission)`** 으로 바꾼다(의존성 사슬로 순서 보장). 세션 CRUD에는 분당 제한을 걸지 않는다.
 
-### 4.4 API·사용자 문구
-| 메서드·경로 | 인증 | 요청 | 성공 | 실패 |
-|---|---|---|---|---|
-| `POST /api/quota/requests` | active, CSRF | 본문 없음 | 201 `{"id", "day": "YYYY-MM-DD", "status": "pending", "message": MSG_QUOTA_REQUESTED}` | 409 `quota_not_exhausted` / 409 `quota_request_exists` |
-
+### 4.4 사용자 문구
 | code | HTTP | 상수 | 문구 |
 |---|---|---|---|
-| `quota_exceeded`(요청 없음) | 429 | `MSG_QUOTA_EXCEEDED` | 오늘 질문 {limit}회를 모두 썼어요. 더 필요하면 '추가 요청'을 눌러 관리자에게 요청해 주세요. |
-| `quota_exceeded`(요청 대기 중) | 429 | `MSG_QUOTA_PENDING` | 추가 요청을 관리자가 확인하고 있어요. 승인되면 바로 이어서 쓸 수 있어요. |
-| `quota_exceeded`(요청 승인·거절됨) | 429 | `MSG_QUOTA_DONE_TODAY` | 오늘은 더 질문할 수 없어요. 내일 0시(한국 시간)에 다시 50회가 채워져요. |
-| `quota_not_exhausted` | 409 | `MSG_QUOTA_NOT_EXHAUSTED` | 아직 오늘 질문이 남아 있어요. 다 쓴 뒤에 요청해 주세요. |
-| `quota_request_exists` | 409 | `MSG_QUOTA_REQUEST_EXISTS` | 오늘은 이미 추가 요청을 보냈어요. |
-| (성공) | 201 | `MSG_QUOTA_REQUESTED` | 추가 요청을 보냈어요. 관리자가 승인하면 오늘 50회를 더 쓸 수 있어요. |
+| `quota_exceeded` | 429 | `MSG_QUOTA_EXCEEDED` | 오늘 질문 한도({limit}회)를 다 썼어요. 내일 0시(한국 시간)에 다시 이용해 주세요. |
 
-- `quota_exceeded` 본문: `{"code","message","limit","used","request_status"}` + `Retry-After: 다음 KST 자정까지 초`. 16 화면은 `request_status`가 `null`일 때만 "추가 요청" 버튼, `pending`이면 "요청 대기 중" 표시.
-- `quota_request_exists`: 먼저 `SELECT`로 확인하고, 동시 요청 경합은 `IntegrityError` → `constraint_name == "uq_quota_requests_user_id_day"`로 같은 409(05 헬퍼).
+- `quota_exceeded` 본문: `{"code","message","limit","used"}` + `Retry-After: 다음 KST 자정까지 초`. 화면(15)은 입력창에 질문을 되돌리고 이 문구를 알림으로 보여 준다. 추가 요청 API·버튼은 없다(2026-11-22 FR-62 변경).
 
 ---
 
@@ -234,10 +218,7 @@ class DbTurnStore:
 | 상황 | 동작 |
 |---|---|
 | 오늘 used 49 → 질문 성공 | 50, `quota_remaining: 0` |
-| used 50, extra 0 | 429 `quota_exceeded`, `request_status: null`, 그래프 호출 없음 |
-| used 50 + 추가 요청 pending | 429, 문구 `MSG_QUOTA_PENDING` |
-| 승인(extra 50) 후 used 50 | 통과(남은 50) |
-| used 100, extra 50, 승인됨 | 429 `MSG_QUOTA_DONE_TODAY` |
+| used 50 | 429 `quota_exceeded`(`MSG_QUOTA_EXCEEDED`), 그래프 호출 없음 — 그날 끝까지 차단, KST 자정에 풀림 |
 | 같은 분 11번째 요청 | 429 `too_many_requests`(`Retry-After` ≤ 60) — 한도 검사 전 |
 | 분당 10회 + 한도 초과 동시 | 분당 제한이 먼저(429 too_many_requests) |
 | KST 23:59:59 검사, 00:00:01 끝남 | 다음 날 행에 +1 |
@@ -247,9 +228,6 @@ class DbTurnStore:
 | 응답 모델명이 `gpt-6-luna-2026-11-01` | `gpt-6-luna` 단가 |
 | 모르는 모델명 | 비용 0 + WARNING |
 | 토큰 None | 컬럼 NULL, 비용은 0으로 계산 |
-| 추가 요청: 한도 남음 | 409 `quota_not_exhausted` |
-| 추가 요청 2번째 | 409 `quota_request_exists` |
-| 추가 요청 동시 2건 | 하나 201, 하나 409(UNIQUE) |
 
 ---
 
@@ -266,7 +244,6 @@ class DbTurnStore:
 상위 문서와의 차이(구현 판단):
 1. **장애 턴도 사용량 기록**(차감은 안 함) — [A] §3.1 10)은 성공 턴 기록만 적었지만 FR-61(비용 기록)을 따름(Q2).
 2. **검사 시작·차감 끝** 사이 경합으로 한도 소폭 초과 허용(Q3).
-3. **추가 요청은 한도를 다 쓴 뒤에만**(Q1).
 4. `usage_events.ttft_ms` 비움(Q4).
 5. web_search·tts 비용 0(무료 크레딧·플랜) — 수량은 `units`.
 
@@ -284,7 +261,7 @@ class DbTurnStore:
 ## 12. 완료 기준 (DoD)
 
 1. test.md ① 전부 통과, §10 앞 작업 테스트 수정 후 통과.
-2. 한도 경계(49→50, 50+추가분), KST 날짜 경계, 차감 규칙 표(§5) 전 행, 비용 계산(캐시 쓰기 1.25배), 분당 10회 테스트 통과.
+2. 한도 경계(49→50, 50에서 429), KST 날짜 경계, 차감 규칙 표(§5) 전 행, 비용 계산(캐시 쓰기 1.25배), 분당 10회 테스트 통과.
 3. `done.quota_remaining`이 실제 남은 횟수.
 4. HITL-1·2 결과 보고, §11 결과 기록.
 5. 모든 함수·클래스 한국어 docstring, 단계 주석. 커밋 `feat/11-quota-usage`, `[Feat] …` + `Author:`, AI 공동작성 표기 없음. `dev` 병합은 G5 후. `PROGRESS.md` 갱신.
@@ -295,9 +272,9 @@ class DbTurnStore:
 
 | # | 질문 | 추천안 | 대안 |
 |---|---|---|---|
-| Q1 | 추가 요청을 언제 받을까 | **결정(2026-11-21): 추천안대로** — **오늘 한도를 다 썼을 때만**(남아 있으면 409) — 버튼이 429 때만 보이는 FR-62와 같은 뜻, 미리 요청해 두는 것 방지 | 아무 때나 받음 |
+| ~~Q1~~ | ~~추가 요청을 언제 받을까~~ | **해당 없음(2026-11-22)** — 한도 추가 요청 기능 삭제 | — |
 | Q2 | 장애로 끝난 턴(미차감)의 LLM 비용을 `usage_events`에 남길까 | **결정(2026-11-21): 추천안대로** — **남긴다**(실제 나간 비용 — FR-61·19 대시보드 정확도) | 성공·차단 턴만 기록([A] §3.1 10) 문자 그대로) |
 | Q3 | 동시 요청으로 한도를 1~2회 넘는 경합 | **결정(2026-11-21): 추천안대로** — **허용**(검사는 시작, 차감은 끝 — 1~5명·분당 10회) | 시작 때 미리 1회 예약하고 실패·장애면 되돌림(코드 복잡) |
 | Q4 | `usage_events.ttft_ms` | **결정(2026-11-21): 추천안대로** — **비움**(턴 지연은 `chat_messages.timings`) | answer 첫 행에 턴 `ttft_ms`를 복사 |
-| Q5 | 한도 초과 문구 3종(§4.4) | **결정(2026-11-21): 추천안대로** — **표 그대로** | 사용자가 수정 |
+| Q5 | 한도 초과 문구(§4.4) | **결정(2026-11-21): 추천안대로** → **2026-11-22 변경**: 추가 요청 삭제로 문구 3종 → 1종(`MSG_QUOTA_EXCEEDED` "오늘 질문 한도(50회)를 다 썼어요. 내일 0시(한국 시간)에 다시 이용해 주세요.") | 사용자가 수정 |
 | Q6 | Tavily `web_search` 비용 | **결정(2026-11-21): 추천안대로** — **0으로 두고 `units`(크레딧)만 셈**(월 1,000 무료 안 — A28). 유료 단가는 **미확인** | 유료 단가를 넣어 "무료가 아니었다면"의 비용 표시 |

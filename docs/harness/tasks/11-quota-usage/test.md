@@ -2,6 +2,7 @@
 
 > spec.md와 짝. 절 번호 §n은 spec.md 기준. 작성 2026-11-21. 상태: 초안 — 사용자 검토 대기.
 > ① pytest(결정적, DB는 04 테스트 컨테이너 — 마커 `db`) ② HITL. 실호출은 `@pytest.mark.integration`.
+> **2026-11-22 변경**: 한도 추가 요청 기능 삭제(spec 머리말) — 추가 요청 API 테스트(§5)·`request_status`·`extra` 관련 케이스를 뺐다.
 
 ---
 
@@ -10,7 +11,7 @@
 ### 0. 공통
 - 실행: `cd ~/code/myAgent/backend && uv run pytest -m "not integration"` (Docker 필요).
 - 05 헬퍼(`app`·`client`·`make_user`·`login`·`post`·`clock`), 09 헬퍼(`make_session`·`chat`·`run_spawned`), 02·08 대역을 그대로 쓴다.
-- 추가 헬퍼: `set_quota(db_sf, user_id, day, used, extra=0)`, `add_request(db_sf, user_id, day, status)`, `usage_rows(db_sf)`(usage_events 전체를 dict 목록으로).
+- 추가 헬퍼: `set_quota(db_sf, user_id, day, used)`, `usage_rows(db_sf)`(usage_events 전체를 dict 목록으로).
 - 시계: `clock.now` 기본 `2026-11-21T00:00:00+00:00` = KST 09:00.
 
 ### 1. 단가·비용 — `tests/core/test_pricing.py`
@@ -55,28 +56,14 @@
 
 | ID | 준비 | 기대 |
 |---|---|---|
-| D-QT-01 | 행 없음 | `get_status` → limit 50, used 0, remaining 50, request_status None |
+| D-QT-01 | 행 없음 | `get_status` → limit 50, used 0, remaining 50 |
 | D-QT-02 | used 49 | `ensure_quota` 통과 |
-| D-QT-03 | used 50 | `ensure_quota` → 429 `quota_exceeded`, 본문 `limit 50·used 50·request_status null`, `Retry-After`, 문구 `MSG_QUOTA_EXCEEDED`(`{limit}`=50) |
-| D-QT-04 | used 50 + 요청 pending | 429, 문구 `MSG_QUOTA_PENDING`, `request_status "pending"` |
-| D-QT-05 | used 50, extra 50(승인) | 통과, remaining 50 |
-| D-QT-06 | used 100, extra 50, 요청 approved | 429 `MSG_QUOTA_DONE_TODAY` |
-| D-QT-07 | used 50 + 요청 rejected | 429 `MSG_QUOTA_DONE_TODAY` |
+| D-QT-03 | used 50 | `ensure_quota` → 429 `quota_exceeded`, 본문 `{code, message, limit:50, used:50}`(그 밖 키 없음), `Retry-After`, 문구 `MSG_QUOTA_EXCEEDED`(`{limit}`=50) |
+| D-QT-04 | used 51(동시 요청 초과분) | 429, remaining 0(음수 아님) |
 | D-QT-08 | `charge` 2회(행 없음에서) | used 2, 반환 48 |
 | D-QT-09 | 어제 날짜 used 50, 오늘 없음 | 오늘 통과(날짜별) |
 | D-QT-10 | `charge`를 `clock` KST 23:59:59 → 다음 날 00:00:01로 | 다음 날 행 used 1 |
 | D-QT-11 | `charge` 동시 2건(gather) | used 2(원자적) |
-
-### 5. 추가 요청 API — `tests/api/test_quota_requests_api.py` (마커 `db`)
-
-| ID | 요청 | 기대 |
-|---|---|---|
-| A-QR-01 | used 50 → `POST /api/quota/requests` | 201 `{id, day:"2026-11-21", status:"pending", message: MSG_QUOTA_REQUESTED}`, 행 1개 |
-| A-QR-02 | used 10 | 409 `quota_not_exhausted` |
-| A-QR-03 | 같은 날 두 번째 | 409 `quota_request_exists` |
-| A-QR-04 | 동시 2건 | 201 하나, 409 하나 |
-| A-QR-05 | CSRF 없음 / pending 사용자 | 403 `csrf_failed` / 403 `pending_approval` |
-| A-QR-06 | 다음 날(clock +1일) used 0에서 요청 | 409 `quota_not_exhausted`(날짜별) |
 
 ### 6. 채팅 입장 검사 — `tests/api/chat/test_admission.py` (마커 `db`)
 
@@ -135,16 +122,15 @@
 
 전제: 11 적용 compose, active 계정, 05 H-3 셸 함수 + 09 HITL `new_session`·`ask`.
 
-### HITL-1 한도·추가 요청
+### HITL-1 한도 초과
 1. 남은 횟수 확인: `S=$(new_session); ask $S '경복궁 관람 시간'` → `done`의 `quota_remaining`(예: 49).
 2. 한도 소진 흉내:
    ```bash
    docker compose exec postgres psql -U postgres -d nadri -c "insert into daily_quota(user_id, day, used) select id, (now() at time zone 'Asia/Seoul')::date, 50 from users where username='<아이디>' on conflict (user_id, day) do update set used=50"
    curl -s -i -X POST $B/api/chat/sessions/$S/messages -H 'Content-Type: application/json' -H "$CK" -H "X-CSRF-Token: $TK" -d '{"text":"하나 더"}' | sed -n '1p;/^retry-after/Ip;$p'
    ```
-   기대: `429`, `Retry-After`(자정까지 초), 본문 `quota_exceeded`·`request_status:null`·문구 `MSG_QUOTA_EXCEEDED`.
-3. 추가 요청: `curl -s -X POST $B/api/quota/requests -H "$CK" -H "X-CSRF-Token: $TK"` → 201. 다시 → 409 `quota_request_exists`. 채팅 → 429 문구 "관리자가 확인하고 있어요".
-4. 승인 흉내(18 전): `update daily_quota set extra=50 …; update quota_requests set status='approved', decided_at=now() …` → 채팅 200, `quota_remaining` 49.
+   기대: `429`, `Retry-After`(자정까지 초), 본문 `quota_exceeded`·`limit`·`used`·문구 `MSG_QUOTA_EXCEEDED`("…내일 0시(한국 시간)에 다시 이용해 주세요.").
+3. 정리: `update daily_quota set used=0 where …`(오늘 행) → 채팅 200.
 
 ### HITL-2 분당 10회
 ```bash

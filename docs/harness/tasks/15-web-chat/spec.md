@@ -1,7 +1,7 @@
 # 15-web-chat — 채팅 화면·SSE 파서·안전 렌더러 (spec)
 
-> 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-21). 상태: **초안 — 사용자 검토 대기**. 브랜치 `feat/15-web-chat`, 의존 작업 09-chat-sessions, 11-quota-usage, 14-web-foundation (→ 12·08·02).
-> 근거: [PL]=program_list.md(G4 승인본) §2 표·§3 "15-web-chat" · [A]=architecture.md(G3 재승인본) §2.1 web(렌더 규칙)·§3.1(SSE 이벤트 표·실패 처리)·§3.8 [5 화면]·ADR-04·19·22 · [R]=requirements.md FR-10·15·16·17·18·20·21·91, NFR-14·23 · [S]=S16.
+> 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-21). 상태: **확정(2026-11-22)** — 확인 질문은 모두 추천안대로 결정(마지막 절 표). 브랜치 `feat/15-web-chat`, 의존 작업 09-chat-sessions, 11-quota-usage, 14-web-foundation (→ 12·08·02).
+> 근거: [PL]=program_list.md(G4 승인본) §2 표·§3 "15-web-chat" · [A]=architecture.md(G3 재승인본) §2.1 web(렌더 규칙)·§3.1(SSE 이벤트 표·실패 처리)·§3.8 [5 화면]·ADR-04·19·22 · [R]=requirements.md FR-10·15·16·17·18·20·21·62(한도 초과 안내 — 2026-11-22)·91, NFR-14·23 · [S]=S16.
 > **이어받는 확정 spec**: [02](SSE 전송 형식 §4.1·이벤트 §4.2·`done` 필드 §4.3·순서 §4.4·`Source` 모양·고정 문구는 서버가 보냄) · [08](`meta{session_id,user_text_masked,masked_types}`가 첫 이벤트, `blocked` 코드 5종, `done{blocked:true}`) · [09](세션 API 4개·`SessionOut`·`SessionDetailOut`·`MessageOut`(`allowed_urls` 포함)·`ChatRequest{text, location?}`·`session_not_found`·`session_full`·빈 세션 목록 숨김) · [11](`too_many_requests`·`quota_exceeded` 429·`done.quota_remaining`) · [12](캐시 적중 순서 `status answering → delta(전체 1번) → draft_done → verified → done{cached:true, verify_status:"cached"}` — "`cached` 표시 여부는 15가 정함") · [14](`apiFetch`·`apiJson`·`ApiError`·`AuthGate`·`useMe`·`(chat)/layout.tsx`·임시 `(chat)/page.tsx`).
 > **미확인** = 문서·공식 자료로 확인하지 못한 사실.
 
@@ -18,7 +18,8 @@
 ### 1.1 넣지 않는 것
 | 빠지는 것 | 들어오는 작업 / 이유 |
 |---|---|
-| 👍/👎, "추가 요청" 버튼, 위치 동의 토글 | 16 (15는 429 `quota_exceeded`일 때 서버 문구만 표시, 버튼 자리만 둠) |
+| 👍/👎, 위치 동의 토글 | 16 |
+| 한도 추가 요청 버튼 | 없음 — 기능 삭제(2026-11-22 FR-62 변경). 하루 한도 초과는 15가 서버 문구 알림으로 끝낸다(§7.1) |
 | 녹음·스피커 버튼 | 17 |
 | 오늘 남은 질문 수 표시(`done.quota_remaining`) | 요구사항 없음 — 표시하지 않음(값은 상태에 저장만) |
 | 메시지 단위 삭제·수정·복사 버튼 | FR-20(세션 단위 삭제만) |
@@ -243,7 +244,7 @@ export function ChatView(props: { sessionId: string | null; initialMessages: UiM
 | `session_not_found`(404) | notice + "새 대화" 버튼 |
 | `session_full`(409) | notice(09 문구 "…50개를 모두 채웠어요. 새 대화를 시작해 주세요.") + "새 대화" 버튼 (FR-15) |
 | `too_many_requests`(429) | notice(05 문구) |
-| `quota_exceeded`(429) | notice(11 문구) — **16이 여기에 "추가 요청" 버튼을 붙인다**(`notice.body.request_status` 전달) |
+| `quota_exceeded`(429) | notice(11 문구 "오늘 질문 한도(50회)를 다 썼어요. 내일 0시(한국 시간)에 다시 이용해 주세요.") — 버튼 없음. 이것으로 FR-62 화면이 끝난다(추가 요청 기능 삭제 2026-11-22) |
 | `validation_error`·`csrf_failed`·`network_error`·`server_error` | notice |
 8. `finally` → `busy = false`.
 
@@ -415,9 +416,9 @@ export function isAllowedUrl(href: string | undefined, allowedUrls: readonly str
 
 | # | 질문 | 추천안 | 대안 |
 |---|---|---|---|
-| 15-Q1 | FAQ 캐시 답변(`done.cached`)을 화면에 따로 표시할까(12가 15에 넘김) | **표시 안 함** — 평소처럼 `✓ 확인됨`만(캐시도 검증 통과본) | "저장된 답변" 작은 표시 |
-| 15-Q2 | `error`로 끝나면 이미 보인 초안을 어떻게 할까 | **숨기고 오류 문구 + 다시 시도**(검증 못 한 글은 남기지 않음 — 새로고침해도 없는 글과 일치, D-24 보안 우선) | 초안을 흐리게 남기고 "확인 못 함" 표시 |
-| 15-Q3 | 이력에서 사실 검증 실패(`failed`) 답변 표시 — 서버 경고 문구는 이력에 저장돼 있지 않다 | **배지 `⚠ 확인 못 함`만**(화면 고정 글, 문장 경고는 실시간에만) | 09 `MessageOut`에 경고 문구 필드 추가(백엔드 수정) / 웹에 서버 문구를 복사 |
-| 15-Q4 | "새 대화"를 누를 때 세션을 바로 만들까 | **첫 질문을 보낼 때 만든다**(빈 세션 안 쌓임, 주소는 `history.replaceState`로 바꿈) | 누르는 즉시 `POST /api/chat/sessions` 후 이동(빈 세션은 09가 목록에서 숨김) |
-| 15-Q5 | 삭제 확인 창 | **브라우저 기본 `confirm`**(코드 최소) | shadcn 대화상자(컴포넌트 추가) |
-| 15-Q6 | SSE 시작 전 오류(429·409 등)일 때 보낸 질문 처리 | **말풍선을 지우고 입력창에 되돌림 + 입력창 위 알림** | 말풍선을 남기고 그 아래 오류 표시 |
+| 15-Q1 | FAQ 캐시 답변(`done.cached`)을 화면에 따로 표시할까(12가 15에 넘김) | **결정(2026-11-22): 추천안대로** — **표시 안 함** — 평소처럼 `✓ 확인됨`만(캐시도 검증 통과본) | "저장된 답변" 작은 표시 |
+| 15-Q2 | `error`로 끝나면 이미 보인 초안을 어떻게 할까 | **결정(2026-11-22): 추천안대로** — **숨기고 오류 문구 + 다시 시도**(검증 못 한 글은 남기지 않음 — 새로고침해도 없는 글과 일치, D-24 보안 우선) | 초안을 흐리게 남기고 "확인 못 함" 표시 |
+| 15-Q3 | 이력에서 사실 검증 실패(`failed`) 답변 표시 — 서버 경고 문구는 이력에 저장돼 있지 않다 | **결정(2026-11-22): 추천안대로** — **배지 `⚠ 확인 못 함`만**(화면 고정 글, 문장 경고는 실시간에만) | 09 `MessageOut`에 경고 문구 필드 추가(백엔드 수정) / 웹에 서버 문구를 복사 |
+| 15-Q4 | "새 대화"를 누를 때 세션을 바로 만들까 | **결정(2026-11-22): 추천안대로** — **첫 질문을 보낼 때 만든다**(빈 세션 안 쌓임, 주소는 `history.replaceState`로 바꿈) | 누르는 즉시 `POST /api/chat/sessions` 후 이동(빈 세션은 09가 목록에서 숨김) |
+| 15-Q5 | 삭제 확인 창 | **결정(2026-11-22): 추천안대로** — **브라우저 기본 `confirm`**(코드 최소) | shadcn 대화상자(컴포넌트 추가) |
+| 15-Q6 | SSE 시작 전 오류(429·409 등)일 때 보낸 질문 처리 | **결정(2026-11-22): 추천안대로** — **말풍선을 지우고 입력창에 되돌림 + 입력창 위 알림** | 말풍선을 남기고 그 아래 오류 표시 |

@@ -1,6 +1,6 @@
 # 17-voice — 테스트 설계 (test)
 
-> spec.md와 짝. 절 번호 §n은 spec.md 기준. 작성 2026-11-21. 상태: 초안 — 사용자 검토 대기.
+> spec.md와 짝. 절 번호 §n은 spec.md 기준. 작성 2026-11-21. 상태: 확정(2026-11-22).
 > ① 자동 — A: pytest(OpenAI·ElevenLabs 목킹, DB는 04 테스트 컨테이너 마커 `db`, 실호출은 `integration`) / B: Vitest(녹음기·버튼, MediaRecorder 가짜) / C: Playwright(Chromium 가짜 마이크 파일 주입 + route 가짜 STT·TTS) ② HITL(실제 마이크·실제 재생 — Chrome webm, iOS Safari·PWA mp4).
 
 ---

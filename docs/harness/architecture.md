@@ -16,7 +16,7 @@
 | 실행 | WSL2 Ubuntu-22.04 + Docker Compose, named volume | [R D-14, NFR-20·21] |
 | 프론트 | Next.js 16(App Router, TS) + Tailwind 4 + shadcn/ui, react-markdown+remark-gfm(**raw HTML 끔, 이미지 렌더 끔, 링크 허용 목록**), fetch+ReadableStream SSE 파서 | [S S16], [R NFR-14] |
 | PWA | `app/manifest.ts` + 최소 서비스워커(오프라인 캐시 없음) | [S S17] |
-| 백오피스 | 같은 Next.js 앱의 `/admin`(가입·한도·사용량·**품질 리포트**), 권한 검사는 FastAPI `/api/admin/*` | [S S18], [R FR-102] |
+| 백오피스 | 같은 Next.js 앱의 `/admin`(가입·사용량·**품질 리포트**), 권한 검사는 FastAPI `/api/admin/*` | [S S18], [R FR-102] |
 | BFF | Python 3.12, uv, FastAPI, SQLAlchemy 2.x(async)+asyncpg, Alembic, argon2-cffi | [S S11] |
 | **에이전트** | **LangGraph** `StateGraph`(답변 노드 ⇄ 툴 노드 → 검증 노드 → 다시 쓰기 루프), api 프로세스 안에서 요청마다 stateless 실행, **체크포인터 미사용** | [R D-04, NFR-30, FR-90] |
 | **LLM 호출** | **LangChain** `ChatOpenAI`(답변·검증·입력 분류·제목·요약·평가·개선안·허브 페이지), `OpenAIEmbeddings`(FAQ 캐시). 모든 `ChatOpenAI`는 `use_responses_api=True`, `store=False` | [R D-04, NFR-41], ADR-11·17 |
@@ -62,7 +62,7 @@ v1.1 이후: `stt-gpu`(faster-whisper) [TS §9], FR-49 확장 원천은 `ingest`
 ### 2.1 컨테이너별 책임 상세
 
 **web (Next.js)**
-- 화면: 로그인·가입 신청·비밀번호 재설정·승인 대기 / 채팅(사이드바 세션 목록·삭제, 초안 스트리밍 → "✓ 확인됨"·교체·경고 표시, 👍/👎 + 👎 사유, PTT 녹음, TTS 재생, 위치 동의 토글, 한도 초과 "추가 요청") / `/admin`(가입 신청, 한도 요청, 사용량 대시보드, 사용자 비활성화, **품질 리포트·개선안 결정**).
+- 화면: 로그인·가입 신청·비밀번호 재설정·승인 대기 / 채팅(사이드바 세션 목록·삭제, 초안 스트리밍 → "✓ 확인됨"·교체·경고 표시, 👍/👎 + 👎 사유, PTT 녹음, TTS 재생, 위치 동의 토글, 한도 초과 안내) / `/admin`(가입 신청, 사용량 대시보드, 사용자 비활성화, **품질 리포트·개선안 결정**).
 - 데이터는 **브라우저에서만** `/api/*` 호출(ADR-12). 권한 판단은 api.
 - 마크다운 렌더: raw HTML 끔, `img` 요소 렌더 안 함, 링크는 `done` 이벤트의 `allowed_urls`에 있는 것만 클릭 가능(그 외는 일반 텍스트), 초안 단계에서는 모든 링크 비활성(ADR-22).
 - 서비스워커는 `/api/*`를 가로채지 않는다(SSE 보호).
@@ -73,7 +73,7 @@ v1.1 이후: `stt-gpu`(faster-whisper) [TS §9], FR-49 확장 원천은 `ingest`
 |---|---|---|
 | `auth` | 가입 신청, 로그인/로그아웃, 세션 쿠키, 비밀번호 변경·재설정, 잠금·지연 | FR-01~07, NFR-01~05 |
 | `ratelimit` | `rate_limits` 테이블 고정 윈도 카운터(로그인·재설정·STT·채팅 분당 10회) | NFR-02·06 |
-| `quota` | 일일 50회 + 승인 추가분, 추가 요청 | FR-62 |
+| `quota` | 일일 50회 한도(추가 요청 없음 — 2026-11-22) | FR-62 |
 | `guard` | **입력 검사**(PII 가리기 → Moderation → LLM 분류기), **출력 검사**(Moderation, 코드 검사: 인용 contentid·링크 허용 목록·카나리 문자열), 자해 신호 109 안내, `security_events` 기록 | NFR-11~16·35 |
 | `agent` | LangGraph 그래프(답변·툴·검증·다시 쓰기), MCP 툴 로딩, Tavily 툴, 툴 결과 수집(출처·contentid·URL) | FR-11~13·19·50~55·90 |
 | `chat` | 세션 CRUD, 컨텍스트 조립(요약 1 + 최근 10턴), 그래프 스트림 → 브라우저 SSE 이벤트 변환, 턴 저장, 제목·요약(그래프 밖 단발 호출) | FR-10~22, FR-91, D-10 |
@@ -81,7 +81,7 @@ v1.1 이후: `stt-gpu`(faster-whisper) [TS §9], FR-49 확장 원천은 `ingest`
 | `feedback` | 👍/👎 + 사유 저장, 👎 시 연결 FAQ 캐시 삭제 | FR-103 |
 | `voice` | `SttProvider`(openai) · `TtsProvider`(elevenlabs) | FR-30~32, NFR-50·51 |
 | `mail` | Gmail SMTP 인증코드 발송(백그라운드) | FR-05·07 |
-| `admin` | 가입·한도 승인, 사용량 집계, 비활성화, **품질 리포트 조회·개선안 결정** | FR-80~84, FR-102 |
+| `admin` | 가입 승인, 사용량 집계, 비활성화, **품질 리포트 조회·개선안 결정** | FR-80~84, FR-102 |
 | `usage` | `usage_events` 기록, 단가표로 비용 계산, 월 $10 경고 | FR-61·63, NFR-43·60 |
 | `cli` | `create-admin` | FR-80 |
 
@@ -139,7 +139,7 @@ v1.1 이후: `stt-gpu`(faster-whisper) [TS §9], FR-49 확장 원천은 `ingest`
 api:
  1) 세션 쿠키·CSRF·status=active (NFR-04·05, FR-06)
  2) 분당 10회 (NFR-06) → 초과 429
- 3) 오늘(KST) 사용량 < 50 + 추가분 (FR-62) → 초과 429 {code:"quota_exceeded"}
+ 3) 오늘(KST) 사용량 < 50 (FR-62) → 초과 429 {code:"quota_exceeded"}
  4) 세션 turn_count < 50 (FR-15) → 초과 409 {code:"session_full"}
  ── SSE 시작 ──  event: meta {session_id, user_text_masked, masked_types[]}
                  event: status {stage:"checking"}
@@ -246,10 +246,10 @@ request {email} → rate limit → 항상 같은 응답 → 활성 사용자면 
 confirm {email, code, new_password} → 검증 → Argon2id 갱신 → 전 세션 폐기 → 코드 소모, 실패 문구 통일
 ```
 
-### 3.6 일일 50회 한도·추가 요청 (FR-62, FR-82)
+### 3.6 일일 50회 한도 (FR-62)
 ```
 성공 답변(캐시 적중 포함) 1회 = daily_quota.used +1. 입력 검사 차단 = +1 (Q2 추천안). 장애·중단·Moderation 장애 차단 = 미차감
-한도 = 50 + extra / 초과 → 429 → "추가 요청" → 관리자 승인 → extra += 50 (그날만)
+한도 = 50 / 초과 → 429 quota_exceeded → 그날 채팅 차단·"내일 다시" 안내 (추가 요청·관리자 승인 없음 — 2026-11-22 FR-62 변경)
 ```
 
 ### 3.7 매일 03:00 KST 품질 평가 → 개선안 → HITL (FR-100~105, FR-70, NFR-16·36) — 신규
@@ -327,7 +327,7 @@ DELETE 같은 경로 → 피드백 취소
 ## 5. DB 스키마 개요
 
 ### 5.1 `nadri` DB (Alembic 관리)
-모든 시각은 `timestamptz`, "하루"는 KST 날짜. 테이블·컬럼 한글 명칭은 ERD와 같게 DDL `COMMENT`로 넣는다(SQLAlchemy `comment=`). 한글 명칭의 **정본은 ERD**(`docs/images/erd.svg`, 생성 스크립트 `docs/images/src/erd.py`)이고, 아래 표의 명칭이 ERD와 다르면 ERD를 따른다. 19개 테이블(기존 14 + 신규 5).
+모든 시각은 `timestamptz`, "하루"는 KST 날짜. 테이블·컬럼 한글 명칭은 ERD와 같게 DDL `COMMENT`로 넣는다(SQLAlchemy `comment=`). 한글 명칭의 **정본은 ERD**(`docs/images/erd.svg`, 생성 스크립트 `docs/images/src/erd.py`)이고, 아래 표의 명칭이 ERD와 다르면 ERD를 따른다. 18개 테이블(기존 14 + 신규 5 − `quota_requests` 삭제 2026-11-22).
 
 **기존 테이블 (변경 없는 것)**
 
@@ -338,8 +338,7 @@ DELETE 같은 경로 → 피드백 취소
 | `rate_limits` (요청 제한 카운터) | key(제한 키), window_start(윈도 시작), count(횟수), locked_until(잠금 해제 시각) | |
 | `password_reset_codes` (비밀번호 재설정 코드) | id(코드 ID), user_id(사용자 ID), code_hash(코드 해시), expires_at(만료 시각), attempts(시도 횟수), consumed_at(사용 시각) | |
 | `chat_sessions` (대화 세션) | id(세션 ID), user_id(사용자 ID), title(제목), summary(누적 요약), turn_count(턴 수), created_at(생성 시각), updated_at(갱신 시각) | 90일 기준 = updated_at |
-| `daily_quota` (일일 사용 한도) | user_id(사용자 ID), day(날짜), used(사용 횟수), extra(추가 한도) | |
-| `quota_requests` (한도 추가 요청) | id(요청 ID), user_id(사용자 ID), day(날짜), status(상태), created_at(요청 시각), decided_at(결정 시각), decided_by(결정 관리자) | |
+| `daily_quota` (일일 사용 한도) | user_id(사용자 ID), day(날짜), used(사용 횟수) | `extra` 컬럼 삭제(2026-11-22) |
 | `tour_items` (관광 항목) | contentid(콘텐츠 ID) … (기존과 같음) | FR-41 |
 | `wiki_pages` (위키 페이지) | path(경로) … (기존과 같음) | |
 | `ingest_runs` (수집 실행 기록) | id … (기존과 같음) | |
@@ -381,10 +380,8 @@ DB 롤(3개, 변경 없음): `nadri_app`(api·ingest) · `nadri_tools`(tour-tool
 | GET `/api/chat/sessions` · POST `/api/chat/sessions` · GET/DELETE `/api/chat/sessions/{id}` | (변경 없음, 메시지는 가린 텍스트로 반환 + verify_status·내 피드백 포함) | FR-10·16·17·20 |
 | POST `/api/chat/sessions/{id}/messages` | 질문 → **SSE** (§3.1 이벤트) | FR-10~19·55·90·91, NFR-12~15 |
 | **PUT · DELETE `/api/chat/messages/{id}/feedback`** | 👍/👎 + 사유(선택) / 취소 | FR-103 |
-| POST `/api/quota/requests` | 한도 추가 요청 | FR-62 |
 | POST `/api/stt` · `/api/tts` | (변경 없음) | FR-30~32 |
 | GET `/api/admin/users?status=` · POST `/api/admin/users/{id}/approve`·`/reject`·`/disable` | (변경 없음) | FR-81·84 |
-| GET `/api/admin/quota-requests?status=` · POST `…/{id}/approve`·`/reject` | (변경 없음) | FR-82 |
 | GET `/api/admin/usage?from=&to=` | 사용량·비용(kind별 분리 표시), $10 경고 | FR-63·83, NFR-43 |
 | **GET `/api/admin/quality/reports?from=&to=`** | 보고서 목록(날짜·상태·핵심 지표) | FR-102 |
 | **GET `/api/admin/quality/reports/{id}`** | 보고서 본문·집계·공격 세트 결과·개선안 목록 | FR-102·105 |
@@ -638,7 +635,7 @@ G2 결정대로 별도 PoC 없이 **첫 구현 작업(최소 end-to-end: postgre
 | 그룹 | 박스 (제목 / 부제) |
 |---|---|
 | 애플리케이션 | FastAPI 박스를 키워 내부에 하위 칩 3열: **입력 검사**(PII 가리기 → Moderation → 분류기) / **LangGraph**(답변 에이전트 ⇄ 툴 → 검증 에이전트, 다시 쓰기 ≤2) / **출력 검사**(링크·contentid·카나리). 부제: BFF · 인증 · 한도 · 대화 · 피드백 · STT/TTS |
-| 애플리케이션 | Next.js 부제: 채팅 UI · PWA · `/admin`(가입·한도·사용량·**품질 리포트**) |
+| 애플리케이션 | Next.js 부제: 채팅 UI · PWA · `/admin`(가입·사용량·**품질 리포트**) |
 | 에이전트 → "툴" 그룹으로 이름 변경 | tour-tools / MCP 서버 + 리랭커, 칩 rag_query · data_query · tour_live · get_datetime (변경 없음) |
 | 데이터 | ingest 부제: APScheduler **01:00** 수집·위키·인덱싱 · **03:00 평가 에이전트 → 개선안 에이전트 · 공격 세트** |
 | 외부 서비스 | OpenAI API 부제: gpt-6-luna · 임베딩 · gpt-transcribe · **Moderation** |

@@ -1,17 +1,18 @@
-# 04-db-schema — 앱 테이블 15개 + ORM (spec)
+# 04-db-schema — 앱 테이블 14개 + ORM (spec)
 
 > 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-21). 상태: **초안 — 사용자 검토 대기**. 브랜치 `feat/04-db-schema`, 의존 작업 01-e2e-tools-slice.
 > 입력: [PL]=program_list.md(G4 승인본) §2 표·§3 "04-db-schema"·§5 X-d·X-e · [A]=architecture.md(G3 재승인본) §3.1·§3.3·§3.9·§5.1·ADR-03·13·27 · [E]=ERD `docs/images/src/erd.py`의 `T`(한글 명칭 정본)·`erd.md` · [R]=requirements.md(FR-15·84·103·104, NFR-31·33·35) · 01 spec(§3 테이블 생성 스크립트·롤·ORM 위치).
 > 이 작업이 정한 **ORM 클래스 이름·컬럼 이름·제약 이름**은 05·06 이후 모든 작업이 그대로 쓴다(§4 표가 정본).
 > **미확인** = 문서·공식 자료로 확인하지 못해 구현 중 확인해야 하는 사실.
+> **2026-11-22 변경(사용자 요청)**: 한도 추가 요청 기능 삭제로 `quota_requests` 테이블·`QuotaRequest`·`QUOTA_REQUEST_STATUSES`와 `daily_quota.extra` 컬럼을 뺐다 — ERD 19 → 18개, 이 작업 15 → 14개(requirements.md §8).
 
 ---
 
 ## 1. 작업 목표
 
-ERD 19개 테이블 중 01에서 만들지 않은 **15개**를 테이블 생성 스크립트(Alembic 리비전) 하나로 만들고, 같은 모양의 ORM 모델과 "DB 설명(COMMENT) = ERD" 대조 테스트를 만든다 [PL §3].
+ERD 18개 테이블 중 01에서 만들지 않은 **14개**를 테이블 생성 스크립트(Alembic 리비전) 하나로 만들고, 같은 모양의 ORM 모델과 "DB 설명(COMMENT) = ERD" 대조 테스트를 만든다 [PL §3].
 
-- 끝나면: `alembic upgrade head`로 19개 테이블이 생기고, 모든 테이블·컬럼 COMMENT가 ERD 한글 명칭과 같으며, 외래키 삭제 동작(연쇄 삭제·NULL로 비우기)이 [A] §5.1대로 동작하고, `nadri_tools` 롤은 새 테이블에 아무 권한이 없다.
+- 끝나면: `alembic upgrade head`로 18개 테이블이 생기고, 모든 테이블·컬럼 COMMENT가 ERD 한글 명칭과 같으며, 외래키 삭제 동작(연쇄 삭제·NULL로 비우기)이 [A] §5.1대로 동작하고, `nadri_tools` 롤은 새 테이블에 아무 권한이 없다.
 - 추적: [A] §5.1 · FR-104(90일 연쇄 삭제의 바탕) · NFR-33·35(원문·좌표 컬럼 없음) · NFR-07(최소 권한).
 
 > 용어: "테이블 생성 스크립트" = Alembic 리비전 파일(`backend/alembic/versions/NNNN_*.py`). 테이블 생성·변경 SQL을 번호 순서대로 두고, DB에 아직 적용되지 않은 번호만 실행한다(01 spec §3.3과 같음).
@@ -33,10 +34,10 @@ ERD 19개 테이블 중 01에서 만들지 않은 **15개**를 테이블 생성 
 
 | 파일 | 신규/수정 | 역할 |
 |---|---|---|
-| `backend/alembic/versions/0002_app_tables.py` | 신규 | 15개 테이블 DDL + 한글 COMMENT + 제약(PK·FK·UNIQUE·CHECK) + `upgrade`/`downgrade` |
+| `backend/alembic/versions/0002_app_tables.py` | 신규 | 14개 테이블 DDL + 한글 COMMENT + 제약(PK·FK·UNIQUE·CHECK) + `upgrade`/`downgrade` |
 | `nadri/core/models/account.py` | 신규 | `User`, `AuthSession`, `PasswordResetCode`, `RateLimit` + 허용값 상수 |
 | `nadri/core/models/chat.py` | 신규 | `ChatSession`, `ChatMessage`, `FaqCache` + 허용값 상수 |
-| `nadri/core/models/quota.py` | 신규 | `DailyQuota`, `QuotaRequest`, `UsageEvent` + 허용값 상수 |
+| `nadri/core/models/quota.py` | 신규 | `DailyQuota`, `UsageEvent` + 허용값 상수 |
 | `nadri/core/models/quality.py` | 신규 | `MessageFeedback`, `SecurityEvent`, `EvalReport`, `EvalScore`, `ImprovementProposal` + 허용값 상수 |
 | `nadri/core/models/__init__.py` | 수정(01 생성) | 파일 끝에서 6개 모델 모듈(`tour`·`ingest`·`account`·`chat`·`quota`·`quality`)을 import해 `Base.metadata`에 모두 등록 |
 | `backend/pyproject.toml`, `uv.lock` | 수정 | 의존 `pgvector`(SQLAlchemy `Vector` 타입), dev 그룹 `testcontainers[postgres]`, pytest 마커 `db` 추가 (§7) |
@@ -48,7 +49,7 @@ ERD 19개 테이블 중 01에서 만들지 않은 **15개**를 테이블 생성 
 
 ---
 
-## 3. 설계 규칙 (15개 테이블 공통)
+## 3. 설계 규칙 (14개 테이블 공통)
 
 1. **한글 COMMENT = ERD**: 테이블 COMMENT = `T[테이블][1]`, 컬럼 COMMENT = 그 컬럼 행의 4번째 값. **각주 표시(①~⑤)와 그 앞 공백은 뺀다**(예: `"가입 상태 ①"` → `"가입 상태"`, `"FAQ 캐시 ID ⑤"` → `"FAQ 캐시 ID"`). 괄호 설명은 그대로 둔다(예: `"내용 (가린 텍스트)"`, `"비용(USD)"`). 정규화 함수는 테스트와 같은 규칙: `re.sub(r"\s*[①-⑳]", "", s).strip()` (확인 질문 Q2).
 2. 모든 시각은 `timestamptz`, "하루"는 KST 날짜(`date`) [A §5.1].
@@ -182,7 +183,6 @@ EMBEDDING_DIM: int = 1536   # text-embedding-3-small (NFR-32)
 
 **허용값 상수**
 ```python
-QUOTA_REQUEST_STATUSES: tuple[str, ...] = ("pending", "approved", "rejected")
 USAGE_KINDS: tuple[str, ...] = ("answer", "verify", "classify", "moderation", "title", "summary",
                                 "embed", "stt", "tts", "web_search", "hub", "eval", "proposal")
 ```
@@ -193,20 +193,6 @@ USAGE_KINDS: tuple[str, ...] = ("answer", "verify", "classify", "moderation", "t
 | user_id | bigint | PK `pk_daily_quota`(user_id, day)의 일부, FK `fk_daily_quota_user_id` → users.id **CASCADE** | 사용자 ID |
 | day | date | PK 일부 | 사용일 |
 | used | int | NN, 기본 `0`, CHECK `ck_daily_quota_used` `used >= 0` | 사용 횟수 |
-| extra | int | NN, 기본 `0`, CHECK `ck_daily_quota_extra` `extra >= 0` | 추가 허용 횟수 |
-
-**`quota_requests` — ORM `QuotaRequest` — COMMENT '한도 추가 요청'**
-| 컬럼 | 타입 | 제약·기본값 | COMMENT |
-|---|---|---|---|
-| id | bigint | PK `pk_quota_requests`, identity | 요청 ID |
-| user_id | bigint | NN, FK `fk_quota_requests_user_id` → users.id **CASCADE** | 사용자 ID |
-| day | date | NN | 요청일 |
-| status | text | NN, 기본 `'pending'`, CHECK `ck_quota_requests_status` ∈ QUOTA_REQUEST_STATUSES | 처리 상태 |
-| created_at | timestamptz | NN, 기본 `now()` | 요청 일시 |
-| decided_at | timestamptz | NULL | 처리 일시 |
-| decided_by | bigint | NULL, FK `fk_quota_requests_decided_by` → users.id **SET NULL** | 처리 관리자 |
-
-- UNIQUE `uq_quota_requests_user_id_day (user_id, day)` — "그날 1건"([PL] 11) (확인 질문 Q4).
 
 **`usage_events` — ORM `UsageEvent` — COMMENT '사용량 이력'**
 | 컬럼 | 타입 | 제약·기본값 | COMMENT |
@@ -327,7 +313,7 @@ PROPOSAL_STATUSES: tuple[str, ...] = ("new", "adopted", "held", "rejected")
 
 | 지워지는 행 | 함께 지워짐 (CASCADE) | NULL로 비워짐 (SET NULL) |
 |---|---|---|
-| `users` 1행 | auth_sessions, password_reset_codes, chat_sessions(→ 아래 연쇄), daily_quota, quota_requests(본인 요청), message_feedback(본인 피드백) | users.approved_by, quota_requests.decided_by, usage_events.user_id, security_events.user_id, improvement_proposals.decided_by |
+| `users` 1행 | auth_sessions, password_reset_codes, chat_sessions(→ 아래 연쇄), daily_quota, message_feedback(본인 피드백) | users.approved_by, usage_events.user_id, security_events.user_id, improvement_proposals.decided_by |
 | `chat_sessions` 1행 | chat_messages(→ 아래 연쇄) | security_events.session_id |
 | `chat_messages` 1행 | message_feedback, faq_cache(이 메시지가 원본인 것), eval_scores | usage_events.message_id, security_events.message_id, 다른 메시지의 faq_cache_id(지워진 캐시를 가리키던 것) |
 | `faq_cache` 1행 | — | chat_messages.faq_cache_id |
@@ -345,14 +331,14 @@ revision = "0002"
 down_revision = "0001"   # 01이 정한 0001 리비전 ID와 같게 (01 spec은 파일명만 정함 — 구현 시 01 파일의 revision 값을 따른다)
 
 def upgrade() -> None:
-    """앱 테이블 15개를 만든다(한글 COMMENT·제약 포함). 권한은 부여하지 않는다."""
+    """앱 테이블 14개를 만든다(한글 COMMENT·제약 포함). 권한은 부여하지 않는다."""
 def downgrade() -> None:
-    """upgrade의 역순으로 15개 테이블을 지운다. 01 테이블 4개는 건드리지 않는다."""
+    """upgrade의 역순으로 14개 테이블을 지운다. 01 테이블 4개는 건드리지 않는다."""
 ```
 `upgrade()` 처리 순서:
 1. `users` → `auth_sessions` → `password_reset_codes` → `rate_limits`
 2. `chat_sessions` → `chat_messages`(faq_cache_id 컬럼은 만들되 FK는 아직 없음) → `faq_cache` → `op.create_foreign_key("fk_chat_messages_faq_cache_id", "chat_messages", "faq_cache", ["faq_cache_id"], ["id"], ondelete="SET NULL")`
-3. `daily_quota` → `quota_requests` → `usage_events`
+3. `daily_quota` → `usage_events`
 4. `message_feedback` → `security_events` → `eval_reports` → `eval_scores` → `improvement_proposals`
 5. 인덱스 `ix_auth_sessions_user_id`, `ix_password_reset_codes_user_id`, `ix_chat_sessions_user_id_updated_at`
 
@@ -417,7 +403,7 @@ class PgInfo:
 
 @pytest.fixture
 async def db_engine(pg_container) -> AsyncIterator[AsyncEngine]:
-    """테스트마다 nadri_app 엔진을 만들고, 시작 전에 앱 테이블 15개를 비운다(TRUNCATE … RESTART IDENTITY CASCADE)."""
+    """테스트마다 nadri_app 엔진을 만들고, 시작 전에 앱 테이블 14개를 비운다(TRUNCATE … RESTART IDENTITY CASCADE)."""
 
 @pytest.fixture
 async def db_sf(db_engine) -> async_sessionmaker[AsyncSession]:
@@ -428,7 +414,7 @@ async def super_engine(pg_container) -> AsyncIterator[AsyncEngine]:
     """권한·카탈로그 조회용 postgres(superuser) 엔진."""
 ```
 - 컨테이너 픽스처는 **동기·세션 범위**, 엔진은 **테스트마다** 만든다 — pytest-asyncio의 세션 범위 이벤트 루프 설정 문제를 피한다(단순함 우선).
-- 비우는 대상은 앱 테이블 15개만(01 테이블은 01 통합 테스트용이라 건드리지 않음).
+- 비우는 대상은 앱 테이블 14개만(01 테이블은 01 통합 테스트용이라 건드리지 않음).
 - pytest 마커 추가: `db: 테스트 DB 컨테이너(Docker)가 필요한 테스트`. DB 테스트 파일은 모듈 상단 `pytestmark = pytest.mark.db`.
 - 실행 명령(01 §5.3a와 함께 쓴다):
   - 전체(단위 + DB): `cd backend && uv run pytest -m "not integration"` — Docker가 떠 있어야 한다. Docker를 못 쓰면 **건너뛰지 않고 실패**한다(조용히 빠지는 것을 막음).
@@ -440,7 +426,7 @@ async def super_engine(pg_container) -> AsyncIterator[AsyncEngine]:
 
 | 상황 | 동작 |
 |---|---|
-| `alembic downgrade 0001` | 15개 테이블만 삭제, 01 테이블 4개·데이터 유지 |
+| `alembic downgrade 0001` | 14개 테이블만 삭제, 01 테이블 4개·데이터 유지 |
 | 이미 head인 DB에 `upgrade head` 재실행 | 아무 일 없음(Alembic 버전 표) |
 | 같은 username/email 두 번 INSERT | `uq_users_username`/`uq_users_email` 위반 |
 | `users.status='deleted'` 같은 허용 밖 값 | `ck_users_status` 위반 |
@@ -449,7 +435,6 @@ async def super_engine(pg_container) -> AsyncIterator[AsyncEngine]:
 | 임베딩 1535차원 INSERT | pgvector 차원 오류 |
 | 세션 삭제 시 그 세션 메시지가 원본인 FAQ 캐시를 다른 세션 메시지가 가리킴 | 캐시 삭제 → 다른 메시지의 `faq_cache_id`만 NULL, 그 메시지는 남음 |
 | 보고서 삭제 | 채점 삭제, 개선안은 `report_id` NULL로 남음(정리 규칙은 21) |
-| 같은 사용자 같은 날 한도 요청 2건 | `uq_quota_requests_user_id_day` 위반 |
 | `nadri_tools`로 `SELECT * FROM users` | 권한 오류 |
 
 ---
@@ -461,9 +446,9 @@ async def super_engine(pg_container) -> AsyncIterator[AsyncEngine]:
 | 1 | 한글 명칭은 [A] §5.1 표가 아니라 **ERD(`erd.py`)** 값을 쓴다. 예: `users.role` [A] "역할" → ERD "권한", `auth_sessions.id_hash` "세션 ID 해시" → "세션 키 해시", `rate_limits` "요청 제한 카운터" → "요청 제한", "…시각" → "…일시" | [A] §5.1 "다르면 ERD를 따른다", [PL] X-e |
 | 2 | ERD 명칭의 각주 표시(①~⑤)는 COMMENT에서 뺀다 | 각주는 그림 설명용(확인 질문 Q2) |
 | 3 | `improvement_proposals.report_id` = **SET NULL** | [PL] X-d 처리 제안(비고 기준) |
-| 4 | 열거형 값(`quota_requests.status`, `chat_messages.role` 등)을 CHECK로 고정. `quota_requests.status` 값(`pending/approved/rejected`)은 문서에 없어 이 spec이 정한다 | 확인 질문 Q3·Q4 |
+| 4 | 열거형 값(`chat_messages.role` 등)을 CHECK로 고정 | 확인 질문 Q3 |
 | 5 | `chat_messages.pii_types`는 NULL 대신 빈 배열 | [A] "user만"의 의미는 유지 |
-| 6 | `faq_cache.source_message_id` UNIQUE, `chat_messages (session_id, turn_no, role)` UNIQUE, `eval_scores (report_id, message_id)` UNIQUE, `quota_requests (user_id, day)` UNIQUE | ERD 관계 개수(0..1)·[PL] 11 "그날 1건" |
+| 6 | `faq_cache.source_message_id` UNIQUE, `chat_messages (session_id, turn_no, role)` UNIQUE, `eval_scores (report_id, message_id)` UNIQUE | ERD 관계 개수(0..1) |
 | 7 | 01 test.md I-9는 "임시 DB가 없어 되돌리기·재적용은 수동"이었으나, 04부터 **테스트 DB 컨테이너**로 자동화한다 | [PL] 04 검증 |
 | 8 | 테스트 의존(`testcontainers`)·마커 `db`·`conftest.py` 추가 | [PL] 04 검증 방법을 실행하려면 필요 |
 
@@ -483,12 +468,12 @@ async def super_engine(pg_container) -> AsyncIterator[AsyncEngine]:
 
 ## 11. 완료 기준 (DoD)
 
-1. `alembic upgrade head`로 테이블 19개, `alembic downgrade 0001` → 15개 삭제·4개 유지, 다시 `upgrade head` → 19개 (테스트 DB에서 자동, 개발 DB에서 HITL 1회).
-2. 19개 테이블의 테이블·컬럼 COMMENT와 타입이 ERD(`erd.py` `T`, 각주 제거 규칙)와 같다 — ORM 메타데이터와 실제 DB 둘 다.
+1. `alembic upgrade head`로 테이블 18개, `alembic downgrade 0001` → 14개 삭제·4개 유지, 다시 `upgrade head` → 18개 (테스트 DB에서 자동, 개발 DB에서 HITL 1회).
+2. 18개 테이블의 테이블·컬럼 COMMENT와 타입이 ERD(`erd.py` `T`, 각주 제거 규칙)와 같다 — ORM 메타데이터와 실제 DB 둘 다.
 3. ORM 메타데이터 ↔ 실제 DB(테이블 생성 스크립트 결과) 자동 비교 차이 0(§10의 무시 항목 제외).
 4. §4.5 외래키 삭제 동작표가 테스트로 전부 확인된다.
 5. CHECK 허용값이 ORM 상수와 같고, 허용 밖 값은 거부된다. UNIQUE 위반 시 제약 이름을 꺼낼 수 있다.
-6. `nadri_tools`는 15개 테이블에 SELECT·INSERT·UPDATE·DELETE 권한이 모두 없다(01의 2개 테이블 SELECT는 그대로).
+6. `nadri_tools`는 14개 테이블에 SELECT·INSERT·UPDATE·DELETE 권한이 모두 없다(01의 2개 테이블 SELECT는 그대로).
 7. 단위테스트(`-m "not integration"`, Docker 필요) 전부 통과.
 8. 모든 모델 클래스·함수·픽스처에 한국어 docstring, 함수 안 단계 주석([CL]).
 9. 커밋은 `feat/04-db-schema`, `[Feat] …` + 작업 목록 + `Author:` 줄, AI 공동작성 표기 없음(NFR-73). `dev` 병합은 G5 승인 후. `PROGRESS.md` 작업 표 갱신.
@@ -502,4 +487,4 @@ async def super_engine(pg_container) -> AsyncIterator[AsyncEngine]:
 | Q1 | DB 테스트를 어디서 돌릴까 | **결정(2026-11-21): 추천안대로** — **일회용 테스트 DB 컨테이너**(`testcontainers`, 실제 `01-init.sh`로 롤까지 동일하게 생성). 개발 데이터와 분리돼 되돌리기 테스트도 안전. Docker만 있으면 됨 | B: 개발 compose의 postgres(`127.0.0.1:5432`)에 임시 DB `nadri_test`를 만들어 사용(의존 추가 없음, 대신 compose가 떠 있어야 하고 superuser 비밀번호를 테스트에 넘겨야 함) |
 | Q2 | ERD 한글 명칭의 각주 표시(①~⑤)를 COMMENT에 넣을까 | **결정(2026-11-21): 추천안대로** — **뺀다**(`"가입 상태 ①"` → `"가입 상태"`) | 그대로 넣는다(DB 도구에서 의미 없는 기호가 보임) / 각주 내용을 COMMENT에 덧붙인다(ERD와 문자열이 달라짐) |
 | Q3 | 열거형 텍스트 컬럼(상태·역할·종류 등)을 DB CHECK로 막을까 | **결정(2026-11-21): 추천안대로** — **CHECK로 막는다**(잘못된 값이 들어가면 바로 오류. 값을 추가할 땐 테이블 생성 스크립트 1개) | 앱 코드만 검사(값 추가가 쉬움, 잘못된 값이 조용히 저장될 수 있음) |
-| Q4 | `quota_requests` 상태 값과 "하루 1건" | **결정(2026-11-21): 추천안대로** — **`pending`/`approved`/`rejected`**, `(user_id, day)` UNIQUE | UNIQUE 없이 앱(11)이 검사 |
+| ~~Q4~~ | ~~`quota_requests` 상태 값과 "하루 1건"~~ | **해당 없음(2026-11-22)** — 한도 추가 요청 기능 삭제로 테이블이 없어짐 | — |

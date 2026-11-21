@@ -48,11 +48,7 @@ T = {
         ("PK", "key", "text", "상태 키"), ("", "value", "jsonb", "상태 값")]),
     "daily_quota": ("quota", "일일 사용량", [
         ("PK FK", "user_id", "bigint", "사용자 ID"), ("PK", "day", "date", "사용일"),
-        ("", "used", "int", "사용 횟수"), ("", "extra", "int", "추가 허용 횟수")]),
-    "quota_requests": ("quota", "한도 추가 요청", [
-        ("PK", "id", "bigint", "요청 ID"), ("FK", "user_id", "bigint", "사용자 ID"), ("", "day", "date", "요청일"),
-        ("", "status", "text", "처리 상태"), ("", "created_at", "timestamptz", "요청 일시"),
-        ("", "decided_at", "timestamptz", "처리 일시"), ("FK", "decided_by", "bigint", "처리 관리자")]),
+        ("", "used", "int", "사용 횟수")]),
     "usage_events": ("quota", "사용량 이력", [
         ("PK", "id", "bigint", "이력 ID"), ("FK", "user_id", "bigint", "사용자 ID"), ("FK", "message_id", "bigint", "메시지 ID"),
         ("", "kind", "text", "사용 종류"), ("", "model", "text", "모델명"), ("", "input_tokens", "int", "입력 토큰"),
@@ -119,7 +115,7 @@ T = {
 
 LAYOUT = [
     ["auth_sessions", "password_reset_codes", "rate_limits", "ingest_runs", "ingest_state"],
-    ["users", "daily_quota", "quota_requests", "usage_events"],
+    ["users", "daily_quota", "usage_events"],
     ["chat_sessions", "chat_messages", "faq_cache"],
     ["message_feedback", "security_events", "eval_scores"],
     ["eval_reports", "improvement_proposals"],
@@ -170,7 +166,7 @@ text { font-family: 'Noto Sans CJK KR','Noto Sans KR','Malgun Gothic',sans-serif
 </style></defs>""")
 out.append(f'<rect width="{WIDTH}" height="{H}" fill="#f8fafc"/>')
 out.append('<text x="40" y="62" style="font-size:34px;font-weight:800;fill:#0f172a">nadri DB 구조 (ERD)</text>')
-out.append('<text x="40" y="100" style="font-size:17px;fill:#475569">PostgreSQL 1대 안의 <tspan style="font-weight:700">nadri</tspan> DB — 우리 앱 테이블 19개. '
+out.append('<text x="40" y="100" style="font-size:17px;fill:#475569">PostgreSQL 1대 안의 <tspan style="font-weight:700">nadri</tspan> DB — 우리 앱 테이블 18개. '
            'RAG용 벡터·그래프는 같은 PostgreSQL의 별도 DB <tspan style="font-weight:700">lightrag</tspan>에 있고 LightRAG가 직접 관리 (그림에 없음)</text>')
 
 # 2) 관계선 — 테이블 박스보다 먼저 그려 박스 뒤로 깔리게 한다
@@ -214,7 +210,7 @@ my = row_y("chat_messages", "id")
 for t, gx in (("auth_sessions", G12 + 12), ("password_reset_codes", G12 - 12)):
     rel([(L("users"), uy), (gx, uy), (gx, row_y(t, "user_id")), (R(t), row_y(t, "user_id"))], "1", "N")
 # 사용자 → 같은 열 아래 (한도·비용), 오른쪽 통로로 돌아 내려간다
-for t, gx in (("daily_quota", G23 + 18), ("quota_requests", G23 + 33), ("usage_events", G23 + 48)):
+for t, gx in (("daily_quota", G23 + 18), ("usage_events", G23 + 40)):
     rel([(R("users"), uy), (gx, uy), (gx, row_y(t, "user_id")), (R(t), row_y(t, "user_id"))], "1", "N")
 # 사용자 → 대화
 rel([(R("users"), uy), (G23 + 66, uy), (G23 + 66, row_y("chat_sessions", "user_id")),

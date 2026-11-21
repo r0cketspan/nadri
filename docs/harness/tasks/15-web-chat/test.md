@@ -1,6 +1,6 @@
 # 15-web-chat — 테스트 설계 (test)
 
-> spec.md와 짝. 절 번호 §n은 spec.md 기준. 작성 2026-11-21. 상태: 초안 — 사용자 검토 대기.
+> spec.md와 짝. 절 번호 §n은 spec.md 기준. 작성 2026-11-21. 상태: 확정(2026-11-22).
 > ① 자동 — A: Vitest(파서·상태 전이·렌더러·컴포넌트, 서버 없음) / B: Playwright(가짜 SSE를 `page.route`로 주입 + 실제 compose 1회) ② HITL(휴대폰 터널 주소에서 토큰 단위 표시 — A11, A30).
 
 ---
@@ -96,7 +96,7 @@ npm run e2e -- --grep @real               # 실제 compose 1회(OpenAI 비용 �
 | V-CV-03 | ChatView | 전송 중 | 전송 버튼 비활성, Enter 눌러도 요청 1회 |
 | V-CV-04 | ChatView | 한글 조합 중 Enter(`isComposing`) | 전송 안 함 |
 | V-CV-05 | ChatView | 공백만 | 전송 안 함 |
-| V-CV-06 | ChatView | 429 `quota_exceeded` | 말풍선 없음, 입력창에 질문 되돌림, 알림에 서버 문구 |
+| V-CV-06 | ChatView | 429 `quota_exceeded` | 말풍선 없음, 입력창에 질문 되돌림, 알림에 서버 문구, 버튼 없음 |
 | V-CV-07 | ChatView | 409 `session_full` | 알림 + "새 대화" 버튼 → `router.push("/")` |
 | V-CV-08 | ChatView | 401 | `router.replace("/login")` |
 | V-CV-09 | ChatView | 403 `pending_approval` | `replace("/pending")` |
@@ -135,6 +135,7 @@ npm run e2e -- --grep @real               # 실제 compose 1회(OpenAI 비용 �
 | P-CH-09 모바일 | `mobile-chrome` 프로젝트, 햄버거로 서랍 열기 → 세션 선택 | 서랍 닫히고 그 대화 |
 | P-CH-10 렌더러 안전 | 본문에 `<img src=…>`·`![x](https://evil.example/a.png)` 포함 SSE | 페이지 전체 `img` 0, `evil.example` 요청 0(`page.on("request")`) |
 | P-CH-11 정적 경로 우선 | `/account`, `/sw.js`, `/manifest.webmanifest` | 각각 계정 화면·JS·JSON(동적 `[sessionId]`로 가지 않음) |
+| P-CH-12 한도 초과 | 메시지 route가 429 `{code:"quota_exceeded", message:"오늘 질문 한도(50회)를 다 썼어요. 내일 0시(한국 시간)에 다시 이용해 주세요.", limit:50, used:50}` | 말풍선 없음, 입력창에 질문 되돌림, 알림에 그 문구, "추가 요청" 같은 버튼 없음(FR-62, 2026-11-22) |
 | P-CH-R1 `@real` | 실제 compose, active 사용자(14 `approve`), "경복궁 관람 시간 알려줘" | `✓ 확인됨` 또는 경고로 끝남, 사이드바에 세션, 새로고침 후 이력 같음 |
 
 ### 통과 기준

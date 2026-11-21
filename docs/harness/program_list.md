@@ -3,6 +3,7 @@
 > 하네스 Phase 3 산출물 (task-planner, 작성 2026-11-21) — **G4 승인 (2026-11-21)**. 확인 질문 Q1~Q9 답변은 §5.2 "결정" 열.
 > 입력: `requirements.md`(G1, 2026-11-21 개정본) · `stack-options.md`(G2) · `architecture.md`(G3 2026-11-21 재승인본, **정본**) · `erd.md`/`docs/images/src/erd.py`(ERD 19개 테이블, 한글 명칭 정본) · `SECURITY_GUIDE.md` · `TECH_STACK.md` · `README.md` · `PROGRESS.md` 결정 로그.
 > 출처 표기: [R]=requirements.md, [A]=architecture.md, [S]=stack-options.md, [E]=ERD, [SG]=SECURITY_GUIDE.md, [PG]=PROGRESS.md, [CL]=CLAUDE.md.
+> **2026-11-22 변경(사용자 요청)**: 한도 추가 요청 기능 삭제(FR-62 변경·FR-82 삭제, `quota_requests` 테이블 삭제 → ERD 18개). 11·16·18 설명과 추적표를 고쳤다(requirements.md §8).
 > 이 문서는 아키텍처에 없는 기능을 만들지 않는다. 모든 작업은 [A]의 모듈·흐름·ADR과 [R]의 FR/NFR로 추적된다(§4).
 
 ---
@@ -13,7 +14,7 @@
 1. **처음 2개 작업은 최소 end-to-end 수직 슬라이스**(G2 결정: 별도 PoC 없음 [PG]). 아키텍처를 바꿀 수 있는 위험 연동 — LightRAG `/query/data`·한국어 추출·CrossEncoder 지연·MCP 어댑터↔`mcp` 1.30·`gpt-6-luna` Responses 툴 루프·스트리밍 usage/캐시·LangGraph 스트림 모드·Moderation·SSE의 Nginx/Cloudflare Named Tunnel 무버퍼링 — 을 **실제 호출로** 확인한다([A] §12의 A7·A8·A9·A11·A12·A16·A18~A23·A25·A26·A30). 실패해 사용자 결정(D-xx·ADR)을 바꿔야 하면 **멈추고 사용자에게 묻는다**.
 2. 슬라이스 코드는 버리는 코드가 아니다. 이후 작업이 같은 모듈을 넓혀 간다(예: 01의 `bootstrap --limit` → 03의 예산·이어하기).
 3. 작업 하나 = 브랜치 `feat/<작업id>` 하나 = 리뷰 가능한 크기(대략 하루 이내). 02·14는 하루를 조금 넘을 수 있어 표시했다.
-4. 테이블은 01(관광·수집 4개)과 04(나머지 15개)에서 만든다 — ERD와 1:1로 대조 리뷰하기 쉽게.
+4. 테이블은 01(관광·수집 4개)과 04(나머지 14개)에서 만든다 — ERD와 1:1로 대조 리뷰하기 쉽게.
 5. 모든 서비스는 Docker Compose, 비밀값은 `.env`만, 자체 이미지는 처음부터 비루트·`cap_drop: [ALL]`·`no-new-privileges`([A] §9). 26에서 일괄 점검.
 6. 테스트: 백엔드 pytest(LLM·MCP·Moderation·Tavily·TourAPI·SMTP·ElevenLabs 목킹한 결정적 단위테스트 기본, 실호출은 `@pytest.mark.integration`으로 분리), 프론트 Vitest + React Testing Library, 브라우저 흐름 Playwright [R NFR-70], [S S19]. 전체 E2E 시나리오(NFR-71)는 하네스 Phase 6에서 설계하고, 각 화면 작업은 자기 화면의 Playwright 부분만 갖는다.
 7. 주석은 한국어(docstring/JSDoc + 단계 주석) [CL], 커밋은 `[Feat|Fix|Docs…] 요약` + 작업 목록 + `Author:` 줄, AI 공동작성 표기 없음 [R NFR-73].
@@ -49,10 +50,10 @@
 | 마일스톤 | 작업 | 끝나면 되는 것 |
 |---|---|---|
 | **M0 위험 검증 슬라이스** | 01, 02 | 실제 데이터 → LightRAG → MCP 툴 → LangGraph(답변·검증) → SSE가 터널 주소로 흐름. 아키텍처 위험 가정 판정 완료 |
-| M1 적재 시작 + 기반 | 03, 04, 05, 06, 07 | 초기 적재 진행 중, 19개 테이블, 가입·로그인·재설정 API, PII 가리기 |
+| M1 적재 시작 + 기반 | 03, 04, 05, 06, 07 | 초기 적재 진행 중, 18개 테이블, 가입·로그인·재설정 API, PII 가리기 |
 | M2 채팅 백엔드 완성 | 08, 09, 10, 11, 12, 13 | 입력/출력 검사 전체, 대화 저장·이력, 툴 5개, 한도·사용량, FAQ 캐시, 피드백 |
-| M3 화면 | 14, 15, 16, 17 | PWA 로그인·채팅·피드백·위치·한도 요청·음성 |
-| M4 관리자 | 18, 19 | 가입·한도 승인, 비활성화, 사용량 대시보드 |
+| M3 화면 | 14, 15, 16, 17 | PWA 로그인·채팅·피드백·위치·음성 |
+| M4 관리자 | 18, 19 | 가입 승인, 비활성화, 사용량 대시보드 |
 | M5 현행화 | 20, 21 | 허브·lint·위키 git, 매일 01:00 현행화·90일 정리 |
 | M6 평가·품질 HITL | 22, 23, 24, 25 | 골든 평가·공격 세트·매일 03:00 품질 보고서·개선안 채택/보류/기각 |
 | M7 릴리스 준비 | 26 | 클린 기동·보안 설정 점검·실행 문서 → Phase 6(E2E 설계) → `dev`→`prod`, `v1.0` |
@@ -68,21 +69,21 @@
 | 01-e2e-tools-slice | 최소 E2E ① 데이터→RAG→MCP 툴 | `compose.yaml`, `compose.dev.yaml`, `.env.example`, `infra/postgres/init/01-init.sh`, `infra/lightrag/lightrag.env`, `backend/{pyproject.toml,uv.lock,Dockerfile,alembic.ini}`, `backend/alembic/versions/0001_tour_ingest.py`, `nadri/core/{config,db,tourapi}.py`, `nadri/core/models/{tour,ingest}.py`, `nadri/ingest/{raw,upsert,indexer,bootstrap}.py`, `nadri/ingest/wiki/{render.py,templates/entity.md.j2}`, `nadri/tools/{server,rag_query,data_query,get_datetime,reranker}.py`, `nadri/cli.py` | compose 4서비스(postgres·lightrag·tour-tools·ingest)·볼륨 / DB·롤 초기화 / LightRAG 설정 / uv 프로젝트·버전 고정·이미지 타깃 2개 / 관광·수집 4테이블 / 설정·DB·TourAPI 클라이언트 / raw·upsert·엔티티 위키·LightRAG 인덱싱·`--limit` 적재 / MCP 서버(토큰 미들웨어)·툴 3종·CrossEncoder | — | 서울 관광지 수십 건 실적재 → 위키 → LightRAG → `rag_query`·`data_query`·`get_datetime`을 MCP 어댑터로 실호출. A7·A8·A9·A12·A16·A21 판정. FR-19·40~42·44·50·51·53 |
 | 02-e2e-chat-slice | 최소 E2E ② LangGraph·검증·SSE·터널 | `infra/nginx/nginx.conf`, compose(api·nginx·cloudflared 추가), `nadri/api/main.py`, `nadri/api/chat/{router,sse}.py`, `nadri/agent/{state,graph,nodes,tools,evidence}.py`, `nadri/guard/{moderation,output_guard}.py`, `nadri/core/llm.py`, `nadri/prompts/{answer,verify}.md` | Nginx SSE 무버퍼링 / FastAPI 앱·헬스 / 채팅 SSE 엔드포인트(슬라이스: 저장 없음)·이벤트 변환·ping·타임아웃 / StateGraph(answer⇄tools→verify→revise)·MCP+Tavily 툴·툴 결과→출처 / 입력·출력 Moderation(fail-closed)·코드 검사(contentid·URL) / ChatOpenAI 생성(Responses·store=False·cache key) / 프롬프트 | 01 | 터널 주소로 SSE 토큰 단위 수신, 실툴 기반 답변, 검증 구조화 출력, 다시 쓰기 루프, usage·cache_read 수집. A11·A18·A19·A20·A22·A23·A25·A26·A30 판정. FR-10~13·18·22·54·90·91, NFR-11·13·22·23·36·40 |
 | 03-ingest-bootstrap | 초기 적재(서울·제주×8종, 이어하기) | `nadri/ingest/budget.py`, `nadri/ingest/bootstrap.py`(확장), `nadri/core/tourapi.py`(확장), `nadri/ingest/wiki/templates/*.md.j2`(8종), `nadri/cli.py`(확장) | 일일 호출 예산(800)·한도 에러코드 / 목록→상세3종→raw→upsert→렌더→해시 인덱싱, 커서 이어하기, `ingest_runs` / 타입별 상세 필드 / 타입별 엔티티 템플릿 | 01 | FR-40·41·42·44·48, ADR-14. 여러 날 백그라운드 누적. A8(넓은 표본)·A12 |
-| 04-db-schema | 앱 테이블 15개 + ORM | `backend/alembic/versions/0002_app_tables.py`, `nadri/core/models/{account,chat,quota,quality}.py`, `backend/tests/test_schema_comments.py` | 계정·대화·한도·품질 테이블 DDL + 한글 COMMENT + FK 동작 / ORM / ERD 명칭 대조 테스트 | 01 | ERD 19개 테이블 완성, COMMENT = ERD, 연쇄 삭제 규칙([A] §5.1) |
+| 04-db-schema | 앱 테이블 14개 + ORM | `backend/alembic/versions/0002_app_tables.py`, `nadri/core/models/{account,chat,quota,quality}.py`, `backend/tests/test_schema_comments.py` | 계정·대화·한도·품질 테이블 DDL + 한글 COMMENT + FK 동작 / ORM / ERD 명칭 대조 테스트 | 01 | ERD 18개 테이블 완성, COMMENT = ERD, 연쇄 삭제 규칙([A] §5.1) |
 | 05-auth-core | 가입 신청·로그인·세션·CSRF·잠금·관리자 CLI | `nadri/api/auth/{router,service,sessions,csrf}.py`, `nadri/api/ratelimit.py`, `nadri/api/deps.py`, `nadri/core/data/common_passwords.txt`, `nadri/cli.py`(create-admin) | 인증 API / Argon2id·정책 / `__Host-session` 서버 세션 / 서명 double-submit CSRF / `rate_limits` 고정 윈도·잠금 / 현재 사용자·활성·관리자 의존성 / 흔한 비밀번호 목록 / 첫 관리자 생성 | 02, 04 | FR-01~04·06·80(CLI), NFR-01~06·10·34, ADR-10·15. 슬라이스 채팅 엔드포인트에 `require_active` 연결. A17 |
 | 06-password-reset-mail | 이메일 인증코드 비밀번호 재설정 | `nadri/api/mail.py`, `nadri/api/auth/reset.py` | Gmail SMTP 백그라운드 발송 / request·confirm(10분·5회·문구 통일·전 세션 폐기) | 05 | FR-05·07, NFR-03·06 |
 | 07-guard-pii | 개인정보 가리기 규칙 | `nadri/guard/pii.py`, `backend/tests/guard/test_pii_table.py` | 규칙 기반 PII 탐지·형식 유지 `*` 가리기·종류 반환 / 가려야·가리면 안 되는 입력 표 테스트 | 01 | NFR-35, ADR-21, G3 Q3·Q4. A27·A29 |
 | 08-guard-pipeline | 입력 검사 3단·출력 검사·보안 이벤트 | `nadri/guard/{input_guard,classifier,events}.py`, `nadri/guard/output_guard.py`(확장), `nadri/prompts/{classify.md,fixed_messages.toml}`, `nadri/prompts/{answer,verify}.md`(보강), `nadri/agent/nodes.py`·`nadri/api/chat/router.py`(연결) | PII→Moderation→분류기 순차 / 탈옥·인젝션·범위 밖 분류 / `security_events` 기록 / 카나리·링크 강등 / 고정 안내·109·안전 문구 | 02, 05, 07 | NFR-11~16·35, FR-90(보안 항목), ADR-18·20·21·22·27. A22·A23·A24(초기) |
 | 09-chat-sessions | 대화 세션·컨텍스트·저장·제목/요약 | `nadri/api/chat/{router,context,store,background}.py`, `nadri/prompts/{title,summary}.md` | 세션 CRUD·메시지 본 구현 / 요약+최근 10턴·위치 / 한 트랜잭션 저장(툴 결과·검증·timings) / 제목·누적 요약 단발 호출 | 08 | FR-06·10·14~17·20·55(백엔드)·104, D-10, NFR-30·33·35·60, ADR-03 |
 | 10-tool-tour-live | `tour_live` 툴 | `nadri/tools/tour_live.py`, `nadri/tools/server.py`·`nadri/core/tourapi.py`·`nadri/agent/tools.py`(확장) | 진행 중 축제·좌표 주변 실시간 조회 / 등록·라벨 | 01, 02 | FR-52·55, NFR-07 |
-| 11-quota-usage | 일일 한도·분당 제한·사용량 기록 | `nadri/api/quota.py`, `nadri/api/usage.py`, `nadri/core/pricing.py`, `nadri/api/chat/router.py`(연결) | 50+추가분 한도·추가 요청 API / 호출별 `usage_events`·비용 / 단가표 / 채팅 분당 10회·차감 규칙 | 09 | FR-61·62, NFR-06·40·43·60, ADR-27 |
+| 11-quota-usage | 일일 한도·분당 제한·사용량 기록 | `nadri/api/quota.py`, `nadri/api/usage.py`, `nadri/core/pricing.py`, `nadri/api/chat/router.py`(연결) | 하루 50회 한도 / 호출별 `usage_events`·비용 / 단가표 / 채팅 분당 10회·차감 규칙 | 09 | FR-61·62, NFR-06·40·43·60, ADR-27 |
 | 12-faq-cache | FAQ 유사도 캐시 | `nadri/api/faq_cache.py`, `nadri/core/llm.py`(임베딩), `nadri/api/chat/router.py`(연결) | 조회·저장·무효화 함수 / `OpenAIEmbeddings` | 11 | FR-60·92, ADR-13 |
 | 13-feedback | 👍/👎 피드백 API | `nadri/api/feedback.py` | upsert·취소, 👎 시 연결 FAQ 캐시 삭제 | 12 | FR-103(백엔드) |
 | 14-web-foundation | Next.js 기반·인증 화면·PWA | `web/{package.json,next.config.ts,Dockerfile,vitest.config.ts,playwright.config.ts}`, `web/app/layout.tsx`, `web/app/(auth)/{login,signup,pending,reset}/page.tsx`, `web/app/(chat)/account/page.tsx`, `web/lib/api.ts`, `web/app/manifest.ts`, `web/public/{sw.js,icons/}`, `web/components/RegisterSW.tsx`, compose·nginx(`/` 라우트) | 앱 골격·standalone 빌드 / 로그인·가입·승인 대기·재설정·비밀번호 변경 / CSRF 헤더 붙는 fetch 클라이언트 / manifest·최소 SW(`/api` 미가로채기) | 05, 06 | FR-01~05 화면, NFR-04·05·10·52, ADR-12. (하루 초과 가능) |
-| 15-web-chat | 채팅 화면·SSE 파서·안전 렌더러 | `web/lib/sse.ts`, `web/components/chat/{ChatView,MessageBubble,SafeMarkdown,Sidebar,StatusLine}.tsx`, `web/app/(chat)/page.tsx`, `web/app/(chat)/[sessionId]/page.tsx` | §3.1 이벤트 파서 / 초안→✓확인됨·교체·경고·차단·오류 재시도 / raw HTML·이미지 끔·링크 허용 목록 / 세션 목록·삭제 | 09, 11, 14 | FR-10·15~18·20·21·91, NFR-14·23. A11(모바일)·A30(화면) |
-| 16-web-chat-actions | 피드백·한도 추가 요청·위치 동의 UI | `web/components/chat/{FeedbackButtons,QuotaRequestButton,LocationToggle}.tsx` | 👍/👎+사유 / 429 시 "추가 요청" / 위치 동의 토글·좌표 전송 | 13, 15 | FR-55·62·103 화면, NFR-33 |
+| 15-web-chat | 채팅 화면·SSE 파서·안전 렌더러 | `web/lib/sse.ts`, `web/components/chat/{ChatView,MessageBubble,SafeMarkdown,Sidebar,StatusLine}.tsx`, `web/app/(chat)/page.tsx`, `web/app/(chat)/[sessionId]/page.tsx` | §3.1 이벤트 파서 / 초안→✓확인됨·교체·경고·차단·오류 재시도 / raw HTML·이미지 끔·링크 허용 목록 / 세션 목록·삭제 | 09, 11, 14 | FR-10·15~18·20·21·62(한도 초과 안내)·91, NFR-14·23. A11(모바일)·A30(화면) |
+| 16-web-chat-actions | 피드백·위치 동의 UI | `web/components/chat/{FeedbackButtons,LocationToggle}.tsx` | 👍/👎+사유 / 위치 동의 토글·좌표 전송 | 13, 15 | FR-55·103 화면, NFR-33 |
 | 17-voice | STT·TTS (Provider 인터페이스) | `nadri/api/voice/stt/{base,openai}.py`, `nadri/api/voice/tts/{base,elevenlabs}.py`, `nadri/api/voice/router.py`, `web/lib/recorder.ts`, `web/components/chat/{PttButton,SpeakerButton}.tsx` | `SttProvider`/`TtsProvider`와 구현체 / `/api/stt`·`/api/tts` / MediaRecorder 60초·포맷 선택 / 녹음·재생 버튼 | 11, 15 | FR-30~32, NFR-06·43·50·51, [S S2·S20]. A13 |
-| 18-admin-users-quota | 관리자: 가입·한도 승인·비활성화 | `nadri/api/admin/{router,users,quota_requests}.py`, `web/app/admin/{layout.tsx,users/page.tsx,quota/page.tsx}` | 역할 검사 관리자 API / 승인·거절·비활성화(세션 폐기) / +50 승인 / 백오피스 화면 | 11, 14 | FR-04·80~82·84 |
+| 18-admin-users | 관리자: 가입 승인·비활성화 | `nadri/api/admin/{router,users}.py`, `web/app/admin/{layout.tsx,users/page.tsx}` | 역할 검사 관리자 API / 승인·거절·비활성화(세션 폐기) / 백오피스 화면 | 11, 14 | FR-04·80·81·84 |
 | 19-admin-usage | 관리자: 사용량 대시보드 | `nadri/api/admin/usage.py`, `web/app/admin/usage/page.tsx` | 사용자·일자·kind별 토큰·비용, 월 누적·$10 경고 | 18 | FR-63·83, NFR-43. A14·A28 |
 | 20-ingest-hubs-lint | 허브 페이지·lint·위키 git | `nadri/ingest/wiki/{hubs,lint,git}.py`, `nadri/prompts/hub.md`, `backend/Dockerfile`(git 설치), `nadri/cli.py`(`ingest hubs`) | 시군구 허브 27개 LLM 작성·인덱싱 / 깨진 링크·기준일 경과·모순 리포트 / 위키 볼륨 git 커밋 | 03, 11 | FR-43·46·47, NFR-24 |
 | 21-ingest-daily-sync | 매일 01:00 현행화·90일 정리 | `nadri/ingest/{scheduler,sync,cleanup}.py`, `nadri/ingest/jobs/daily_sync.py`, `nadri/cli.py`(`ingest sync --now`), compose(ingest 상주) | APScheduler(Asia/Seoul)+advisory lock / SyncList 변경·삭제 반영 / 90일·만료 정리 / 작업 묶음 | 12, 20 | FR-45, NFR-31, ADR-09 |
@@ -198,14 +199,14 @@
 
 ---
 
-### 04-db-schema — 앱 테이블 15개 + ORM
-**목표**: ERD 19개 중 01에서 만들지 않은 15개 테이블을 테이블 생성 스크립트(Alembic) 하나로 만든다.
+### 04-db-schema — 앱 테이블 14개 + ORM
+**목표**: ERD 18개 중 01에서 만들지 않은 14개 테이블을 테이블 생성 스크립트(Alembic) 하나로 만든다.
 
-**파일**: `backend/alembic/versions/0002_app_tables.py`(users, auth_sessions, rate_limits, password_reset_codes, chat_sessions, chat_messages, faq_cache, daily_quota, quota_requests, usage_events, message_feedback, security_events, eval_reports, eval_scores, improvement_proposals + COMMENT) · `nadri/core/models/{account,chat,quota,quality}.py` · `backend/tests/test_schema_comments.py`(`docs/images/src/erd.py`의 `T` 정의를 AST로 읽어 DB COMMENT와 대조).
+**파일**: `backend/alembic/versions/0002_app_tables.py`(users, auth_sessions, rate_limits, password_reset_codes, chat_sessions, chat_messages, faq_cache, daily_quota, usage_events, message_feedback, security_events, eval_reports, eval_scores, improvement_proposals + COMMENT) · `nadri/core/models/{account,chat,quota,quality}.py` · `backend/tests/test_schema_comments.py`(`docs/images/src/erd.py`의 `T` 정의를 AST로 읽어 DB COMMENT와 대조).
 
 **핵심 스펙**: [A] §5.1 컬럼·FK 동작(세션 삭제 → 메시지·피드백·FAQ 캐시·eval_scores 연쇄, `usage_events.message_id`·`security_events.*` set null, `improvement_proposals.report_id` **set null** — §5 X-d), `faq_cache.embedding vector(1536)`, `chat_messages`에 원문·좌표 컬럼 없음(NFR-33·35). 한글 명칭은 ERD 정본(§5 X-e).
 
-**완료 기준**: upgrade/downgrade 왕복, 19개 테이블·컬럼 COMMENT = ERD, FK 연쇄 동작 테스트 통과, `nadri_tools` 롤이 새 테이블에 권한 없음.
+**완료 기준**: upgrade/downgrade 왕복, 18개 테이블·컬럼 COMMENT = ERD, FK 연쇄 동작 테스트 통과, `nadri_tools` 롤이 새 테이블에 권한 없음.
 
 **검증**: pytest(테스트 DB 컨테이너) — 테이블 생성 스크립트 되돌리기·재적용, COMMENT 대조, 연쇄 삭제, 권한 확인.
 
@@ -293,11 +294,11 @@
 ---
 
 ### 11-quota-usage — 일일 한도·분당 제한·사용량 기록
-**파일**: `nadri/api/quota.py`(오늘 KST `used < 50 + extra` 아니면 429 `quota_exceeded`, `POST /api/quota/requests` — 그날 1건) · `nadri/api/usage.py`(호출별 `usage_events`: `answer`·`verify`·`classify`·`moderation`(건수)·`title`·`summary`·`embed`·`web_search`(크레딧)·`hub`·`eval`·`proposal`, 입력·캐시 읽기·캐시 쓰기·출력 토큰, 응답 모델명, 비용) · `nadri/core/pricing.py`(gpt-6-luna 입력 0.10·캐시 0.01·캐시 쓰기 0.125·출력 0.50 /1M, 임베딩 0.02, STT $0.0045/분) · `nadri/api/chat/router.py`(분당 10회 429, 차감 규칙 연결).
+**파일**: `nadri/api/quota.py`(오늘 KST `used < 50` 아니면 429 `quota_exceeded` — 그날 차단, 추가 요청 없음) · `nadri/api/usage.py`(호출별 `usage_events`: `answer`·`verify`·`classify`·`moderation`(건수)·`title`·`summary`·`embed`·`web_search`(크레딧)·`hub`·`eval`·`proposal`, 입력·캐시 읽기·캐시 쓰기·출력 토큰, 응답 모델명, 비용) · `nadri/core/pricing.py`(gpt-6-luna 입력 0.10·캐시 0.01·캐시 쓰기 0.125·출력 0.50 /1M, 임베딩 0.02, STT $0.0045/분) · `nadri/api/chat/router.py`(분당 10회 429, 차감 규칙 연결).
 
 **핵심 스펙**: FR-61·62, NFR-06(채팅)·40(cached_tokens 기록)·43·60, ADR-27·[A] §3.6 — 성공·캐시 적중 +1, 입력 검사 차단 +1, 장애·중단·Moderation 장애 차단 미차감. `done.quota_remaining`.
 
-**완료 기준·검증**: pytest — 한도 경계(50·추가분), KST 날짜 경계, 차감 규칙 표 테스트, 비용 계산(캐시 쓰기 1.25배), 분당 10회.
+**완료 기준·검증**: pytest — 한도 경계(50), KST 날짜 경계, 차감 규칙 표 테스트, 비용 계산(캐시 쓰기 1.25배), 분당 10회.
 
 **가정**: A19 결과 반영(usage 수집 위치).
 
@@ -342,7 +343,7 @@
 ### 15-web-chat — 채팅 화면·SSE 파서·안전 렌더러
 **파일**: `web/lib/sse.ts`(fetch + ReadableStream, [A] §3.1 이벤트 전체, ping 무시) · `web/components/chat/ChatView.tsx`(상태 기계: checking → answering → 초안 → verifying/revising → ✓ 확인됨 / 교체 / 경고 / 차단 / 오류 + 재시도) · `MessageBubble.tsx` · `SafeMarkdown.tsx`(raw HTML 끔, `img` 렌더 안 함, 링크는 `done.allowed_urls`에 있고 `done` 이후만 클릭, 그 외 텍스트) · `Sidebar.tsx`(세션 목록·제목·새 대화·삭제) · `StatusLine.tsx` · `web/app/(chat)/page.tsx`, `[sessionId]/page.tsx`.
 
-**핵심 스펙**: FR-10·15(새 대화 안내)·16·17·18·20·21·91, NFR-14·23, ADR-19·22. `tool` 이벤트 받으면 표시 중 delta 지움. `meta`로 사용자 말풍선을 가린 텍스트로 교체.
+**핵심 스펙**: FR-10·15(새 대화 안내)·16·17·18·20·21·62(한도 초과 안내 — 2026-11-22)·91, NFR-14·23, ADR-19·22. `tool` 이벤트 받으면 표시 중 delta 지움. `meta`로 사용자 말풍선을 가린 텍스트로 교체.
 
 **완료 기준·검증**: Vitest — 파서(청크 경계 분할·ping·여러 이벤트), 렌더러(HTML·이미지·허용 안 된 링크·초안 단계 링크 비활성), 상태 전이. Playwright — 가짜 SSE 응답(route mock)으로 시나리오 4종 + 실제 compose 1회. HITL — **모바일 브라우저(터널 주소)에서 토큰 단위 표시** 확인.
 
@@ -350,12 +351,12 @@
 
 ---
 
-### 16-web-chat-actions — 피드백·한도 추가 요청·위치 동의 UI
-**파일**: `web/components/chat/FeedbackButtons.tsx`(👍/👎, 👎 사유 선택 — 선택 입력) · `QuotaRequestButton.tsx`(429 `quota_exceeded` 시 "추가 요청", 요청 후 대기 표시) · `LocationToggle.tsx`(동의 시에만 `navigator.geolocation`으로 그 질문에 좌표 첨부, 저장 안 함).
+### 16-web-chat-actions — 피드백·위치 동의 UI
+**파일**: `web/components/chat/FeedbackButtons.tsx`(👍/👎, 👎 사유 선택 — 선택 입력) · `LocationToggle.tsx`(동의 시에만 `navigator.geolocation`으로 그 질문에 좌표 첨부, 저장 안 함).
 
-**핵심 스펙**: FR-55·62(화면)·103(화면), NFR-33.
+**핵심 스펙**: FR-55·103(화면), NFR-33. (한도 초과 화면은 15의 SSE 전 오류 알림이 맡는다 — 2026-11-22 추가 요청 삭제)
 
-**완료 기준·검증**: Vitest(컴포넌트 상태), Playwright(피드백 변경·취소, 한도 초과 화면, 위치 거부 시 좌표 미전송 — 요청 본문 검사).
+**완료 기준·검증**: Vitest(컴포넌트 상태), Playwright(피드백 변경·취소, 위치 거부 시 좌표 미전송 — 요청 본문 검사).
 
 **가정**: 없음.
 
@@ -372,10 +373,10 @@
 
 ---
 
-### 18-admin-users-quota — 관리자: 가입·한도 승인·비활성화
-**파일**: `nadri/api/admin/router.py`(`require_admin`) · `users.py`(`GET /api/admin/users?status=`, approve·reject·disable — disable 시 `auth_sessions` 전부 삭제) · `quota_requests.py`(목록·approve(+50 그날만)·reject) · `web/app/admin/layout.tsx`(관리자만, 서버 판단은 api) · `users/page.tsx` · `quota/page.tsx`.
+### 18-admin-users — 관리자: 가입 승인·비활성화
+**파일**: `nadri/api/admin/router.py`(`require_admin`) · `users.py`(`GET /api/admin/users?status=`, approve·reject·disable — disable 시 `auth_sessions` 전부 삭제) · `web/app/admin/layout.tsx`(관리자만, 서버 판단은 api) · `users/page.tsx`.
 
-**핵심 스펙**: FR-04·80·81·82·84, [A] §3.4·§3.6. 승인 결과 메일·재활성화 버튼 없음([A] §13).
+**핵심 스펙**: FR-04·80·81·84, [A] §3.4. (FR-82 한도 추가 승인은 2026-11-22 삭제 — id는 유지, 이름 정리는 확인 필요) 승인 결과 메일·재활성화 버튼 없음([A] §13).
 
 **완료 기준·검증**: pytest(일반 사용자 403, 상태 전이, 비활성화 즉시 채팅 차단), Playwright(승인 → 그 사용자 로그인 → 채팅 가능).
 
@@ -494,13 +495,13 @@
 | FR-18 | 02, 15 | FR-55 | 09, 10, 16 |
 | FR-19 | 01 | FR-60 | 12 |
 | FR-20 | 09, 15 | FR-61 | 11 |
-| FR-21 | 15 | FR-62 | 11, 16, 18 |
+| FR-21 | 15 | FR-62 | 11, 15 |
 | FR-22 | 02 | FR-63 | 19 |
 | FR-30 | 17 | FR-70 | 22, 23 |
 | FR-31 | 17 | FR-71 | **삭제됨 (2026-11-21)** |
 | FR-32 | 17 | FR-80 | 05(CLI), 18 |
 | FR-90 | 02, 08 | FR-81 | 18 |
-| FR-91 | 02, 15 | FR-82 | 18 |
+| FR-91 | 02, 15 | FR-82 | **삭제됨 (2026-11-22)** |
 | FR-92 | 12 | FR-83 | 19 |
 | FR-100 | 24 | FR-84 | 18 |
 | FR-101 | 24 | FR-103 | 13, 16 |

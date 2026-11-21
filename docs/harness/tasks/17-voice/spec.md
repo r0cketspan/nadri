@@ -1,6 +1,6 @@
 # 17-voice — STT·TTS (Provider 인터페이스) (spec)
 
-> 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-21). 상태: **초안 — 사용자 검토 대기**. 브랜치 `feat/17-voice`, 의존 작업 11-quota-usage, 15-web-chat.
+> 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-21). 상태: **확정(2026-11-22)** — 확인 질문은 모두 추천안대로 결정(마지막 절 표). 브랜치 `feat/17-voice`, 의존 작업 11-quota-usage, 15-web-chat.
 > 근거: [PL]=program_list.md(G4 승인본) §2 표·§3 "17-voice"·§4.3(faster-whisper·Drama 3 구현은 범위 밖) · [A]=architecture.md(G3 재승인본) §1(STT/TTS)·§2.1 `voice`·§3.2·§4(Audio·ElevenLabs 실패 시)·§6.1·§9 비밀값 표·ADR-11(STT는 OpenAI SDK 직접)·§12 A13 · [R]=requirements.md FR-30·31·32, NFR-06·43·50·51, D-12·13 · [S]=S2(`gpt-transcribe`)·S20(`eleven_flash_v2_5`, 기본 보이스 1개, 1회 글자 수 상한) · [TS]=TECH_STACK.md §8.1(`SttProvider` 시그니처)·§8.2.
 > **이어받는 확정 spec**: [02](`UsageRecord` TypedDict·`nginx client_max_body_size 10m`) · [04](`USAGE_KINDS`에 `stt`·`tts`) · [05](`require_active`·`CurrentUser`·`get_db`·`get_now`·`ApiError`·`too_many`·`RateRule`·`allow`·키 형식 `stt:user:{user_id}`·CSRF) · [09](`chat_messages`·`chat_sessions` 소유 확인 방식) · [11](`record_usage`·`STT_PRICE_PER_MIN{"gpt-transcribe"}`·`tts` 비용 0·`units` = stt 초/tts 글자) · [13](`load_owned_assistant`·`message_not_found` — 병합 순서에 따라 공유, 13-Q4) · [14](`apiFetch`·FormData 처리) · [15](`ChatView` 입력창·`MessageBubble.actions`).
 > **미확인** = 문서·공식 자료로 확인하지 못한 사실.
@@ -392,11 +392,11 @@ export function synthesize(messageId: number): Promise<Blob>;
 
 | # | 질문 | 추천안 | 대안 |
 |---|---|---|---|
-| 17-Q1 | [TS] §8.1 `transcribe(...) -> str`는 사용량(모델·길이)을 돌려주지 않는데 11은 STT를 "초" 단위로 기록한다. 어떻게 셀까 | **시그니처는 그대로, provider에 `model` 속성 + 초는 브라우저가 보낸 녹음 길이(60초 상한, 없으면 60초로)** — 비용 기록용이라 근사 허용, 전사 응답에 길이가 있으면(I-V-01) 그 값으로 바꿈 | 시그니처를 `-> SttResult(text, seconds, model)`로 바꿈([TS] 문서 수정) / 서버가 파일을 해석해 길이 계산(ffmpeg 등 의존 추가) |
-| 17-Q2 | STT 분당 제한 수치(NFR-06은 대상만, 수치 없음) | **분당 10회**(채팅과 같게) | 분당 5회 |
-| 17-Q3 | TTS에도 요청 제한을 둘까(NFR-06 목록엔 없음) | **분당 10회**(ElevenLabs 크레딧 보호, 같은 `ratelimit` 재사용 1줄) | 제한 없음(요구사항 그대로) |
-| 17-Q4 | TTS를 스트리밍으로 흘릴까 | **한 번에 받아 응답**(1,500자 상한이라 작음, 오류를 응답 전에 알 수 있음) | ElevenLabs 스트리밍 엔드포인트를 그대로 중계(첫 소리가 빠름, 중간 오류 처리 어려움) |
-| 17-Q5 | ElevenLabs 키가 없을 때 | **api는 정상 기동, `/api/tts`만 503 + 화면 문구**(06 메일과 같은 방식) | 기동 실패 |
-| 17-Q6 | 녹음 방식 | **눌러서 시작·다시 눌러서 끝(토글)** — 모바일에서 누르고 있기 불편 | 누르고 있는 동안만 녹음 |
-| 17-Q7 | 전사 글을 입력창에 어떻게 넣을까 | **비었으면 그 글로, 있으면 끝에 덧붙임**(자동 전송 없음 — FR-30) | 항상 입력창 내용을 바꿔 씀 |
-| 17-Q8 | ElevenLabs 보이스 고르기 | **사용자가 Voice Library에서 한국어 샘플 2~3개를 듣고 `ELEVENLABS_VOICE_ID`에 넣음**(S20 그대로, HITL-2 전) | 에이전트가 기본 보이스 하나를 골라 둠 |
+| 17-Q1 | [TS] §8.1 `transcribe(...) -> str`는 사용량(모델·길이)을 돌려주지 않는데 11은 STT를 "초" 단위로 기록한다. 어떻게 셀까 | **결정(2026-11-22): 추천안대로** — **시그니처는 그대로, provider에 `model` 속성 + 초는 브라우저가 보낸 녹음 길이(60초 상한, 없으면 60초로)** — 비용 기록용이라 근사 허용, 전사 응답에 길이가 있으면(I-V-01) 그 값으로 바꿈 | 시그니처를 `-> SttResult(text, seconds, model)`로 바꿈([TS] 문서 수정) / 서버가 파일을 해석해 길이 계산(ffmpeg 등 의존 추가) |
+| 17-Q2 | STT 분당 제한 수치(NFR-06은 대상만, 수치 없음) | **결정(2026-11-22): 추천안대로** — **분당 10회**(채팅과 같게) | 분당 5회 |
+| 17-Q3 | TTS에도 요청 제한을 둘까(NFR-06 목록엔 없음) | **결정(2026-11-22): 추천안대로** — **분당 10회**(ElevenLabs 크레딧 보호, 같은 `ratelimit` 재사용 1줄) | 제한 없음(요구사항 그대로) |
+| 17-Q4 | TTS를 스트리밍으로 흘릴까 | **결정(2026-11-22): 추천안대로** — **한 번에 받아 응답**(1,500자 상한이라 작음, 오류를 응답 전에 알 수 있음) | ElevenLabs 스트리밍 엔드포인트를 그대로 중계(첫 소리가 빠름, 중간 오류 처리 어려움) |
+| 17-Q5 | ElevenLabs 키가 없을 때 | **결정(2026-11-22): 추천안대로** — **api는 정상 기동, `/api/tts`만 503 + 화면 문구**(06 메일과 같은 방식) | 기동 실패 |
+| 17-Q6 | 녹음 방식 | **결정(2026-11-22): 추천안대로** — **눌러서 시작·다시 눌러서 끝(토글)** — 모바일에서 누르고 있기 불편 | 누르고 있는 동안만 녹음 |
+| 17-Q7 | 전사 글을 입력창에 어떻게 넣을까 | **결정(2026-11-22): 추천안대로** — **비었으면 그 글로, 있으면 끝에 덧붙임**(자동 전송 없음 — FR-30) | 항상 입력창 내용을 바꿔 씀 |
+| 17-Q8 | ElevenLabs 보이스 고르기 | **결정(2026-11-22): 추천안대로** — **사용자가 Voice Library에서 한국어 샘플 2~3개를 듣고 `ELEVENLABS_VOICE_ID`에 넣음**(S20 그대로, HITL-2 전) | 에이전트가 기본 보이스 하나를 골라 둠 |

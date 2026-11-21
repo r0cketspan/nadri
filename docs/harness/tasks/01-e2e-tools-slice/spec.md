@@ -19,7 +19,7 @@
 |---|---|
 | api·nginx·cloudflared 컨테이너, LangGraph·답변/검증 에이전트, Moderation, SSE | 02 |
 | 일일 호출 **예산 강제**(800 소진 시 중단)·이어하기 커서·8종 템플릿·타입별 `detailIntro2` 매핑 | 03 (01은 호출 수 **기록**과 실행 전 간단 점검만, §6.4) |
-| 앱 테이블 15개 | 04 |
+| 앱 테이블 14개 | 04 |
 | `tour_live` 툴(TourAPI 실시간) — tour-tools에 `TOURAPI_SERVICE_KEY`를 주입하지 않음 | 10 |
 | 허브 페이지·lint·위키 git | 20 |
 | 01:00 현행화 스케줄러(ingest 상주) | 21 |
@@ -771,7 +771,7 @@ async def get_datetime() -> dict:
 | # | 질문 | 추천안 | 대안 |
 |---|---|---|---|
 | Q1 | 테이블 생성 스크립트 실행 주체와 01의 ingest 기동 방식 — 문서에 정해져 있지 않다 | **결정(2026-11-21): 추천안대로** — **ingest 기본 명령 = `alembic upgrade head` 후 종료**(one-shot), tour-tools는 그 완료를 기다림. 21에서 ingest가 상주 스케줄러가 될 때 "테이블 생성 스크립트 실행 후 스케줄러 시작"으로 바꾼다 | B: 별도 `migrate` 서비스(컨테이너 수 증가, ADR-01과 어긋남) / C: 02의 api 기동 시 실행(01에선 수동) |
-| Q2 | `nadri_tools`의 테이블 SELECT 권한을 init 스크립트가 아니라 테이블 생성 스크립트 `0001`의 `GRANT`로 부여 (init 시점에 테이블 없음) | **결정(2026-11-21): 추천안대로** (init은 롤·CONNECT·USAGE만) | B: init에서 `ALTER DEFAULT PRIVILEGES … GRANT SELECT ON TABLES` — 앱 테이블 15개(04)에도 자동 부여돼 NFR-07 위반 |
+| Q2 | `nadri_tools`의 테이블 SELECT 권한을 init 스크립트가 아니라 테이블 생성 스크립트 `0001`의 `GRANT`로 부여 (init 시점에 테이블 없음) | **결정(2026-11-21): 추천안대로** (init은 롤·CONNECT·USAGE만) | B: init에서 `ALTER DEFAULT PRIVILEGES … GRANT SELECT ON TABLES` — 앱 테이블 14개(04)에도 자동 부여돼 NFR-07 위반 |
 | Q3 | A9 통과 기준 수치 | **결정(2026-11-21): 추천안대로** — **30쌍 p95 ≤ 2.0초** 통과, 2~5초는 설정 조정 후 재측정 | 다른 기준(예: 3초) |
 | Q4 | 테스트 실행 위치 | **결정(2026-11-21): WSL2 Ubuntu에 uv + `backend/.venv`**, 단위·통합 테스트 모두 WSL에서 실행. 서비스는 Docker Compose(§5.3a) | (폐기) compose `test` 서비스 |
 | Q5 | CLI 하위 명령 추가 — [PL]은 `ingest bootstrap`만 적었지만 측정·판정에 `ingest reindex`(A16), `ingest count`(A12), `tools smoke`(A21·A9), `lightrag sample`(A8)이 필요 | **결정(2026-11-21): 추천안대로** — **4개 추가** (각각 수십 줄) | B: 통합 테스트·일회성 스크립트로 대체(사용자가 결과를 직접 보기 어려움) |

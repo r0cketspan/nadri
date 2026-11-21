@@ -41,7 +41,7 @@
 | 리버스 프록시 · 외부 접속 | Nginx (SSE 버퍼링 off) + Cloudflare Named Tunnel (HTTPS, `.dev` 도메인) |
 | 메일 | Gmail SMTP (비밀번호 재설정 인증코드) |
 | 스케줄러 | APScheduler (`ingest` 컨테이너, 매일 01:00 현행화 · 03:00 품질 평가) |
-| 테스트 | pytest · Vitest + React Testing Library · Playwright |
+| 테스트 | pytest · Vitest + React Testing Library · Playwright (Node LTS·npm, WSL2에서 실행) |
 | 실행 | Docker Compose (WSL2 Ubuntu-22.04에서 개발) |
 
 자세한 내용은 [`TECH_STACK.md`](TECH_STACK.md)에 있습니다.
@@ -50,7 +50,7 @@
 
 ![nadri DB ERD](./docs/images/erd.png)
 
-PostgreSQL 한 대 안에 DB를 2개 둡니다. `nadri` DB에는 위 그림의 앱 테이블 19개가 있고, RAG용 벡터·그래프는 별도 DB `lightrag`에 두며 LightRAG가 직접 관리합니다. 테이블·컬럼의 한글 명칭은 실제 DDL에도 `COMMENT`로 들어갑니다. 설계 근거는 [`docs/harness/architecture.md`](docs/harness/architecture.md) §5에 있습니다.
+PostgreSQL 한 대 안에 DB를 2개 둡니다. `nadri` DB에는 위 그림의 앱 테이블 18개가 있고, RAG용 벡터·그래프는 별도 DB `lightrag`에 두며 LightRAG가 직접 관리합니다. 테이블·컬럼의 한글 명칭은 실제 DDL에도 `COMMENT`로 들어갑니다. 설계 근거는 [`docs/harness/architecture.md`](docs/harness/architecture.md) §5에 있습니다.
 
 ## 레포 구조 (계획)
 
