@@ -3,7 +3,7 @@
 한국관광공사 **TourAPI 4.0** 공공데이터를 근거로 답하는 관광 챗봇입니다. PC·모바일 브라우저에서 동작합니다.
 
 > **상태: 설계 단계 (구현 전)**
-> 요구사항(G1)·기술스택(G2)·아키텍처(G3)가 승인되었고, 2026-11-21 에이전트 구조 변경(Hermes → LangGraph)·품질 평가·AI 보안 추가로 **G3 재검토 중**입니다. 다음은 작업 분해(G4)입니다. 진행 상황은 [`docs/harness/PROGRESS.md`](docs/harness/PROGRESS.md)에 있습니다.
+> 요구사항(G1)·기술스택(G2)·아키텍처(G3)가 승인되었고, 2026-11-21 에이전트 구조 변경(Hermes → LangGraph)·품질 평가·AI 보안을 반영해 G3를 재승인했고, 작업목록(G4, [`docs/harness/program_list.md`](docs/harness/program_list.md))도 승인되었습니다. 다음은 작업별 spec/test 작성(Phase 4)입니다. 진행 상황은 [`docs/harness/PROGRESS.md`](docs/harness/PROGRESS.md)에 있습니다.
 
 ## 무엇을 하나
 
@@ -107,7 +107,7 @@ API 키 같은 비밀값은 `.env` 파일에만 넣고, `.env`는 git에 커밋�
 
 이 서비스는 한국관광공사 TourAPI 4.0 데이터를 사용합니다. 이미지와 콘텐츠에는 공공누리 유형과 "한국관광공사" 출처를 표기합니다.
 
-MVP 이후에는 아래 데이터 원천을 단계적으로 추가할 계획입니다. 조사 내용은 [`docs/analysis/01-data-sources.md`](docs/analysis/01-data-sources.md)에 있습니다.
+v1.1 이후에는 아래 데이터 원천을 단계적으로 추가할 계획입니다. 조사 내용은 [`docs/analysis/01-data-sources.md`](docs/analysis/01-data-sources.md)에 있습니다.
 
 | 원천 | 데이터 |
 |---|---|

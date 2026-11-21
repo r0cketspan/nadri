@@ -161,7 +161,7 @@ out.append('<path d="M1022 538 H1030" stroke="#94a3b8" stroke-width="2" marker-e
 tile(750, 648, "Next.js", "채팅 · PWA · 관리자 화면")
 tile(1020, 648, "tour-tools", "MCP 서버 · 리랭커")
 chips(1077, 798, ("rag_query", "data_query", "tour_live", "get_datetime"))
-tile(1300, 428, "LightRAG", "Graph RAG (리랭크 off)")
+tile(1300, 428, "LightRAG", "Graph RAG (후보 30개 검색)")
 tile(1300, 648, "PostgreSQL", "pgvector · DB 2개")
 tile(1720, 428, "LLM Wiki", "엔티티 · 허브 (git)")
 tile(1720, 648, "raw 스냅샷", "TourAPI 응답 원본")

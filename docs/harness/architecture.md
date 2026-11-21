@@ -1,6 +1,6 @@
 # 아키텍처 — nadri (관광 챗봇 PWA + 관리자 백오피스)
 
-> 하네스 Phase 2b 산출물. **G3 최초 승인 (2026-11-07)** → **G3 재검토 재작성 (2026-11-21, 확인 질문 답변 반영, 승인 대기)**. solution-architect.
+> 하네스 Phase 2b 산출물. **G3 최초 승인 (2026-11-07)** → **G3 재검토 재승인 (2026-11-21)**. solution-architect.
 > 재작성 사유: 2026-11-20~21 사용자 결정 — Hermes 제거 → LangGraph(답변+검증 에이전트)·LangChain, 매일 품질 평가·개선안·HITL, AI 보안 5겹, 👍/👎 피드백. 요구사항은 `requirements.md` §8 개정 이력(2026-11-21) 기준.
 > 입력: `docs/harness/requirements.md`(2026-11-21 개정본), `docs/harness/stack-options.md`(G2 승인본), `docs/harness/PROGRESS.md`, `TECH_STACK.md`, `docs/analysis/00·01`.
 > 출처 표기: [R]=requirements.md, [S]=stack-options.md (S1~S21 결정, F1~F12 사실), [TS]=TECH_STACK.md, [AN]=00-initial-analysis.md, [DS]=01-data-sources.md, [PG]=PROGRESS.md, [CL]=CLAUDE.md, [V]=이번 재작성에서 직접 조회한 사실(§12.1, 조회일 2026-11-21).
@@ -434,7 +434,7 @@ myAgent/
 ├── infra/
 │   ├── nginx/nginx.conf
 │   ├── lightrag/lightrag.env
-│   └── postgres/init/01-init.sql
+│   └── postgres/init/01-init.sh
 ├── eval/                        # 평가 데이터 (ingest에 읽기 전용 바인드 마운트)
 │   ├── golden/                  #   골든 Q&A (질문·정답·근거 contentid)
 │   ├── attack_set/              #   attacks.jsonl — 탈옥·직접/간접 인젝션·프롬프트 유출·링크 유출·PII·유해·자해·범위 이탈, 한국어 포함

@@ -1,17 +1,43 @@
 # PROGRESS
-- 현재 단계: Phase 3 — 작업 분해 (시작 전)
-- 게이트: G1 ✅ (2026-11-07) · G2 ✅ (2026-11-07) · G3 ✅ (2026-11-07, 재검토 재승인 2026-11-21) · G4 · G5 (작업별, 아래 표)
-- 다음 할 일: Phase 3 — `task-planner`에 requirements.md·architecture.md·erd.md·SECURITY_GUIDE.md를 넘겨 program_list.md 작성 → G4. 첫 작업은 최소 end-to-end(위험 연동 검증 — architecture.md §12 미확인 가정 A18~A30 등)
+- 현재 단계: Phase 4 — 작업별 spec/test 작성 (시작 전)
+- 게이트: G1 ✅ (2026-11-07) · G2 ✅ (2026-11-07) · G3 ✅ (2026-11-07, 재검토 재승인 2026-11-21) · G4 ✅ (2026-11-21) · G5 (작업별, 아래 표)
+- 다음 할 일: Phase 4 — `spec-writer`로 `docs/harness/tasks/<작업id>/spec.md`·`test.md` 작성. 26개라 M0(01·02)부터 5개 안팎씩 묶어 진행. 02 시작 직전에 TourAPI 키·`.dev` 도메인·Named Tunnel 토큰·Tavily 키 발급 방법 안내(G4 Q2)
 - 브랜치: `dev`(작업 기준) · `prod`(릴리스). 2026-11-07 로컬 `master` → `prod` 이름 변경, `dev` 생성. 원격 반영(push·기본 브랜치 변경·원격 master 삭제)은 사용자가 직접
 
 | 작업id | spec/test | 브랜치 | 구현·테스트 | 커밋 | G5 병합 |
 |---|---|---|---|---|---|
-| (G4 승인 후 작성) | | | | | |
+| 01-e2e-tools-slice | | feat/01-e2e-tools-slice | | | |
+| 02-e2e-chat-slice | | feat/02-e2e-chat-slice | | | |
+| 03-ingest-bootstrap | | feat/03-ingest-bootstrap | | | |
+| 04-db-schema | | feat/04-db-schema | | | |
+| 05-auth-core | | feat/05-auth-core | | | |
+| 06-password-reset-mail | | feat/06-password-reset-mail | | | |
+| 07-guard-pii | | feat/07-guard-pii | | | |
+| 08-guard-pipeline | | feat/08-guard-pipeline | | | |
+| 09-chat-sessions | | feat/09-chat-sessions | | | |
+| 10-tool-tour-live | | feat/10-tool-tour-live | | | |
+| 11-quota-usage | | feat/11-quota-usage | | | |
+| 12-faq-cache | | feat/12-faq-cache | | | |
+| 13-feedback | | feat/13-feedback | | | |
+| 14-web-foundation | | feat/14-web-foundation | | | |
+| 15-web-chat | | feat/15-web-chat | | | |
+| 16-web-chat-actions | | feat/16-web-chat-actions | | | |
+| 17-voice | | feat/17-voice | | | |
+| 18-admin-users-quota | | feat/18-admin-users-quota | | | |
+| 19-admin-usage | | feat/19-admin-usage | | | |
+| 20-ingest-hubs-lint | | feat/20-ingest-hubs-lint | | | |
+| 21-ingest-daily-sync | | feat/21-ingest-daily-sync | | | |
+| 22-eval-golden | | feat/22-eval-golden | | | |
+| 23-eval-attack-set | | feat/23-eval-attack-set | | | |
+| 24-eval-daily-quality | | feat/24-eval-daily-quality | | | |
+| 25-admin-quality-hitl | | feat/25-admin-quality-hitl | | | |
+| 26-release-readiness | | feat/26-release-readiness | | | |
 
 ## 산출물
 - `docs/harness/requirements.md` — **G1 승인본** (2026-11-07). 확정 전제 D-01~D-22, FR/NFR, G1 직전 확인 O1~O6, G2/PoC 이관 항목, 상충 기록 C1~C12
 - `docs/analysis/01-data-sources.md` — 확장 데이터 원천 조사
-- `docs/harness/architecture.md` — **G3 승인본** (2026-11-21 재검토 재승인). 이전 G3 승인본(2026-11-07)은 git `a14d89b`. 컨테이너 9개, 데이터 흐름 6개, DB·API 개요, ADR-01~16, 상충 X1~X9, 미검증 가정 A1~A17, 구성도 갱신 사양, 확인 질문 Q1~Q6
+- `docs/harness/architecture.md` — **G3 승인본** (2026-11-21 재검토 재승인). 이전 G3 승인본(2026-11-07)은 git `a14d89b`. 컨테이너 8개, LangGraph 답변+검증 에이전트, 입력·출력 검사, 매일 03:00 평가 배치, 미검증 가정 A1~A30(§12)
+- `docs/harness/program_list.md` — **G4 승인본** (2026-11-21). 작업 26개·마일스톤 M0~M7·요구사항 추적표·상충 X-a~X-i·확인 질문 Q1~Q9 결정
 - `docs/harness/erd.md` + `docs/images/erd.svg·png` — ERD 19개 테이블(2026-11-21 G3 재승인), README.md 반영. 한글 명칭 정본 = ERD = DDL COMMENT
 - `SECURITY_GUIDE.md`(루트) — AI 보안 가이드 (2026-11-21, 사용자 요청으로 간결본: 최근 사고 → 위협 유형 → 막는 방법 → 테스트. 위협 이름은 `한글 (영문 정식 명칭)`, 요구사항 ID·근거 ID 넣지 않음. 세부 설계는 architecture.md에)
 - `docs/images/src/` — 구성도·ERD 생성 스크립트(`arch.py`, `erd.py`, `icons.json`). 렌더: debian 컨테이너 + librsvg2-bin + fonts-noto-cjk
@@ -31,6 +57,9 @@
 - 2026-11-07 G3: Q1 `backend/` 단일 프로젝트(이미지 2종), 컨테이너명 `ingest` 유지 · Q2 같은 인스턴스 별도 DB `lightrag` · Q3 답변 끝 출처 블록 파싱 · Q4 허브 시군구 27개 · Q5 성공·캐시 적중 차감, 장애 미차감 · Q6 제목·요약은 api 직접 호출, Hermes는 에이전트 루프 전용 유지
 - 2026-11-07 G3: LangGraph·LangChain 검토 후 미사용 (Hermes 유지, FR-71 비교 대상 그대로)
 - 2026-11-21 G3 재승인: Hermes 제거 → LangGraph(답변+검증 에이전트)·LangChain, 매일 품질 평가·HITL, AI 보안, ERD 19개, SECURITY_GUIDE.md 간결본
+- 2026-11-21 G4: 작업 26개 승인. 임계 경로 01→02→05→08→09→11→12→13→20·21→24→25→26, 03 적재는 슬라이스 직후 병행
+- 2026-11-21 G4 Q1~Q9: Q1 05 병합 전까지 cloudflared는 SSE 검증 때만 기동 · Q2 01은 TourAPI·OpenAI 키로 시작(OpenAI 키 보유), 나머지 키 발급 방법은 02 직전 안내 · Q3 bge-m3 임베딩 비교 v1.1 이후 · Q4 lint 모순 탐지 = 코드 규칙만(휴무일·주소·전화 등 핵심 필드 ↔ tour_items 대조, 삭제된 contentid 링크) · Q5 골든셋은 에이전트 초안 40~60 → 사용자 검수 · Q6 TourAPI 카운터 공유(적재 800 + 실시간 200) · Q7 흔한 비밀번호는 SecLists 공개 목록 10자 이상, 가입·재설정·변경 화면에 규칙 미리 표시 · Q8 DB 초기화 `01-init.sh` · Q9 01 적재 서울 30 + 제주 20
+- 2026-11-21 G4: 리랭커는 tour-tools CrossEncoder로 켜 둠(LightRAG 내장 리랭크만 off). 구성도 LightRAG 부제 "리랭크 off" → "Graph RAG (후보 30개 검색)"
 - 2026-11-07 G3: ERD 승인, 테이블·컬럼 한글 명칭을 DDL COMMENT로 넣는다. 구성도 재작성, 문서 상충 X1~X9 정리
 
 ## 기타 산출물
@@ -46,6 +75,5 @@
 - 확인 질문 Q1~Q4 답변 완료(위 결정 로그 참고)
 
 ## 막힌 것 / 사용자 확인 필요
-- 2026-11-20 **G3 재검토 중 (아직 반영 전)**: 사용자가 Hermes 제거 → LangGraph로 툴 호출, LLM 호출은 LangChain(`ChatOpenAI`·`OpenAIEmbeddings`, STT만 OpenAI SDK)으로 변경 요청. 결정: A tour-tools 별도 MCP 컨테이너 유지 · D 검증 에이전트 넣음(다시 쓰기 최대 2회, 느리면 줄임) · E 초안 먼저 스트리밍 → 검증 후 교체 + "확인됨" 표시. B `langchain-tavily`를 에이전트에 직접 · C FR-71 삭제, "MVP 이후"→"v1.1 이후" · 평가(FR-70)에 검증 끔/1회/2회 비교 추가.
-  추가 요구(2026-11-20): ① 매일 03:00 배치 — 평가 에이전트(전날 대화 채점→보고서) → 개선안 에이전트(개선안 작성) → /admin 품질 리포트에서 사람이 채택/보류/기각(HITL), 채택은 개발 후보로 쌓기만(자동 적용 없음). 채점 기준·강도는 구현(spec) 때 정함. 배치는 ingest 컨테이너에 추가(이름 유지로 이해). 👍/👎 피드백 넣음 ② 보안 — Jailbreak·Prompt Injection·개인정보: 입력 검사(규칙 PII 가리기 + Moderation API + LLM 분류기) → 에이전트 → 읽기 전용 툴 → 검증 에이전트(보안 확인 포함) → 화면(HTML·이미지 끔, 링크 제한), 공격 질문 세트를 매일 평가. 보안 우선, 속도는 v1.1 이후. 확정: 입력 검사는 순서대로(검사 통과 후 생성) · 👍/👎 + 👎 사유 선택지(선택 입력, 필수 아님) · PII v1.0 = 주민·외국인등록번호, 전화(070/080 포함), 이메일, 카드(Luhn), 여권·운전면허, 계좌(문맥 있을 때), 이름은 문맥 패턴만, 주소는 안 가림 · Moderation API(omni-moderation-latest, 무료) 입력·출력 모두, 자해 신호는 거절 대신 안전 안내(109) · AI 보안 설계는 별도 문서 `docs/ai-security.md` + README에 짧은 요약·링크. Moderation 실패 시 차단 · 보안 문서 이름 루트 `SECURITY_GUIDE.md` · G3 재검토 Q1 초안 선스트리밍+완화책, Q2 입력 차단 질문 미저장·1회 차감(Moderation 장애 미차감), Q3 주민번호 검증번호 미사용, Q4 가린 모양 형식 유지+`*`(`010-****-****`). 2026-11-21 사용자 "진행" → requirements.md 개정 완료(§8 개정 이력), 이후 solution-architect로 architecture.md 수정 → requirements·stack-options·TECH_STACK·README·구성도 갱신 → G3 재승인
+- (해결) 2026-11-20 G3 재검토 요청 → 2026-11-21 재승인 완료. 상세 내용은 위 "G3 재검토 요약"·결정 로그, requirements.md §8
 - 사용자: `.dev` 도메인 구입(Cloudflare Registrar) — 인프라 작업 전까지. Gmail 발신 계정·앱 비밀번호 — 메일 작업 전까지 `.env`에 직접
