@@ -1,7 +1,7 @@
 # PROGRESS
-- 현재 단계: Phase 4 — 작업별 spec/test 작성 (01~07 확정, 08~12 초안 작성·확인 질문 답변 대기)
+- 현재 단계: Phase 4 — 작업별 spec/test 작성 (01~12 spec/test 확정, 13~17 작성 전)
 - 게이트: G1 ✅ (2026-11-07) · G2 ✅ (2026-11-07) · G3 ✅ (2026-11-07, 재검토 재승인 2026-11-21) · G4 ✅ (2026-11-21) · G5 (작업별, 아래 표)
-- 다음 할 일: 08~12 확인 질문(각 spec 끝 표) 사용자 답변 반영 → 13~17 spec/test 작성. (원래 계획: `spec-writer`로 `docs/harness/tasks/<작업id>/spec.md`·`test.md` 작성. 26개라 M0(01·02)부터 5개 안팎씩 묶어 진행. 02 시작 직전에 TourAPI 키·`.dev` 도메인·Named Tunnel 토큰·Tavily 키 발급 방법 안내(G4 Q2))
+- 다음 할 일: 13~17 spec/test 작성 (13 feedback, 14 web-foundation, 15 web-chat, 16 web-chat-actions, 17 voice). (원래 계획: `spec-writer`로 `docs/harness/tasks/<작업id>/spec.md`·`test.md` 작성. 26개라 M0(01·02)부터 5개 안팎씩 묶어 진행. 02 시작 직전에 TourAPI 키·`.dev` 도메인·Named Tunnel 토큰·Tavily 키 발급 방법 안내(G4 Q2))
 - 브랜치: `dev`(작업 기준) · `prod`(릴리스). 2026-11-07 로컬 `master` → `prod` 이름 변경, `dev` 생성. 원격 반영(push·기본 브랜치 변경·원격 master 삭제)은 사용자가 직접
 
 | 작업id | spec/test | 브랜치 | 구현·테스트 | 커밋 | G5 병합 |
@@ -13,11 +13,11 @@
 | 05-auth-core | ✅ | feat/05-auth-core | | | |
 | 06-password-reset-mail | ✅ | feat/06-password-reset-mail | | | |
 | 07-guard-pii | ✅ | feat/07-guard-pii | | | |
-| 08-guard-pipeline | 초안 (Q1~Q7 대기) | feat/08-guard-pipeline | | | |
-| 09-chat-sessions | 초안 (Q1~Q9 대기) | feat/09-chat-sessions | | | |
-| 10-tool-tour-live | 초안 (Q1~Q8 대기) | feat/10-tool-tour-live | | | |
-| 11-quota-usage | 초안 (Q1~Q6 대기) | feat/11-quota-usage | | | |
-| 12-faq-cache | 초안 (Q1~Q5 대기) | feat/12-faq-cache | | | |
+| 08-guard-pipeline | ✅ | feat/08-guard-pipeline | | | |
+| 09-chat-sessions | ✅ | feat/09-chat-sessions | | | |
+| 10-tool-tour-live | ✅ | feat/10-tool-tour-live | | | |
+| 11-quota-usage | ✅ | feat/11-quota-usage | | | |
+| 12-faq-cache | ✅ | feat/12-faq-cache | | | |
 | 13-feedback | | feat/13-feedback | | | |
 | 14-web-foundation | | feat/14-web-foundation | | | |
 | 15-web-chat | | feat/15-web-chat | | | |
@@ -45,7 +45,7 @@
 
 - `docs/harness/tasks/01-e2e-tools-slice/`, `02-e2e-chat-slice/` — spec.md·test.md (2026-11-21, 확인 질문 결정 반영)
 - `docs/harness/tasks/03`~`07` — spec.md·test.md (2026-11-21, 확인 질문 결정 반영).
-- `docs/harness/tasks/08`~`12` — spec.md·test.md 초안 (2026-11-21). 08이 `TurnStore`·`TurnInput`·`api/chat/store.py`를 먼저 만들고 09·11·12가 넓힘. 10은 `0003` 테이블 생성 스크립트(호출 수 세기 DB 함수 2개). `answer.md`는 08·09·10이 모두 규칙을 덧붙임(병합 때 번호 맞춤). 앞 작업 테스트 수정 목록은 각 spec "앞 작업 테스트" 절 앞 작업 테스트를 고치는 부분: 03은 01 예산 함수·테스트 교체, 04는 02의 네트워크 차단 테스트 설정에 DB 테스트 허용, 05는 02 채팅 테스트에 인증·CSRF 반영
+- `docs/harness/tasks/08`~`12` — spec.md·test.md (2026-11-21, 확인 질문 결정 반영). 08이 `TurnStore`·`TurnInput`·`api/chat/store.py`를 먼저 만들고 09·11·12가 넓힘. 10은 `0003` 테이블 생성 스크립트(호출 수 세기 DB 함수 2개). `answer.md`는 08·09·10이 모두 규칙을 덧붙임(병합 때 번호 맞춤). 앞 작업 테스트 수정 목록은 각 spec "앞 작업 테스트" 절 앞 작업 테스트를 고치는 부분: 03은 01 예산 함수·테스트 교체, 04는 02의 네트워크 차단 테스트 설정에 DB 테스트 허용, 05는 02 채팅 테스트에 인증·CSRF 반영
 
 ## 결정 로그 (게이트에서 바뀐 것)
 - 2026-10-25 (G1 전): 리버스 프록시 Caddy → **Nginx**
@@ -66,7 +66,7 @@
 - 2026-11-21 G4: 리랭커는 tour-tools CrossEncoder로 켜 둠(LightRAG 내장 리랭크만 off). 구성도 LightRAG 부제 "리랭크 off" → "Graph RAG (후보 30개 검색)"
 - 2026-11-21 Phase 4 M0 확인 질문: 01-Q1 Alembic 유지(문서 명칭은 "테이블 생성 스크립트", ingest가 기동 시 실행 후 종료) · 01-Q4 개발 도구는 WSL2 Ubuntu에 uv + `backend/.venv`, 테스트도 WSL에서(CLAUDE.md 작업 환경 갱신: 호스트 OS = Windows 11) · 01-Q7 `lightrag-data` 볼륨 처음부터 · 01-Q5 측정용 CLI 4개 추가 · 01-Q6 카운터 쓰기 권한은 10에서 최소 권한으로 · 02-Q2 `blocked` 이벤트 02부터 · 02-Q5 터널 토큰 환경변수 · 02-Q8 Moderation 재시도 0회, 08에서 재검토 · 02-Q9 nginx `127.0.0.1:8080`(Windows 브라우저 `localhost:8080` 접속 확인) · 02-Q7 §4.6 고정 문구 초안 그대로 사용 · 나머지 추천안
 - 2026-11-21 Phase 4 03~07 확인 질문: 전부 추천안대로 — 05-Q3 가입 시 이미 쓰인 이메일은 409로 알려 줌(06 재설정의 가입 여부 숨김과 다르지만 수용) · 07-Q1 질문에 쓴 관광지 대표 전화도 가림, SECURITY_GUIDE §4.2 문구 수정(답변에선 안 가림) · 03-Q1 TourAPI 호출 전 카운터 예약(01 예산 함수·테스트 교체) · 03-Q2 오류 22는 그날 중단, 23은 이번 실행만 중단 · 03-Q6 상세 전 껍데기 행도 검색에 노출 · 03-Q9 예상 남은 일수 14일 초과 시 운영계정 증설 문의
-- 2026-11-21 Phase 4 08~12 확인 질문(1차): 10-Q1 `nadri_tools`에 호출 수 세기 DB 함수 2개 실행 권한만 추가(NFR-07·[A] §5.1 예외 문구 반영) · 11-Q2 장애 턴도 실제 쓴 AI 비용은 `usage_events`에 기록(한도 차감은 안 함, [A] §3.1 10)과 다름) · 11-Q3 동시 요청으로 일일 한도 1~2회 초과 허용 · 08 `meta` 이벤트를 09가 아니라 08에서 추가(02-Q3 변경) · 12-Q4 캐시 답변은 출력 검사 재실행 안 함. 나머지 30개 답변 대기
+- 2026-11-21 Phase 4 08~12 확인 질문(1차): 10-Q1 `nadri_tools`에 호출 수 세기 DB 함수 2개 실행 권한만 추가(NFR-07·[A] §5.1 예외 문구 반영) · 11-Q2 장애 턴도 실제 쓴 AI 비용은 `usage_events`에 기록(한도 차감은 안 함, [A] §3.1 10)과 다름) · 11-Q3 동시 요청으로 일일 한도 1~2회 초과 허용 · 08 `meta` 이벤트를 09가 아니라 08에서 추가(02-Q3 변경) · 12-Q4 캐시 답변은 출력 검사 재실행 안 함. 나머지 30개는 추천안대로 확정
 - 2026-11-07 G3: ERD 승인, 테이블·컬럼 한글 명칭을 DDL COMMENT로 넣는다. 구성도 재작성, 문서 상충 X1~X9 정리
 
 ## 기타 산출물
