@@ -74,6 +74,8 @@
 | A-AD-03 | 61초 뒤(clock) | 다시 200 |
 | A-AD-04 | used 50 | 429 `quota_exceeded`(JSON, SSE 아님), 그래프·Moderation 호출 0 |
 | A-AD-05 | used 50 + 남의 세션 id | 429(한도 검사가 세션 404보다 먼저) |
+| A-AD-09 | 관리자 계정, used 50 | 200(한도 검사 건너뜀), 끝나면 used 51 |
+| A-AD-10 | 관리자 계정, 같은 분 11번째 | 429 `too_many_requests`(분당 제한은 관리자도 적용) |
 | A-AD-06 | 분당 10회 초과 + used 50 | 429 `too_many_requests`(분당 제한이 먼저) |
 | A-AD-07 | 없는 세션으로 POST | 404, 분당 카운터는 1 증가(`rate_limits` 키 `chat:user:<id>` count 1) |
 | A-AD-08 | `GET /api/chat/sessions` 20회 | 분당 제한 없음 |

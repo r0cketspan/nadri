@@ -139,7 +139,7 @@ v1.1 이후: `stt-gpu`(faster-whisper) [TS §9], FR-49 확장 원천은 `ingest`
 api:
  1) 세션 쿠키·CSRF·status=active (NFR-04·05, FR-06)
  2) 분당 10회 (NFR-06) → 초과 429
- 3) 오늘(KST) 사용량 < 50 (FR-62) → 초과 429 {code:"quota_exceeded"}
+ 3) 오늘(KST) 사용량 < 50 (FR-62, 관리자는 건너뜀) → 초과 429 {code:"quota_exceeded"}
  4) 세션 turn_count < 50 (FR-15) → 초과 409 {code:"session_full"}
  ── SSE 시작 ──  event: meta {session_id, user_text_masked, masked_types[]}
                  event: status {stage:"checking"}
@@ -250,6 +250,7 @@ confirm {email, code, new_password} → 검증 → Argon2id 갱신 → 전 세�
 ```
 성공 답변(캐시 적중 포함) 1회 = daily_quota.used +1. 입력 검사 차단 = +1 (Q2 추천안). 장애·중단·Moderation 장애 차단 = 미차감
 한도 = 50 / 초과 → 429 quota_exceeded → 그날 채팅 차단·"내일 다시" 안내 (추가 요청·관리자 승인 없음 — 2026-11-22 FR-62 변경)
+관리자(role=admin)는 한도 검사 없음. 차감(used +1)은 똑같이 기록(사용량 통계용)
 ```
 
 ### 3.7 매일 03:00 KST 품질 평가 → 개선안 → HITL (FR-100~105, FR-70, NFR-16·36) — 신규

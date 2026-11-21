@@ -62,6 +62,7 @@
 - 하루 = **KST 날짜**. 한도 = `DAILY_LIMIT`(50 고정), 남은 횟수 = `max(0, 50 − used)`. 행이 없으면 used 0.
 - **검사는 요청 시작 때, 차감은 턴이 끝날 때**(답변 결과를 알아야 차감 여부가 정해짐 — [A] §3.6). 그래서 동시에 진행 중인 요청 수만큼(분당 10회 안) 한도를 넘을 수 있다 — 1~5명 규모에서 받아들임(§12 Q3). 차감 쿼리는 상한 없이 +1 한다.
 - 차감 날짜 = **차감 시각**의 KST 날짜(자정 넘어 끝난 턴은 다음 날로).
+- **관리자(`cu.user.role == "admin"`)는 한도 검사를 건너뛴다**(2026-11-22 사용자 결정). 분당 10회 제한과 차감(used +1, 사용량 통계용)은 일반 사용자와 같다. `quota_remaining`은 일반 계산 그대로(화면에 표시하지 않음 — 15).
 
 ### 4.2 시그니처
 ```python
@@ -84,7 +85,7 @@ async def charge(db: AsyncSession, user_id: int, now: datetime) -> int:
     """used +1 (upsert) 후 남은 횟수를 돌려준다. 커밋은 호출자."""
 async def chat_admission(cu: CurrentUser = Depends(require_active), db: AsyncSession = Depends(get_db),
                          now: datetime = Depends(get_now)) -> CurrentUser:
-    """채팅 메시지 입장 검사: ① 분당 10회(allow → 커밋, 거부면 429 too_many_requests) ② ensure_quota."""
+    """채팅 메시지 입장 검사: ① 분당 10회(allow → 커밋, 거부면 429 too_many_requests) ② 관리자가 아니면 ensure_quota."""
 ```
 `charge` SQL:
 ```sql
@@ -96,7 +97,7 @@ RETURNING used
 ### 4.3 채팅 엔드포인트 순서 ([A] §3.1 1)~4))
 1. (05) 쿠키·CSRF·active
 2. **분당 10회** → 429 `too_many_requests` (05 `too_many`, `Retry-After`) — 시도마다 셈(한도 초과·404·409 요청도 1회로 셈)
-3. **일일 한도** → 429 `quota_exceeded`
+3. **일일 한도** → 429 `quota_exceeded` (관리자는 건너뜀)
 4. (09) 세션 소유 404 → 50턴 409
 
 구현: 09 `chat_turn_context`의 `cu: CurrentUser = Depends(require_active)`를 **`Depends(chat_admission)`** 으로 바꾼다(의존성 사슬로 순서 보장). 세션 CRUD에는 분당 제한을 걸지 않는다.
@@ -219,6 +220,7 @@ class DbTurnStore:
 |---|---|
 | 오늘 used 49 → 질문 성공 | 50, `quota_remaining: 0` |
 | used 50 | 429 `quota_exceeded`(`MSG_QUOTA_EXCEEDED`), 그래프 호출 없음 — 그날 끝까지 차단, KST 자정에 풀림 |
+| 관리자, used 50 이상 | 통과(한도 검사 없음), 차감은 계속 +1 |
 | 같은 분 11번째 요청 | 429 `too_many_requests`(`Retry-After` ≤ 60) — 한도 검사 전 |
 | 분당 10회 + 한도 초과 동시 | 분당 제한이 먼저(429 too_many_requests) |
 | KST 23:59:59 검사, 00:00:01 끝남 | 다음 날 행에 +1 |
