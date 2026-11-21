@@ -264,7 +264,7 @@ myAgent/
 ├── SECURITY_GUIDE.md   # AI 보안 가이드
 ├── web/                # Next.js — 챗봇 + /admin + PWA (e2e/ 포함)
 ├── backend/            # Python 단일 프로젝트 (uv), 이미지 타깃 2개
-│   ├── alembic/        #   nadri DB 마이그레이션
+│   ├── alembic/        #   nadri DB 테이블 생성·변경 스크립트 (Alembic)
 │   ├── src/nadri/      #   core/ · prompts/ · guard/(입력·출력 검사) · agent/(LangGraph) · api/ · tools/(MCP 서버) · ingest/ · eval/(품질 평가·개선안) · cli.py
 │   └── tests/
 ├── infra/              # nginx/, lightrag/, postgres/init/

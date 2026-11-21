@@ -199,7 +199,7 @@
 ---
 
 ### 04-db-schema — 앱 테이블 15개 + ORM
-**목표**: ERD 19개 중 01에서 만들지 않은 15개 테이블을 한 마이그레이션으로 만든다.
+**목표**: ERD 19개 중 01에서 만들지 않은 15개 테이블을 테이블 생성 스크립트(Alembic) 하나로 만든다.
 
 **파일**: `backend/alembic/versions/0002_app_tables.py`(users, auth_sessions, rate_limits, password_reset_codes, chat_sessions, chat_messages, faq_cache, daily_quota, quota_requests, usage_events, message_feedback, security_events, eval_reports, eval_scores, improvement_proposals + COMMENT) · `nadri/core/models/{account,chat,quota,quality}.py` · `backend/tests/test_schema_comments.py`(`docs/images/src/erd.py`의 `T` 정의를 AST로 읽어 DB COMMENT와 대조).
 
@@ -207,7 +207,7 @@
 
 **완료 기준**: upgrade/downgrade 왕복, 19개 테이블·컬럼 COMMENT = ERD, FK 연쇄 동작 테스트 통과, `nadri_tools` 롤이 새 테이블에 권한 없음.
 
-**검증**: pytest(테스트 DB 컨테이너) — 마이그레이션 왕복, COMMENT 대조, 연쇄 삭제, 권한 확인.
+**검증**: pytest(테스트 DB 컨테이너) — 테이블 생성 스크립트 되돌리기·재적용, COMMENT 대조, 연쇄 삭제, 권한 확인.
 
 **가정**: 없음.
 
@@ -465,7 +465,7 @@
 
 **핵심 스펙**: NFR-08·09·17·20·21, ADR-01·26.
 
-**완료 기준·검증**: 위 테스트 통과, 빈 볼륨에서 `compose up` → 마이그레이션 → `create-admin` → `ingest bootstrap --limit` → 채팅 1회가 문서대로 재현(HITL). 이후 Phase 6 E2E 설계(NFR-71 전체 시나리오).
+**완료 기준·검증**: 위 테스트 통과, 빈 볼륨에서 `compose up` → 테이블 생성 → `create-admin` → `ingest bootstrap --limit` → 채팅 1회가 문서대로 재현(HITL). 이후 Phase 6 E2E 설계(NFR-71 전체 시나리오).
 
 **가정**: 없음.
 

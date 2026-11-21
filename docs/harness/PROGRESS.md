@@ -1,13 +1,13 @@
 # PROGRESS
-- 현재 단계: Phase 4 — 작업별 spec/test 작성 (시작 전)
+- 현재 단계: Phase 4 — 작업별 spec/test 작성 (M0 01·02 spec/test 완료, 02-Q7 문구 검토 대기)
 - 게이트: G1 ✅ (2026-11-07) · G2 ✅ (2026-11-07) · G3 ✅ (2026-11-07, 재검토 재승인 2026-11-21) · G4 ✅ (2026-11-21) · G5 (작업별, 아래 표)
-- 다음 할 일: Phase 4 — `spec-writer`로 `docs/harness/tasks/<작업id>/spec.md`·`test.md` 작성. 26개라 M0(01·02)부터 5개 안팎씩 묶어 진행. 02 시작 직전에 TourAPI 키·`.dev` 도메인·Named Tunnel 토큰·Tavily 키 발급 방법 안내(G4 Q2)
+- 다음 할 일: 02 spec §4.6 안내 문구(02-Q7) 사용자 검토 반영 → 03~07 spec 작성. (원래 계획: `spec-writer`로 `docs/harness/tasks/<작업id>/spec.md`·`test.md` 작성. 26개라 M0(01·02)부터 5개 안팎씩 묶어 진행. 02 시작 직전에 TourAPI 키·`.dev` 도메인·Named Tunnel 토큰·Tavily 키 발급 방법 안내(G4 Q2))
 - 브랜치: `dev`(작업 기준) · `prod`(릴리스). 2026-11-07 로컬 `master` → `prod` 이름 변경, `dev` 생성. 원격 반영(push·기본 브랜치 변경·원격 master 삭제)은 사용자가 직접
 
 | 작업id | spec/test | 브랜치 | 구현·테스트 | 커밋 | G5 병합 |
 |---|---|---|---|---|---|
-| 01-e2e-tools-slice | | feat/01-e2e-tools-slice | | | |
-| 02-e2e-chat-slice | | feat/02-e2e-chat-slice | | | |
+| 01-e2e-tools-slice | ✅ | feat/01-e2e-tools-slice | | | |
+| 02-e2e-chat-slice | ✅ (Q7 문구 검토 중) | feat/02-e2e-chat-slice | | | |
 | 03-ingest-bootstrap | | feat/03-ingest-bootstrap | | | |
 | 04-db-schema | | feat/04-db-schema | | | |
 | 05-auth-core | | feat/05-auth-core | | | |
@@ -43,6 +43,8 @@
 - `docs/images/src/` — 구성도·ERD 생성 스크립트(`arch.py`, `erd.py`, `icons.json`). 렌더: debian 컨테이너 + librsvg2-bin + fonts-noto-cjk
 - `docs/harness/stack-options.md` — **G2 승인본** (2026-11-07). S1~S21 후보·트레이드오프·사용자 답변, 조사 사실 F1~F12
 
+- `docs/harness/tasks/01-e2e-tools-slice/`, `02-e2e-chat-slice/` — spec.md·test.md (2026-11-21, 확인 질문 결정 반영)
+
 ## 결정 로그 (게이트에서 바뀐 것)
 - 2026-10-25 (G1 전): 리버스 프록시 Caddy → **Nginx**
 - 2026-10-25 (G1 전): 프로젝트 이름 **nadri**. 로컬 디렉터리는 `myAgent` 유지
@@ -60,6 +62,7 @@
 - 2026-11-21 G4: 작업 26개 승인. 임계 경로 01→02→05→08→09→11→12→13→20·21→24→25→26, 03 적재는 슬라이스 직후 병행
 - 2026-11-21 G4 Q1~Q9: Q1 05 병합 전까지 cloudflared는 SSE 검증 때만 기동 · Q2 01은 TourAPI·OpenAI 키로 시작(OpenAI 키 보유), 나머지 키 발급 방법은 02 직전 안내 · Q3 bge-m3 임베딩 비교 v1.1 이후 · Q4 lint 모순 탐지 = 코드 규칙만(휴무일·주소·전화 등 핵심 필드 ↔ tour_items 대조, 삭제된 contentid 링크) · Q5 골든셋은 에이전트 초안 40~60 → 사용자 검수 · Q6 TourAPI 카운터 공유(적재 800 + 실시간 200) · Q7 흔한 비밀번호는 SecLists 공개 목록 10자 이상, 가입·재설정·변경 화면에 규칙 미리 표시 · Q8 DB 초기화 `01-init.sh` · Q9 01 적재 서울 30 + 제주 20
 - 2026-11-21 G4: 리랭커는 tour-tools CrossEncoder로 켜 둠(LightRAG 내장 리랭크만 off). 구성도 LightRAG 부제 "리랭크 off" → "Graph RAG (후보 30개 검색)"
+- 2026-11-21 Phase 4 M0 확인 질문: 01-Q1 Alembic 유지(문서 명칭은 "테이블 생성 스크립트", ingest가 기동 시 실행 후 종료) · 01-Q4 개발 도구는 WSL2 Ubuntu에 uv + `backend/.venv`, 테스트도 WSL에서(CLAUDE.md 작업 환경 갱신: 호스트 OS = Windows 11) · 01-Q7 `lightrag-data` 볼륨 처음부터 · 01-Q5 측정용 CLI 4개 추가 · 01-Q6 카운터 쓰기 권한은 10에서 최소 권한으로 · 02-Q2 `blocked` 이벤트 02부터 · 02-Q5 터널 토큰 환경변수 · 02-Q8 Moderation 재시도 0회, 08에서 재검토 · 02-Q9 nginx `127.0.0.1:8080`(Windows 브라우저 `localhost:8080` 접속 확인) · 나머지 추천안
 - 2026-11-07 G3: ERD 승인, 테이블·컬럼 한글 명칭을 DDL COMMENT로 넣는다. 구성도 재작성, 문서 상충 X1~X9 정리
 
 ## 기타 산출물
