@@ -1,7 +1,7 @@
 # PROGRESS
-- 현재 단계: Phase 4 — 작업별 spec/test 작성 (01~07 spec/test 확정, 08~12 작성 중)
+- 현재 단계: Phase 4 — 작업별 spec/test 작성 (01~07 확정, 08~12 초안 작성·확인 질문 답변 대기)
 - 게이트: G1 ✅ (2026-11-07) · G2 ✅ (2026-11-07) · G3 ✅ (2026-11-07, 재검토 재승인 2026-11-21) · G4 ✅ (2026-11-21) · G5 (작업별, 아래 표)
-- 다음 할 일: 08~12 spec/test 작성 → 확인 질문 사용자 답변 반영 → 13~ 이어서. (원래 계획: `spec-writer`로 `docs/harness/tasks/<작업id>/spec.md`·`test.md` 작성. 26개라 M0(01·02)부터 5개 안팎씩 묶어 진행. 02 시작 직전에 TourAPI 키·`.dev` 도메인·Named Tunnel 토큰·Tavily 키 발급 방법 안내(G4 Q2))
+- 다음 할 일: 08~12 확인 질문(각 spec 끝 표) 사용자 답변 반영 → 13~17 spec/test 작성. (원래 계획: `spec-writer`로 `docs/harness/tasks/<작업id>/spec.md`·`test.md` 작성. 26개라 M0(01·02)부터 5개 안팎씩 묶어 진행. 02 시작 직전에 TourAPI 키·`.dev` 도메인·Named Tunnel 토큰·Tavily 키 발급 방법 안내(G4 Q2))
 - 브랜치: `dev`(작업 기준) · `prod`(릴리스). 2026-11-07 로컬 `master` → `prod` 이름 변경, `dev` 생성. 원격 반영(push·기본 브랜치 변경·원격 master 삭제)은 사용자가 직접
 
 | 작업id | spec/test | 브랜치 | 구현·테스트 | 커밋 | G5 병합 |
@@ -13,11 +13,11 @@
 | 05-auth-core | ✅ | feat/05-auth-core | | | |
 | 06-password-reset-mail | ✅ | feat/06-password-reset-mail | | | |
 | 07-guard-pii | ✅ | feat/07-guard-pii | | | |
-| 08-guard-pipeline | | feat/08-guard-pipeline | | | |
-| 09-chat-sessions | | feat/09-chat-sessions | | | |
-| 10-tool-tour-live | | feat/10-tool-tour-live | | | |
-| 11-quota-usage | | feat/11-quota-usage | | | |
-| 12-faq-cache | | feat/12-faq-cache | | | |
+| 08-guard-pipeline | 초안 (Q1~Q7 대기) | feat/08-guard-pipeline | | | |
+| 09-chat-sessions | 초안 (Q1~Q9 대기) | feat/09-chat-sessions | | | |
+| 10-tool-tour-live | 초안 (Q1~Q8 대기) | feat/10-tool-tour-live | | | |
+| 11-quota-usage | 초안 (Q1~Q6 대기) | feat/11-quota-usage | | | |
+| 12-faq-cache | 초안 (Q1~Q5 대기) | feat/12-faq-cache | | | |
 | 13-feedback | | feat/13-feedback | | | |
 | 14-web-foundation | | feat/14-web-foundation | | | |
 | 15-web-chat | | feat/15-web-chat | | | |
@@ -44,7 +44,8 @@
 - `docs/harness/stack-options.md` — **G2 승인본** (2026-11-07). S1~S21 후보·트레이드오프·사용자 답변, 조사 사실 F1~F12
 
 - `docs/harness/tasks/01-e2e-tools-slice/`, `02-e2e-chat-slice/` — spec.md·test.md (2026-11-21, 확인 질문 결정 반영)
-- `docs/harness/tasks/03`~`07` — spec.md·test.md (2026-11-21, 확인 질문 결정 반영). 앞 작업 테스트를 고치는 부분: 03은 01 예산 함수·테스트 교체, 04는 02의 네트워크 차단 테스트 설정에 DB 테스트 허용, 05는 02 채팅 테스트에 인증·CSRF 반영
+- `docs/harness/tasks/03`~`07` — spec.md·test.md (2026-11-21, 확인 질문 결정 반영).
+- `docs/harness/tasks/08`~`12` — spec.md·test.md 초안 (2026-11-21). 08이 `TurnStore`·`TurnInput`·`api/chat/store.py`를 먼저 만들고 09·11·12가 넓힘. 10은 `0003` 테이블 생성 스크립트(호출 수 세기 DB 함수 2개). `answer.md`는 08·09·10이 모두 규칙을 덧붙임(병합 때 번호 맞춤). 앞 작업 테스트 수정 목록은 각 spec "앞 작업 테스트" 절 앞 작업 테스트를 고치는 부분: 03은 01 예산 함수·테스트 교체, 04는 02의 네트워크 차단 테스트 설정에 DB 테스트 허용, 05는 02 채팅 테스트에 인증·CSRF 반영
 
 ## 결정 로그 (게이트에서 바뀐 것)
 - 2026-10-25 (G1 전): 리버스 프록시 Caddy → **Nginx**
