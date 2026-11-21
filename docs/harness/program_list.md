@@ -36,7 +36,7 @@
                                                                                                                        │                │
  14 + 09 + 11 ─▶ 15 web-chat ─┬─▶ 16 web-chat-actions (13·15)                                                           ▼                │
                               └─▶ 17 voice (11·15)                                       24 eval-daily-quality (13·21·23) ◀─────────────┘
- 11 + 14 ─▶ 18 admin-users-quota ─▶ 19 admin-usage                                               │
+ 05 + 14 ─▶ 18 admin-users ─▶ 19 admin-usage                                                     │
                               └──────────────────────────────────────────▶ 25 admin-quality-hitl (18·24)
  03 + 08 + 10 + 11 ─▶ 22 eval-golden
  01~25 전부 ─▶ 26 release-readiness
@@ -83,7 +83,7 @@
 | 15-web-chat | 채팅 화면·SSE 파서·안전 렌더러 | `web/lib/sse.ts`, `web/components/chat/{ChatView,MessageBubble,SafeMarkdown,Sidebar,StatusLine}.tsx`, `web/app/(chat)/page.tsx`, `web/app/(chat)/[sessionId]/page.tsx` | §3.1 이벤트 파서 / 초안→✓확인됨·교체·경고·차단·오류 재시도 / raw HTML·이미지 끔·링크 허용 목록 / 세션 목록·삭제 | 09, 11, 14 | FR-10·15~18·20·21·62(한도 초과 안내)·91, NFR-14·23. A11(모바일)·A30(화면) |
 | 16-web-chat-actions | 피드백·위치 동의 UI | `web/components/chat/{FeedbackButtons,LocationToggle}.tsx` | 👍/👎+사유 / 위치 동의 토글·좌표 전송 | 13, 15 | FR-55·103 화면, NFR-33 |
 | 17-voice | STT·TTS (Provider 인터페이스) | `nadri/api/voice/stt/{base,openai}.py`, `nadri/api/voice/tts/{base,elevenlabs}.py`, `nadri/api/voice/router.py`, `web/lib/recorder.ts`, `web/components/chat/{PttButton,SpeakerButton}.tsx` | `SttProvider`/`TtsProvider`와 구현체 / `/api/stt`·`/api/tts` / MediaRecorder 60초·포맷 선택 / 녹음·재생 버튼 | 11, 15 | FR-30~32, NFR-06·43·50·51, [S S2·S20]. A13 |
-| 18-admin-users | 관리자: 가입 승인·비활성화 | `nadri/api/admin/{router,users}.py`, `web/app/admin/{layout.tsx,users/page.tsx}` | 역할 검사 관리자 API / 승인·거절·비활성화(세션 폐기) / 백오피스 화면 | 11, 14 | FR-04·80·81·84 |
+| 18-admin-users | 관리자: 가입 승인·비활성화 | `nadri/api/admin/{router,users}.py`, `web/app/admin/{layout.tsx,users/page.tsx}` | 역할 검사 관리자 API / 승인·거절·비활성화(세션 폐기) / 백오피스 화면 | 05, 14 | FR-04·80·81·84 |
 | 19-admin-usage | 관리자: 사용량 대시보드 | `nadri/api/admin/usage.py`, `web/app/admin/usage/page.tsx` | 사용자·일자·kind별 토큰·비용, 월 누적·$10 경고 | 18 | FR-63·83, NFR-43. A14·A28 |
 | 20-ingest-hubs-lint | 허브 페이지·lint·위키 git | `nadri/ingest/wiki/{hubs,lint,git}.py`, `nadri/prompts/hub.md`, `backend/Dockerfile`(git 설치), `nadri/cli.py`(`ingest hubs`) | 시군구 허브 27개 LLM 작성·인덱싱 / 깨진 링크·기준일 경과·모순 리포트 / 위키 볼륨 git 커밋 | 03, 11 | FR-43·46·47, NFR-24 |
 | 21-ingest-daily-sync | 매일 01:00 현행화·90일 정리 | `nadri/ingest/{scheduler,sync,cleanup}.py`, `nadri/ingest/jobs/daily_sync.py`, `nadri/cli.py`(`ingest sync --now`), compose(ingest 상주) | APScheduler(Asia/Seoul)+advisory lock / SyncList 변경·삭제 반영 / 90일·만료 정리 / 작업 묶음 | 12, 20 | FR-45, NFR-31, ADR-09 |

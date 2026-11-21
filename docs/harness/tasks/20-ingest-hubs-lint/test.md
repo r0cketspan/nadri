@@ -1,6 +1,6 @@
 # 20-ingest-hubs-lint — 테스트 설계 (test)
 
-> spec.md와 짝. 절 번호 §n은 spec.md 기준. 작성 2026-11-22. 상태: **초안 — 확인 질문 대기**.
+> spec.md와 짝. 절 번호 §n은 spec.md 기준. 작성 2026-11-22. 상태: **확정(2026-11-22)**.
 > ① pytest(결정적 — 실모델·실 LightRAG·TourAPI 없음. DB가 필요한 것은 04 일회용 테스트 DB 컨테이너, 마커 `db`) ② HITL(사용자가 개발 compose에서 직접). 실 compose로 도는 것은 `@pytest.mark.integration`.
 
 ---

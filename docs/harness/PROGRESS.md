@@ -1,7 +1,7 @@
 # PROGRESS
-- 현재 단계: Phase 4 — 작업별 spec/test 작성 (01~17 확정, 18~22 초안·확인 질문 대기, 23~26 작성 전)
+- 현재 단계: Phase 4 — 작업별 spec/test 작성 (01~22 spec/test 확정, 23~26 작성 전)
 - 게이트: G1 ✅ (2026-11-07) · G2 ✅ (2026-11-07) · G3 ✅ (2026-11-07, 재검토 재승인 2026-11-21) · G4 ✅ (2026-11-21) · G5 (작업별, 아래 표)
-- 다음 할 일: 18~22 확인 질문 답변 받기(18 9개·19 9개·20 12개·21 12개·22 12개, 각 spec 끝 표) → 결정 반영 → 23~26 spec/test 작성. Node LTS(fnm)는 14 구현 시작 때 WSL에 설치. 02 시작 직전에 TourAPI 키·`.dev` 도메인·Named Tunnel 토큰·Tavily 키 발급 방법 안내(G4 Q2)
+- 다음 할 일: 23~26 spec/test 작성 (23 eval-attack-set, 24 eval-daily-quality, 25 admin-quality-hitl, 26 release-readiness). Node LTS(fnm)는 14 구현 시작 때 WSL에 설치. 02 시작 직전에 TourAPI 키·`.dev` 도메인·Named Tunnel 토큰·Tavily 키 발급 방법 안내(G4 Q2)
 - 브랜치: `dev`(작업 기준) · `prod`(릴리스). 2026-11-07 로컬 `master` → `prod` 이름 변경, `dev` 생성. 원격 반영(push·기본 브랜치 변경·원격 master 삭제)은 사용자가 직접
 
 | 작업id | spec/test | 브랜치 | 구현·테스트 | 커밋 | G5 병합 |
@@ -23,11 +23,11 @@
 | 15-web-chat | ✅ | feat/15-web-chat | | | |
 | 16-web-chat-actions | ✅ | feat/16-web-chat-actions | | | |
 | 17-voice | ✅ | feat/17-voice | | | |
-| 18-admin-users | 초안 | feat/18-admin-users | | | |
-| 19-admin-usage | 초안 | feat/19-admin-usage | | | |
-| 20-ingest-hubs-lint | 초안 | feat/20-ingest-hubs-lint | | | |
-| 21-ingest-daily-sync | 초안 | feat/21-ingest-daily-sync | | | |
-| 22-eval-golden | 초안 | feat/22-eval-golden | | | |
+| 18-admin-users | ✅ | feat/18-admin-users | | | |
+| 19-admin-usage | ✅ | feat/19-admin-usage | | | |
+| 20-ingest-hubs-lint | ✅ | feat/20-ingest-hubs-lint | | | |
+| 21-ingest-daily-sync | ✅ | feat/21-ingest-daily-sync | | | |
+| 22-eval-golden | ✅ | feat/22-eval-golden | | | |
 | 23-eval-attack-set | | feat/23-eval-attack-set | | | |
 | 24-eval-daily-quality | | feat/24-eval-daily-quality | | | |
 | 25-admin-quality-hitl | | feat/25-admin-quality-hitl | | | |
@@ -47,7 +47,7 @@
 - `docs/harness/tasks/03`~`07` — spec.md·test.md (2026-11-21, 확인 질문 결정 반영).
 - `docs/harness/tasks/08`~`12` — spec.md·test.md (2026-11-21, 확인 질문 결정 반영). 08이 `TurnStore`·`TurnInput`·`api/chat/store.py`를 먼저 만들고 09·11·12가 넓힘. 10은 `0003` 테이블 생성 스크립트(호출 수 세기 DB 함수 2개). `answer.md`는 08·09·10이 모두 규칙을 덧붙임(병합 때 번호 맞춤). 앞 작업 테스트 수정 목록은 각 spec "앞 작업 테스트" 절 앞 작업 테스트를 고치는 부분: 03은 01 예산 함수·테스트 교체, 04는 02의 네트워크 차단 테스트 설정에 DB 테스트 허용, 05는 02 채팅 테스트에 인증·CSRF 반영
 - `docs/harness/tasks/13`~`17` — spec.md·test.md (2026-11-22, 확인 질문 결정 반영). 발견한 앞 작업과의 불일치: 12 캐시 저장 조건에 "👎 없음" 누락(13-Q1), TECH_STACK §8.1 STT 시그니처로 사용량(초) 기록 불가(17-Q1), 웹 테스트용 Node가 WSL에 필요(14-Q1 → 결정 시 CLAUDE.md·README 갱신), 14가 02의 nginx `location /` 404를 web 프록시로 바꿈
-- `docs/harness/tasks/18`~`22` — spec.md·test.md **초안** (2026-11-22, 확인 질문 대기). 병렬 작성, 서로 맞춘 것: 18이 `admin_router`(`require_admin`)·`AdminShell.tsx`의 `ADMIN_NAV`를 만들고 19가 include 1줄·메뉴 1개 추가(layout.tsx는 안 고침) · 20이 공개 함수(`write_hubs`·`affected_hubs`·`missing_hubs`·`run_lint`·`commit_wiki`)와 잠금 `nadri/ingest/lock.py`를 만들고 21이 호출 · 19 kind 목록에 22의 `eval` 포함. 발견한 앞 작업 불일치: ingest가 상주하면 01·05의 `service_completed_successfully` 의존이 안 풀림(21-Q4), 03 `--follow`가 01:00 현행화와 잠금·예산 충돌(21-Q1), 02 `TAVILY_API_KEY` 필수 설정이 ingest에서 실패(20-Q12) ↔ 22는 평가용으로 ingest에 Tavily 키 추가(22-Q8) — 서로 맞춰야 함, 01 rag_query 허브 청크에 contentid 없음(20-Q4), 01 `fetch_candidates` mode 고정(22-Q1), 문서에 옛 이름 `admin-users-quota`·`quota` 화면 남음([PL] §1.2·[A] §7·14 §1.1)
+- `docs/harness/tasks/18`~`22` — spec.md·test.md (2026-11-22, 확인 질문 전부 추천안대로 확정). 병렬 작성, 서로 맞춘 것: 18이 `admin_router`(`require_admin`)·`AdminShell.tsx`의 `ADMIN_NAV`를 만들고 19가 include 1줄·메뉴 1개 추가(layout.tsx는 안 고침) · 20이 공개 함수(`write_hubs`·`affected_hubs`·`missing_hubs`·`run_lint`·`commit_wiki`)와 잠금 `nadri/ingest/lock.py`를 만들고 21이 호출 · 19 kind 목록에 22의 `eval` 포함. 발견한 앞 작업 불일치: ingest가 상주하면 01·05의 `service_completed_successfully` 의존이 안 풀림(21-Q4), 03 `--follow`가 01:00 현행화와 잠금·예산 충돌(21-Q1), 02 `TAVILY_API_KEY` 필수 설정이 ingest에서 실패(20-Q12) ↔ 22는 평가용으로 ingest에 Tavily 키 추가(22-Q8) — 서로 맞춰야 함, 01 rag_query 허브 청크에 contentid 없음(20-Q4), 01 `fetch_candidates` mode 고정(22-Q1), 문서에 옛 이름 `admin-users-quota`·`quota` 화면 남음([PL] §1.2·[A] §7·14 §1.1)
 
 ## 결정 로그 (게이트에서 바뀐 것)
 - 2026-10-25 (G1 전): 리버스 프록시 Caddy → **Nginx**
@@ -71,6 +71,7 @@
 - 2026-11-21 Phase 4 08~12 확인 질문(1차): 10-Q1 `nadri_tools`에 호출 수 세기 DB 함수 2개 실행 권한만 추가(NFR-07·[A] §5.1 예외 문구 반영) · 11-Q2 장애 턴도 실제 쓴 AI 비용은 `usage_events`에 기록(한도 차감은 안 함, [A] §3.1 10)과 다름) · 11-Q3 동시 요청으로 일일 한도 1~2회 초과 허용 · 08 `meta` 이벤트를 09가 아니라 08에서 추가(02-Q3 변경) · 12-Q4 캐시 답변은 출력 검사 재실행 안 함. 나머지 30개는 추천안대로 확정
 - 2026-11-22 Phase 4 13~17 확인 질문: 전부 추천안대로 — 13-Q1 👎 받은 답변은 FAQ 캐시에 저장하지 않음(12 저장 조건 보완) · 13-Q5 👎→👍여도 캐시 되살리지 않음 · 14-Q1 웹 개발 도구(Node LTS·npm·Playwright)도 WSL에(CLAUDE.md·README 반영) · 14-Q7 가입은 원래대로 관리자 승인, 승인 대기 화면은 [다시 확인] 버튼만 · 17-Q1 STT 사용량은 브라우저가 보낸 녹음 길이(60초 상한). 14가 nginx `location /`를 web으로 바꿈
 - 2026-11-22 **요구사항 변경(사용자 요청)**: 한도 추가 요청 기능 삭제 — FR-62 하루 50회 초과 시 그날 차단·안내만, FR-82 삭제, `quota_requests` 테이블·`daily_quota.extra` 삭제(ERD 18개). 04·11·16 spec, requirements·architecture·erd·program_list 반영. 18 작업 id `18-admin-users-quota` → `18-admin-users`(가입 승인·비활성화). 관리자(role=admin)는 일일 한도 없음(분당 10회 제한·사용량 기록은 동일), 한도 초과 문구 "오늘 질문 한도(50회)를 다 썼어요. 내일 0시(한국 시간)에 다시 이용해 주세요." 확정. (검토 중 "체험 5회 후 정식 사용 요청" 안이 나왔으나 사용자가 철회)
+- 2026-11-22 Phase 4 18~22 확인 질문: 전부 추천안대로 — 18-Q1 18 의존 "05, 14"([PL] 표·그래프 수정) · 18-Q3 관리자 계정은 비활성화 불가 · 18-Q2 거절 후 승인 불가 · 19-Q1 KST 월·날짜 · 20-Q4 rag_query가 허브 결과에 `places` 붙임(01 수정) · 20-Q11 잠금 `nadri/ingest/lock.py`로 이동 · 20-Q12 02 `TAVILY_API_KEY`는 쓰는 곳에서 확인 + 22-Q8 평가용으로 ingest에 Tavily 키 추가 · 21-Q1 01:00 작업 하나가 현행화 → 초기 적재 이어하기(`--follow` 중지) · 21-Q2 놓친 실행은 기동 때 1회 · 21-Q4 ingest healthcheck + tour-tools·api `service_healthy`(컨테이너 8개 유지) · 22-Q1 리랭커·모드는 요청 헤더로 그 실행만 덮어씀 · 22-Q2 검증 끔·0·1·2는 상한 2 실행을 잘라 계산 · 22-Q7 `usage_events kind=eval`. 문서 정리: 옛 이름 `admin-users-quota`·`quota` 화면 제거([PL] §1.2·[A] §7·14 §1.1)
 - 2026-11-07 G3: ERD 승인, 테이블·컬럼 한글 명칭을 DDL COMMENT로 넣는다. 구성도 재작성, 문서 상충 X1~X9 정리
 
 ## 기타 산출물

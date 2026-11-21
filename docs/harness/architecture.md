@@ -410,7 +410,7 @@ myAgent/
 ├── .env.example                 # 키 이름만
 ├── SECURITY_GUIDE.md            # AI 보안 가이드 (NFR-17)
 ├── web/
-│   ├── app/                     #   (chat)/, (auth)/, admin/(users, quota, usage, quality/), manifest.ts
+│   ├── app/                     #   (chat)/, (auth)/, admin/(users, usage, quality/), manifest.ts
 │   ├── components/  lib/        #   SSE 파서(이벤트 §3.1), 안전 마크다운 렌더러(링크 허용 목록), 녹음기, api 클라이언트
 │   ├── public/  e2e/            #   아이콘·sw.js / Playwright (NFR-71)
 │   └── Dockerfile

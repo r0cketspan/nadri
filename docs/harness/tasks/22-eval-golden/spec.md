@@ -1,6 +1,6 @@
 # 22-eval-golden — 골든 Q&A 평가 (spec)
 
-> 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-22). 상태: **초안 — 확인 질문 대기**(마지막 절 표). 브랜치 `feat/22-eval-golden`, 의존 작업 03-ingest-bootstrap · 08-guard-pipeline · 10-tool-tour-live · 11-quota-usage (→ 12·09·05·04·02·01).
+> 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-22). 상태: **확정(2026-11-22)** — 확인 질문은 모두 추천안대로 결정(마지막 절 표). 브랜치 `feat/22-eval-golden`, 의존 작업 03-ingest-bootstrap · 08-guard-pipeline · 10-tool-tour-live · 11-quota-usage (→ 12·09·05·04·02·01).
 > 근거: [PL]=program_list.md(G4 승인본) §2 표·§3 "22-eval-golden"·§4 추적표·§5 Q3·Q5 · [A]=architecture.md(G3 재승인본) §2.1 tour-tools `rag_query`·ingest CLI·§3.1·§7 디렉터리(`eval/golden/`)·§10 비용·ADR-06·13·18·§12.2 A10·A22·A24·A25·A27 · [R]=requirements.md FR-70, 목표 6("측정·기록만, 목표 수치는 결과를 보고 정함"), NFR-60 · [PG]=PROGRESS.md 결정 로그(G4 Q3 "bge-m3 비교는 v1.1 이후", G4 Q5 "에이전트 초안 40~60 → 사용자 검수", 08-Q4 "Moderation 임계값은 22·23에서", 12-Q4).
 > **이어받는 확정 spec**: [01](`Settings`·`get_settings`·`RAG_CANDIDATES`·`RAG_TOP_K`·`fetch_candidates`·`rag_query`·`rerank`·`ToolDeps`·`BearerAuthMiddleware`·`cli.py` argparse·종료 코드 0/1/2) · [02](`AgentDeps.max_rewrites`·`VERIFY_MAX_REWRITES`·`build_graph`·`load_tools`·`ChatRuntime`·`get_chat_runtime`·`chat_event_stream`·SSE 이벤트·`ToolRecord`·`UsageRecord`·`VerifyAttempt`·`Evidence`·`collect_evidence`·`build_sources`·`SAFE_REPLACEMENT`·timings 정의) · [03](적재 상태 — `detail_synced_at`·`deleted_at`·`wiki_pages` 인덱싱) · [08](`check_input`·`InputVerdict`·`TurnInput`·`TurnStore`·`CompletedTurn`·`SecurityEventDraft`·`security_fail` 판정식·`fixed_messages()`) · [09](`TurnPair`·`SessionContext`·`history_messages`·`prev_turn`·`Location`·`TurnInput.history/location/turn_count`) · [10](`tour_live` 툴·실시간 몫 200) · [11](`pricing.cost_usd`·`usage_row`·`record_usage`·`USAGE_KINDS`의 `eval`) · [12](`ChatRuntime.embed=None`이면 캐시 끔·`FAQ_CACHE_THRESHOLD`·`build_embeddings`·`embed_question`).
 > 이름·시그니처는 위 spec을 그대로 쓰고, 바꾸는 부분은 §12 "앞 작업과 달라지는 점"에 모두 적었다. **미확인** = 문서·공식 자료로 확인하지 못한 사실.
@@ -561,15 +561,15 @@ async def load_tools(settings: Settings, client_factory=MultiServerMCPClient,
 
 | # | 질문 | 선택지 | 추천안 |
 |---|---|---|---|
-| 22-Q1 | 평가(ingest 컨테이너)가 tour-tools의 리랭커 on/off·질의 모드를 어떻게 바꿀까 | A: **요청 헤더로 이번 실행만 덮어쓰기**(`X-Nadri-Rerank`·`X-Nadri-Rag-Mode`, 인증 통과 요청만, api는 안 보냄) / B: 환경변수를 바꿔 tour-tools를 재기동한 뒤 실행(CLI 옵션은 확인용 — `meta`로 대조) | **A** — 명령 한 줄로 비교 실행, 운영 설정·컨테이너를 건드리지 않음. 위험은 "토큰을 가진 api가 검색 방식을 바꿀 수 있음"뿐(데이터 접근 범위는 같음) |
-| 22-Q2 | FR-70 "검증 끔/1회/2회"를 어떻게 측정할까 | A: **상한 2 실행 1번에서 끔(초안)·0·1·2를 잘라 계산**(같은 답변 위 짝 비교, 비용 1배) + `--verify-max`로 실제 실행도 가능 / B: 상한마다 따로 실행(비용 3배, 실행 간 무작위성 섞임) | **A** |
-| 22-Q3 | 정답 채점 방식 | A: **코드만**(정답 표현 OR 목록·금지 표현·근거 contentid·툴 호출 — 결정적, 무료) / B: 코드 + 애매한 문항만 LLM 판정(23과 같은 방식, 비용·무작위성 추가) | **A** — 문항을 사용자가 검수하며 표현 목록을 넉넉히 넣음. 오답 목록에 답변 원문이 있어 사람이 확인 가능 |
-| 22-Q4 | 비교 실행 범위 | A: **기준(on·mix·2) + 리랭커 끔 + hybrid = 3회**(한 번에 한 가지만 바꿈, 검증 상한은 잘라 계산) / B: 2×2×3 전부 12회 | **A** (약 $0.3, 30~45분) |
-| 22-Q5 | 분류·분포(§4.2) — `no_data`(자료 없음 2)·`out_of_area`(서울·제주 밖 3)를 [PL] 목록에 더해도 될까, 총 50 목표 | A: **§4.2 표대로** / B: [PL] 목록만(관광 사실·조건·주변·축제·웹 + 스몰토크·상식·후속) / C: 사용자가 수 조정 | **A** — no_data는 "지어내지 않음"(FR-12), out_of_area는 08-Q2 분류 경계 오탐 측정 |
-| 22-Q6 | FAQ 임계값 결정 재료 | A: **`paraphrase_group` + `--faq-pairs`로 임계값별 재사용률·오적중 표**(임베딩만, 거의 무료) / B: 측정 없이 0.95 유지(ADR-13 "보수적 시작") | **A** — [PL] HITL이 임계값 결정을 요구하는데 골든 본 실행은 캐시를 우회해 재료가 없음 |
-| 22-Q7 | 평가 실행의 AI 사용량을 DB에 남길까 | A: **`usage_events`에 `kind="eval"`, 사용자 없음으로 기록**(월 비용·$10 경고에 포함, 24 매일 평가와 같은 kind) / B: 결과 파일에만(대시보드 월 비용에서 빠짐) | **A** — FR-61 "모든 호출 비용 기록". `--no-record`로 끌 수 있음 |
-| 22-Q8 | 결과 파일 위치 | A: **`eval/results/`(git 제외), 그 폴더만 쓰기 가능으로 마운트** / B: 결과를 화면에만(파일 없음 — `--compare` 불가) / C: 결과 요약 파일을 커밋 | **A** (요약 숫자는 §13·PROGRESS에 옮겨 적음) |
-| 22-Q9 | 장애로 끝난 문항(`llm_unavailable`·`timeout` 등) | A: **정답률 분모에서 빼고 따로 표시, 재시도 없음**(`--ids`로 재실행) / B: 오답으로 셈 / C: 1회 자동 재시도 | **A** — 장애는 품질이 아니라 가용성 문제. 수가 많으면 요약에 바로 보임 |
-| 22-Q10 | Moderation 정상 질문 오탐이 나오면 22에서 범주별 임계값 설정을 추가할까(08-Q4 이월) | A: **22는 보고만, 결정은 23 결과(유해 탐지율)와 같이** / B: 22에서 범주별 임계값 설정 추가 | **A** — 오탐을 줄이려 임계값을 올리면 탐지율이 떨어져 23 결과 없이 정할 수 없음 |
-| 22-Q11 | 결정된 설정값을 어디에 반영할까 | A: **compose `environment`에 값 + 근거 결과 파일 이름 주석**(코드 기본값은 그대로) / B: `Settings` 기본값을 바꿈 | **A** — "설정값만 변경"([PL]), 되돌리기 쉬움 |
-| 22-Q12 | 골든 문항이 데이터 변경(매일 현행화)으로 낡으면 | A: **실행 전 근거 검사 — 삭제는 실행 거부(`--skip-stale`로 제외 가능), 기준일 지남은 경고·따로 집계** / B: 검사 없음 | **A** |
+| 22-Q1 | 평가(ingest 컨테이너)가 tour-tools의 리랭커 on/off·질의 모드를 어떻게 바꿀까 | A: **요청 헤더로 이번 실행만 덮어쓰기**(`X-Nadri-Rerank`·`X-Nadri-Rag-Mode`, 인증 통과 요청만, api는 안 보냄) / B: 환경변수를 바꿔 tour-tools를 재기동한 뒤 실행(CLI 옵션은 확인용 — `meta`로 대조) | **결정(2026-11-22): 추천안대로** — **A** — 명령 한 줄로 비교 실행, 운영 설정·컨테이너를 건드리지 않음. 위험은 "토큰을 가진 api가 검색 방식을 바꿀 수 있음"뿐(데이터 접근 범위는 같음) |
+| 22-Q2 | FR-70 "검증 끔/1회/2회"를 어떻게 측정할까 | A: **상한 2 실행 1번에서 끔(초안)·0·1·2를 잘라 계산**(같은 답변 위 짝 비교, 비용 1배) + `--verify-max`로 실제 실행도 가능 / B: 상한마다 따로 실행(비용 3배, 실행 간 무작위성 섞임) | **결정(2026-11-22): 추천안대로** — **A** |
+| 22-Q3 | 정답 채점 방식 | A: **코드만**(정답 표현 OR 목록·금지 표현·근거 contentid·툴 호출 — 결정적, 무료) / B: 코드 + 애매한 문항만 LLM 판정(23과 같은 방식, 비용·무작위성 추가) | **결정(2026-11-22): 추천안대로** — **A** — 문항을 사용자가 검수하며 표현 목록을 넉넉히 넣음. 오답 목록에 답변 원문이 있어 사람이 확인 가능 |
+| 22-Q4 | 비교 실행 범위 | A: **기준(on·mix·2) + 리랭커 끔 + hybrid = 3회**(한 번에 한 가지만 바꿈, 검증 상한은 잘라 계산) / B: 2×2×3 전부 12회 | **결정(2026-11-22): 추천안대로** — **A** (약 $0.3, 30~45분) |
+| 22-Q5 | 분류·분포(§4.2) — `no_data`(자료 없음 2)·`out_of_area`(서울·제주 밖 3)를 [PL] 목록에 더해도 될까, 총 50 목표 | A: **§4.2 표대로** / B: [PL] 목록만(관광 사실·조건·주변·축제·웹 + 스몰토크·상식·후속) / C: 사용자가 수 조정 | **결정(2026-11-22): 추천안대로** — **A** — no_data는 "지어내지 않음"(FR-12), out_of_area는 08-Q2 분류 경계 오탐 측정 |
+| 22-Q6 | FAQ 임계값 결정 재료 | A: **`paraphrase_group` + `--faq-pairs`로 임계값별 재사용률·오적중 표**(임베딩만, 거의 무료) / B: 측정 없이 0.95 유지(ADR-13 "보수적 시작") | **결정(2026-11-22): 추천안대로** — **A** — [PL] HITL이 임계값 결정을 요구하는데 골든 본 실행은 캐시를 우회해 재료가 없음 |
+| 22-Q7 | 평가 실행의 AI 사용량을 DB에 남길까 | A: **`usage_events`에 `kind="eval"`, 사용자 없음으로 기록**(월 비용·$10 경고에 포함, 24 매일 평가와 같은 kind) / B: 결과 파일에만(대시보드 월 비용에서 빠짐) | **결정(2026-11-22): 추천안대로** — **A** — FR-61 "모든 호출 비용 기록". `--no-record`로 끌 수 있음 |
+| 22-Q8 | 결과 파일 위치 | A: **`eval/results/`(git 제외), 그 폴더만 쓰기 가능으로 마운트** / B: 결과를 화면에만(파일 없음 — `--compare` 불가) / C: 결과 요약 파일을 커밋 | **결정(2026-11-22): 추천안대로** — **A** (요약 숫자는 §13·PROGRESS에 옮겨 적음) (덧붙임: 20-Q12대로 02 `Settings`의 `TAVILY_API_KEY`는 쓰는 곳에서 `require`로 확인 — 22가 ingest에 키를 넣는 것은 평가 실행 때문) |
+| 22-Q9 | 장애로 끝난 문항(`llm_unavailable`·`timeout` 등) | A: **정답률 분모에서 빼고 따로 표시, 재시도 없음**(`--ids`로 재실행) / B: 오답으로 셈 / C: 1회 자동 재시도 | **결정(2026-11-22): 추천안대로** — **A** — 장애는 품질이 아니라 가용성 문제. 수가 많으면 요약에 바로 보임 |
+| 22-Q10 | Moderation 정상 질문 오탐이 나오면 22에서 범주별 임계값 설정을 추가할까(08-Q4 이월) | A: **22는 보고만, 결정은 23 결과(유해 탐지율)와 같이** / B: 22에서 범주별 임계값 설정 추가 | **결정(2026-11-22): 추천안대로** — **A** — 오탐을 줄이려 임계값을 올리면 탐지율이 떨어져 23 결과 없이 정할 수 없음 |
+| 22-Q11 | 결정된 설정값을 어디에 반영할까 | A: **compose `environment`에 값 + 근거 결과 파일 이름 주석**(코드 기본값은 그대로) / B: `Settings` 기본값을 바꿈 | **결정(2026-11-22): 추천안대로** — **A** — "설정값만 변경"([PL]), 되돌리기 쉬움 |
+| 22-Q12 | 골든 문항이 데이터 변경(매일 현행화)으로 낡으면 | A: **실행 전 근거 검사 — 삭제는 실행 거부(`--skip-stale`로 제외 가능), 기준일 지남은 경고·따로 집계** / B: 검사 없음 | **결정(2026-11-22): 추천안대로** — **A** |

@@ -1,6 +1,6 @@
 # 18-admin-users — 테스트 설계 (test)
 
-> spec.md와 짝. 절 번호 §n은 spec.md 기준. 작성 2026-11-22. 상태: 초안 — 확인 질문 대기.
+> spec.md와 짝. 절 번호 §n은 spec.md 기준. 작성 2026-11-22. 상태: **확정(2026-11-22)**.
 > ① 자동 테스트 — A. pytest(결정적 — 외부 호출 없음, DB는 04 테스트 컨테이너, 마커 `db`) · B. Vitest(서버 없음, api 함수 목킹) · C. Playwright(실제 compose) ② HITL(사용자가 직접).
 
 ---

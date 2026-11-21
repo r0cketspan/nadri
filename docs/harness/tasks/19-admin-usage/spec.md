@@ -1,6 +1,6 @@
 # 19-admin-usage — 관리자: 사용량 대시보드 (spec)
 
-> 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-22). 상태: **초안 — 확인 질문 대기**(마지막 절 표). 브랜치 `feat/19-admin-usage`, 의존 작업 18-admin-users(→ 11·14·05·04).
+> 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-22). 상태: **확정(2026-11-22)** — 확인 질문은 모두 추천안대로 결정(마지막 절 표). 브랜치 `feat/19-admin-usage`, 의존 작업 18-admin-users(→ 11·14·05·04).
 > 근거: [PL]=program_list.md(G4 승인본, 2026-11-22 개정) §2 표·§3 "19-admin-usage"·§4 · [A]=architecture.md(G3 재승인본) §2.1 `admin`·`usage` 모듈·§3.2(stt·tts 기록)·§5.1 `usage_events`·§6.1 `GET /api/admin/usage?from=&to=`·§9 끝줄("선택: 서비스별 OpenAI 키 분리(A14 보완)")·§10 비용·지표 기록 범위·§12.2 A14·A28 · [R]=requirements.md FR-61·63·83, NFR-43·61 · [S]=stack-options.md S20(ElevenLabs 플랜 크레딧 미확인)·S21 · [PG]=PROGRESS.md 결정 로그(11-Q2 장애 턴도 비용 기록, 17-Q1 STT 초 = 브라우저 녹음 길이, 2026-11-22 한도 추가 요청 삭제·관리자 한도 없음).
 > **이어받는 확정 spec**: [04](`UsageEvent`·`USAGE_KINDS` 13종·`usage_events` 컬럼·`user_id` SET NULL·토큰 NULL 허용·`users.role`) · [05](`require_admin`(`api/deps.py`)·`CurrentUser`·`get_db`·`get_now`·`ApiError`·`errors.py`·`forbidden`·`unauthenticated` 문구) · [11](`record_usage`·`cost_usd` 8자리(`COST_QUANT`)·kind별 비용 규칙(moderation·web_search·tts 0)·`units` 의미·`kst_day`·장애 턴도 기록(11-Q2)·성공한 호출만 기록·관리자도 사용량 기록) · [12](`embed`) · [14](`apiJson`·`ApiError`(web)·Playwright 설정·`e2e/helpers/db.ts`·`global-setup.ts`·`approve()`) · [17](`stt` units = 초(60초 상한, 17-Q1)·`tts` units = 글자 수·실패 호출은 기록 없음).
 > **병렬 작성 중인 앞 작업**: 18-admin-users spec **초안**(2026-11-22, 확인 질문 대기) §9 "19·25가 넓히는 방법"을 따른다 — `nadri/api/admin/router.py`의 `admin_router`(접두어 `/api/admin`, 라우터 전체에 `Depends(require_admin)`)에 `include_router` 1줄, `web/components/admin/AdminShell.tsx`의 `ADMIN_NAV`에 항목 1개, `web/e2e/helpers/db.ts`의 `makeAdmin`. `web/app/admin/layout.tsx`는 고치지 않는다. 18이 확정되며 이름이 바뀌면 이 spec의 연결 부분만 맞춘다(19-Q8).
@@ -411,12 +411,12 @@ export function unitLabel(kind: UsageKind): string | null;
 
 | # | 질문 | 추천안 | 대안 |
 |---|---|---|---|
-| 19-Q1 | "이번 달"·"하루"를 어느 시간대로 자를까. 프로젝트 규칙은 KST, OpenAI 청구 화면은 UTC로 알려져 있다(**미확인**) | **KST 달력 월·KST 날짜**(한도·평가 등 앱 전체와 같음). 대조할 때만 UTC 날짜 합을 따로 뽑는다(HITL-2) | UTC 월·날짜(OpenAI 청구와 맞음, 대신 화면 날짜가 앱의 다른 곳과 9시간 어긋남) |
-| 19-Q2 | 화면 구성 | **표 3개(종류별·일자별·사용자별) + 이번 달 카드**, 차트 없음 | 일자×사용자×종류 전체 표(행 많음) / 일자별 막대 차트(차트 라이브러리 추가) |
-| 19-Q3 | $10 경고를 어디에 보일까 | **사용량 화면에만**(FR-63 "관리자 대시보드에 경고") | 모든 관리자 화면 위(18 `AdminShell`이 화면마다 사용량 API 호출) |
-| 19-Q4 | Tavily 월 1,000크레딧 | **"n / 1,000 크레딧" 숫자만**, 경고 없음(A28은 추이 확인) | 800 이상이면 노란 경고도 표시 |
-| 19-Q5 | LightRAG 내부 비용(앱 집계 불가, A14) | **"앱 기록 기준 추정" 표기만**. 서비스별 OpenAI 키 분리는 HITL-2 차이를 본 뒤 다시 결정 | 지금 lightrag 전용 OpenAI 키를 따로 발급해 OpenAI 대시보드에서 키별로 보기([A] §9 "선택", `.env`·compose 변경 — 26 범위) |
-| 19-Q6 | 조회 기간 기본값·상한 | **기본 이번 달 1일~오늘, 최대 366일** | 상한 없음 / 최대 92일 |
-| 19-Q7 | `usage_events.created_at` 인덱스 | **만들지 않음**(1~5명, 하루 수백 행 — 전체 훑기로 충분) | 새 테이블 생성 스크립트(`0004`)로 `ix_usage_events_created_at` 추가 |
-| 19-Q8 | 18과의 연결 — 18 spec도 아직 초안 | **18 초안 §9 약속대로**: `admin_router.include_router(usage.router)` 1줄, `ADMIN_NAV`에 "사용량" 1개, 화면 API 함수는 별도 파일 `web/lib/admin-usage.ts`, e2e 관리자는 18 `makeAdmin` | API 함수를 18 `admin-api.ts`에 합침 / 18 확정본이 바뀌면 그 구조를 따름 |
-| 19-Q9 | Playwright 실제 compose 테스트가 넣는 가짜 사용량 행 정리 | **14 `global-setup.ts`에 e2e 사용자의 `usage_events` 삭제를 추가**(사용자 삭제 전에) | 19 테스트가 끝날 때만 지움(테스트가 중간에 실패하면 남음) |
+| 19-Q1 | "이번 달"·"하루"를 어느 시간대로 자를까. 프로젝트 규칙은 KST, OpenAI 청구 화면은 UTC로 알려져 있다(**미확인**) | **결정(2026-11-22): 추천안대로** — **KST 달력 월·KST 날짜**(한도·평가 등 앱 전체와 같음). 대조할 때만 UTC 날짜 합을 따로 뽑는다(HITL-2) | UTC 월·날짜(OpenAI 청구와 맞음, 대신 화면 날짜가 앱의 다른 곳과 9시간 어긋남) |
+| 19-Q2 | 화면 구성 | **결정(2026-11-22): 추천안대로** — **표 3개(종류별·일자별·사용자별) + 이번 달 카드**, 차트 없음 | 일자×사용자×종류 전체 표(행 많음) / 일자별 막대 차트(차트 라이브러리 추가) |
+| 19-Q3 | $10 경고를 어디에 보일까 | **결정(2026-11-22): 추천안대로** — **사용량 화면에만**(FR-63 "관리자 대시보드에 경고") | 모든 관리자 화면 위(18 `AdminShell`이 화면마다 사용량 API 호출) |
+| 19-Q4 | Tavily 월 1,000크레딧 | **결정(2026-11-22): 추천안대로** — **"n / 1,000 크레딧" 숫자만**, 경고 없음(A28은 추이 확인) | 800 이상이면 노란 경고도 표시 |
+| 19-Q5 | LightRAG 내부 비용(앱 집계 불가, A14) | **결정(2026-11-22): 추천안대로** — **"앱 기록 기준 추정" 표기만**. 서비스별 OpenAI 키 분리는 HITL-2 차이를 본 뒤 다시 결정 | 지금 lightrag 전용 OpenAI 키를 따로 발급해 OpenAI 대시보드에서 키별로 보기([A] §9 "선택", `.env`·compose 변경 — 26 범위) |
+| 19-Q6 | 조회 기간 기본값·상한 | **결정(2026-11-22): 추천안대로** — **기본 이번 달 1일~오늘, 최대 366일** | 상한 없음 / 최대 92일 |
+| 19-Q7 | `usage_events.created_at` 인덱스 | **결정(2026-11-22): 추천안대로** — **만들지 않음**(1~5명, 하루 수백 행 — 전체 훑기로 충분) | 새 테이블 생성 스크립트(`0004`)로 `ix_usage_events_created_at` 추가 |
+| 19-Q8 | 18과의 연결 — 18 spec도 아직 초안 | **결정(2026-11-22): 추천안대로** — **18 초안 §9 약속대로**: `admin_router.include_router(usage.router)` 1줄, `ADMIN_NAV`에 "사용량" 1개, 화면 API 함수는 별도 파일 `web/lib/admin-usage.ts`, e2e 관리자는 18 `makeAdmin` | API 함수를 18 `admin-api.ts`에 합침 / 18 확정본이 바뀌면 그 구조를 따름 |
+| 19-Q9 | Playwright 실제 compose 테스트가 넣는 가짜 사용량 행 정리 | **결정(2026-11-22): 추천안대로** — **14 `global-setup.ts`에 e2e 사용자의 `usage_events` 삭제를 추가**(사용자 삭제 전에) | 19 테스트가 끝날 때만 지움(테스트가 중간에 실패하면 남음) |
