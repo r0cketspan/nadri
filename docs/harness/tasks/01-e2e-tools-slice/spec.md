@@ -1,6 +1,6 @@
 # 01-e2e-tools-slice — 최소 E2E ① 데이터 → RAG → MCP 툴
 
-> 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-21). 상태: **초안 — 사용자 검토 대기**.
+> 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-21). 상태: 확정(확인 질문 결정 반영). 2026-11-28 Phase 5 구현 첫 단계에서 공식 소스로 확인한 사실을 각 절에 "확인됨"으로 반영.
 > 입력: `program_list.md` §2 표·§3 "01-e2e-tools-slice"(G4 승인본) · `architecture.md`(G3 재승인본) §1·§2.1·§4·§5·§6.2·§7·§8·§9·§12 · `erd.md`/`docs/images/src/erd.py` · `requirements.md` · `TECH_STACK.md` · `PROGRESS.md` 결정 로그(G4 Q1~Q9).
 > 출처 표기: [PL]=program_list.md, [A]=architecture.md, [R]=requirements.md, [E]=ERD(`erd.py`), [TS]=TECH_STACK.md, [S]=stack-options.md, [PG]=PROGRESS.md.
 > **미확인** = 문서·공식 자료로 확인하지 못해 구현 중 실제 호출/소스로 확인해야 하는 사실. 이 작업의 가정 판정(§9) 항목과 겹친다.
@@ -233,7 +233,7 @@ def require(value: SecretStr | None, name: str) -> str:
 | `RERANK_BINDING` | `null` | 리랭크는 tour-tools CrossEncoder |
 
 비밀값(compose `environment`): `LLM_BINDING_API_KEY=${OPENAI_API_KEY}`, `EMBEDDING_BINDING_API_KEY=${OPENAI_API_KEY}`, `LIGHTRAG_API_KEY=${LIGHTRAG_API_KEY}`, `POSTGRES_PASSWORD=${LIGHTRAG_DB_PASSWORD}`.
-> **미확인**: 위 키 이름은 LightRAG v1.5.7 `env.example` 기준 추정(F11에서 일부 확인). 구현 첫 단계에서 v1.5.7 태그의 `env.example`과 대조해 다르면 그 이름을 쓰고 이 표를 고친다. 동시 처리 수(`MAX_PARALLEL_INSERT` 등)는 기본값.
+> **확인됨(2026-11-28, 구현)**: 위 키 이름은 LightRAG `v1.5.7` 태그의 `env.example`(https://github.com/HKUDS/LightRAG/blob/v1.5.7/env.example)과 대조해 모두 일치. `PGTableGraphStorage`는 "AGE 없이 PostgreSQL 14+ 일반 테이블, `pgvector/pgvector:pg18`로 충분"하다고 명시돼 있다. 구현 파일에는 `LLM_BINDING_HOST`·`EMBEDDING_BINDING_HOST`(=`https://api.openai.com/v1`, env.example 기본값)를 명시로 추가했다. 인증 헤더 이름 `X-API-Key`는 `lightrag/api/utils_api.py`(`APIKeyHeader(name="X-API-Key")`)에서 확인, `/health`는 기본 인증 예외 경로(`WHITELIST_PATHS` 기본 `/health,/api/*`). 동시 처리 수(`MAX_PARALLEL_INSERT` 등)는 기본값.
 
 ---
 
@@ -247,8 +247,8 @@ def require(value: SecretStr | None, name: str) -> str:
 ### 5.2 서비스별
 | 서비스 | 이미지/빌드 | 주입 환경변수 | 볼륨 | 기동 순서·헬스 |
 |---|---|---|---|---|
-| `postgres` | `pgvector/pgvector:pg18` | `POSTGRES_PASSWORD`, `APP_DB_PASSWORD`, `TOOLS_DB_PASSWORD`, `LIGHTRAG_DB_PASSWORD` | `pg-data:/var/lib/postgresql/data`(**미확인**: pg18 이미지의 데이터 경로가 바뀌었을 수 있음 — 이미지 문서로 확인), `./infra/postgres/init:/docker-entrypoint-initdb.d:ro` | healthcheck `pg_isready -U postgres` |
-| `lightrag` | LightRAG 공식 이미지 **v1.5.7 태그 고정**(이미지 주소 **미확인** — 예: `ghcr.io/hkuds/lightrag:v1.5.7`) | §4.3 비밀값 4개 + `env_file: infra/lightrag/lightrag.env` | `lightrag-data:<작업 디렉터리>`(경로 **미확인** — v1.5.7 이미지의 `WORKING_DIR` 확인, Q7) | `depends_on: postgres(service_healthy)` |
+| `postgres` | `pgvector/pgvector:pg18` | `POSTGRES_PASSWORD`, `APP_DB_PASSWORD`, `TOOLS_DB_PASSWORD`, `LIGHTRAG_DB_PASSWORD` | `pg-data:/var/lib/postgresql`(**확인됨**: pg18 이미지는 `PGDATA=/var/lib/postgresql/18/docker`, `VOLUME /var/lib/postgresql` — `docker image inspect`로 확인. 옛 경로 `/var/lib/postgresql/data`에 마운트하면 데이터가 볼륨 밖에 생긴다), `./infra/postgres/init:/docker-entrypoint-initdb.d:ro` | healthcheck `pg_isready -U postgres` |
+| `lightrag` | `ghcr.io/hkuds/lightrag:v1.5.7`(**확인됨**: `docker manifest inspect`로 amd64·arm64 존재) | §4.3 비밀값 4개 + `env_file: infra/lightrag/lightrag.env` | `lightrag-data:/app/data/rag_storage`(**확인됨**: v1.5.7 `Dockerfile`의 `ENV WORKING_DIR=/app/data/rag_storage`. 이미지는 root로 시작해 마운트 소유권을 고친 뒤 uid 1000 `lightrag`로 내려가므로 `cap_drop`은 자체 이미지에만 적용) | `depends_on: postgres(service_healthy)` |
 | `ingest` | `build: {context: ./backend, target: app}` | `DB_USER=nadri_app`, `DB_PASSWORD=${APP_DB_PASSWORD}`, `TOURAPI_SERVICE_KEY`, `LIGHTRAG_API_KEY`, `TOOLS_API_KEY`, `LANGSMITH_TRACING=false`, `LANGCHAIN_TRACING_V2=false` | `wiki-data:/data/wiki`, `raw-data:/data/raw` | `depends_on: postgres(service_healthy)`. **기본 명령 `alembic upgrade head` 후 종료(0)**, `restart: "no"`. 적재는 `docker compose run --rm ingest nadri …` (Q1) |
 | `tour-tools` | `build: {context: ./backend, target: tools}` | `DB_USER=nadri_tools`, `DB_PASSWORD=${TOOLS_DB_PASSWORD}`, `LIGHTRAG_API_KEY`, `TOOLS_API_KEY` | 없음 | `depends_on: postgres(service_healthy), lightrag(service_started), ingest(service_completed_successfully)`. healthcheck: `GET http://localhost:8000/health` → 200 (python 한 줄 스크립트, curl 의존 안 함) |
 
@@ -276,6 +276,7 @@ def require(value: SecretStr | None, name: str) -> str:
 ### 5.5 `backend/pyproject.toml`
 - `requires-python = ">=3.12,<3.13"`, `[project.scripts] nadri = "nadri.cli:main"`, `nadri-tools = "nadri.tools.server:main"`.
 - 의존(01에서 쓰는 것만, `==`로 고정 — [A] §1 고정 후보 버전): `mcp==1.30.0`, `langchain-mcp-adapters==0.3.2`, `langchain-core==1.8.4`, `pydantic-settings`, `sqlalchemy[asyncio]`, `asyncpg`, `alembic`, `httpx`, `jinja2`, `uvicorn`. 버전 미지정 항목은 구현 시점 최신으로 `uv.lock`에 고정.
+  - 구현 시 고정값(2026-11-28): `pydantic-settings==2.16.3`, `sqlalchemy[asyncio]==2.1.9`, `asyncpg==0.32.0`, `alembic==1.20.1`, `httpx==0.29.0`, `jinja2==3.1.6`, `uvicorn==0.54.0` / reranker `torch==2.15.0`(CPU 인덱스), `sentence-transformers==6.3.0`, `huggingface-hub==2.5.0` / dev `pytest==9.2.0`, `pytest-asyncio==1.5.0`, `pyyaml==6.0.4`. `[tool.uv] default-groups = ["dev"]`(그냥 `uv sync`해도 torch를 받지 않음). 리랭커 가중치 리비전 `953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e`(HF API 확인, 모델 파일만 `allow_patterns`). uv 이미지 `ghcr.io/astral-sh/uv:0.13.10`.
 - 그룹 `reranker`: `torch`(CPU 인덱스), `sentence-transformers`, `huggingface-hub`. 그룹 `dev`: `pytest`, `pytest-asyncio`, `pyyaml`(frontmatter 파싱 테스트).
 - `[tool.pytest.ini_options]`: `markers = ["integration: 실 compose·실 키가 필요한 테스트"]`, `asyncio_mode = "auto"`, 기본 실행에서 integration 제외는 명령에서 `-m "not integration"`.
 - LangGraph·langchain-openai·FastAPI 등은 02에서 추가한다.
@@ -504,8 +505,14 @@ def outcome_to_values(o: IndexOutcome, now: datetime) -> dict | None:
 2. 나머지 페이지마다 순서대로: `old_doc_id`가 있으면 `delete_documents([old_doc_id])` → `document_exists`가 False가 될 때까지 폴링(삭제가 비동기일 수 있음, **미확인** A16). 삭제 실패·타임아웃이면 그 페이지 `failed`(insert 하지 않음 — 중복 방지 우선).
 3. `insert_text(text, file_source=path)` → track_id 수집.
 4. 모든 track_id를 `poll_interval_s`마다 `track_status`로 확인, 문서 상태가 처리 완료(`processed`, **미확인**: 상태 문자열)면 `indexed`+doc_id, 실패(`failed`)면 `failed`+error, `timeout_s` 경과면 남은 것 모두 `failed("timeout")`.
-- **엔드포인트 미확인**(A16): `POST /documents/text`(본문 `{text, file_source}` → `track_id`), `GET /documents/track_status/{track_id}`, `DELETE /documents/delete_document`(본문 `{doc_ids, …}`), 문서 목록/상태 조회 경로. 구현 첫 단계에서 v1.5.7 `document_routes.py`로 확인하고 이 절을 고친다.
-- LightRAG는 문서 ID를 내용 해시로 만드는 것으로 알려져 있다(**미확인**). 그래서 내용이 바뀌면 doc_id가 바뀌고 이전 문서를 지우지 않으면 중복이 남는다 → 2) 단계가 필수.
+- **엔드포인트 확인됨(2026-11-28)** — v1.5.7 `lightrag/api/routers/document_routes.py`(라우터 prefix `/documents`):
+  - `POST /documents/text` `{text, file_source}` → `{status, message, track_id}`. **같은 file_source가 doc_status에 이미 있으면 409**("Document storage already contains … Delete the existing record before re-inserting"), 삭제 진행 중(`destructive_busy`)에도 409.
+  - `GET /documents/track_status/{track_id}` → `{track_id, documents:[{id, status, file_path, error_msg, chunks_count, …}], total_count, status_summary}`. 상태 문자열은 **소문자** `pending·parsing·analyzing·processing·processed·failed`(`lightrag/base.py` `DocStatus`).
+  - `DELETE /documents/delete_document` `{doc_ids, delete_file, delete_llm_cache}` → `status` = `deletion_started`(백그라운드 삭제 시작) / `busy`(파이프라인 사용 중 — 나중에 재시도) / `not_allowed`.
+  - 문서 단건 조회 API는 없다 → `document_exists`·잔여 문서 찾기는 `POST /documents/paginated` `{page, page_size(10~200), sort_field:"id", sort_direction}`로 전체 목록을 넘겨 본다(수천 건 규모라 충분). 문서 수는 `GET /documents/status_counts` → `{status_counts:{상태: 수}}`.
+  - **file_source 변형**: LightRAG는 file_source를 **basename으로 바꿔 저장**한다(`normalize_file_path` → `canonicalize_parser_hinted_basename`). `entity/12/126508.md`를 그대로 보내면 `126508.md`만 남아 경로 대조가 깨지므로, 경로의 `/`를 `__`로 바꿔 보낸다(`to_file_source`: `entity__12__126508.md`, 역변환 `from_file_source`). §9 A7 대안 "file_path 변형 → 코드로 매핑"에 해당(사용자 확인 불필요).
+- 구현 처리 순서 보완(위 사실 때문에): ① 해시 같으면 skipped ② **바뀐 페이지들의 이전 문서를 먼저 모두 삭제**(삭제 `busy`면 `poll_interval_s` 간격으로 재요청, 목록에서 사라질 때까지 확인) — 페이지마다 delete→insert를 번갈아 하면 앞 insert가 파이프라인을 바쁘게 해 다음 delete가 `busy`로 거절되기 때문 ③ insert — 409 "already contains"(이전 실행의 실패·타임아웃 잔여 문서)면 같은 file_source 문서를 찾아 지우고 **한 번** 다시 넣는다, 그 밖의 409(삭제 진행 중)는 간격을 두고 재시도 ④ track_status 폴링. 시간 상한은 ②~④ 합산 `timeout_s`.
+- LightRAG는 문서 ID를 내용 해시로 만드는 것으로 알려져 있다(**미확인**, I-8·H-10에서 확인). 내용이 바뀌면 doc_id가 바뀌고, 이전 문서를 지우지 않으면 같은 file_source라 409로 넣지 못한다 → 2) 단계가 필수.
 - 해시가 같아도 `old_doc_id`가 LightRAG에 실제로 없는 경우(수동 삭제 등)는 01에서 감지하지 않는다(상태 대조는 20 lint 범위).
 
 ### 6.7 `ingest/bootstrap.py`
@@ -553,7 +560,7 @@ async def count_totals(tourapi: TourApiClient, areas: list[str], types: list[int
    - `quota_exceeded`/`rate_limited` → 남은 항목 중단, 이미 받은 것은 유지하고 6)으로.
 6. 이번 실행에서 쓴 페이지들을 `PageToIndex`로 만들어 `index_pages` → `apply_outcomes`.
 7. `ingest_runs` 갱신: `finished_at`, `stats=asdict(result)`, `status = failed`(한도 중단·인덱싱 실패 1건 이상·예외) / `done`. 예외는 `error`에 메시지(비밀값 없음) 저장 후 다시 던진다.
-- 호출 수 기록: `TourApiClient(on_call=lambda op: record_call(sf, today))`.
+- 호출 수 기록: `TourApiClient(on_call=make_call_recorder(sf))`(호출 시각의 KST 날짜로 `record_call`). 실행 요약의 `calls`는 클라이언트가 세는 `TourApiClient.calls`(보낸 요청 수, 실패·타임아웃 포함)의 실행 전후 차이.
 - 표준 출력: 진행 줄(`[12/30] 126508 경복궁 inserted`)과 마지막 요약 JSON.
 
 ### 6.8 `tools/` — MCP 서버와 툴 3종
@@ -587,6 +594,8 @@ def main() -> None:
 ```
 - 미들웨어 규칙: `scope["type"] != "http"`(lifespan 등) → 그대로 통과. `GET /health` → 토큰 없이 200 `ok`(헬스체크 전용, 다른 정보 없음). 그 외 → 헤더가 정확히 `Bearer <token>`이고 `hmac.compare_digest`로 같으면 통과, 아니면 401 `{"error":"unauthorized"}`(본문에 이유 구분 없음). 토큰이 빈 문자열이면 `build_app`이 기동을 거부.
 - MCP 경로는 FastMCP 기본 `/mcp`. 끝 슬래시 리다이렉트(307) 여부 **미확인** — 어댑터가 따라가지 못하면 클라이언트 URL을 맞춘다.
+- **확인됨(mcp 1.30.0 소스)**: `FastMCP(host=…)` 기본값 `127.0.0.1`이면 DNS 리바인딩 보호가 자동으로 켜져 Host가 `localhost`·`127.0.0.1`이 아닌 요청(`tour-tools:8000`)을 거부한다. 그래서 `FastMCP(..., host="0.0.0.0")`로 만든다(접근 통제는 Bearer 미들웨어). `streamable_http_app()`의 Starlette lifespan이 세션 매니저를 돌리므로 미들웨어는 lifespan을 그대로 넘긴다.
+- `build_app(settings=None)`: 테스트에서 설정을 넘길 수 있게 인자를 하나 둔다(uvicorn `--factory`는 인자 없이 호출). 리랭커는 `build_app` 안에서 1회 로드(`main`도 `build_app`을 거침).
 - 툴 등록은 각 모듈의 함수를 `deps`를 묶은 얇은 래퍼로 등록한다. 래퍼 docstring = LLM이 보는 툴 설명(한국어, 짧게, 고정 문자열 — NFR-40 고정 프리픽스).
 
 #### `tools/rag_query.py`
@@ -612,7 +621,7 @@ async def rag_query(question: str, deps: ToolDeps,
 5. 상위 후보의 `file_path`로 `wiki_pages` 조회(`path IN (...)`) → 메타가 없는 후보는 버린다(삭제 경합 등). 버린 뒤 5개가 안 되어도 채우지 않는다.
 6. 결과 항목: `{"contentid", "title", "source": SOURCE_LABEL, "as_of": "YYYY-MM-DD", "path", "score": float(소수 4자리), "text": 청크 원문}`. 점수 내림차순.
 7. 로그: `tool=rag_query candidates=<n> lightrag_ms= rerank_ms= total_ms=` (A9·A7 측정용).
-- 요청 본문의 `top_k`/`chunk_top_k` 의미, 응답의 `data.chunks[].file_path` 존재 여부는 **미확인**(A7). 같은 페이지의 청크 여러 개는 합치지 않는다(엔티티 페이지는 대부분 1청크로 예상 — A7에서 기록).
+- 요청 본문의 `top_k`/`chunk_top_k` 의미, 응답의 `data.chunks[].file_path` 존재 여부는 **미확인**(A7). v1.5.7 `query_routes.py` 응답 스키마 문서에는 `data.chunks[]`에 `content`·`file_path`·`chunk_id`·`reference_id`가 있고, `top_k`는 엔티티/관계 수, `chunk_top_k`는 "벡터 검색에서 처음 가져와 리랭크 후 남길 청크 수"로 적혀 있다(실제 응답은 A7에서 확인). `file_path`는 `from_file_source`로 위키 경로로 되돌린다. 같은 페이지의 청크 여러 개는 합치지 않는다(엔티티 페이지는 대부분 1청크로 예상 — A7에서 기록).
 - `PageMeta`(`contentid`, `title`, `as_of`)는 rag_query.py 안의 작은 dataclass. `lookup_pages` 기본값은 `deps.sf`로 SELECT하는 함수(테스트에서 대체).
 
 #### `tools/reranker.py`
@@ -706,8 +715,8 @@ async def get_datetime() -> dict:
 | HTML 섞인 텍스트(`<br>`, `&amp;`) | DB·위키는 정리된 텍스트, raw는 원문 |
 | 같은 날 bootstrap 재실행 | upsert `unchanged`, 페이지 같음 → 인덱싱 `skipped`, raw는 순번 파일로 추가 저장(호출은 다시 소모) |
 | 페이지 내용 변경 | 이전 doc 삭제 확인 후 insert, 성공 시 해시·doc_id 교체 |
-| LightRAG 삭제 실패 | 그 페이지 insert 안 함(중복 방지), `failed`, 해시 유지 → 다음 실행 재시도 |
-| insert 후 처리 실패/타임아웃 | `failed`, wiki_pages 해시·doc_id NULL → 다음 실행에서 다시 insert |
+| LightRAG 삭제 실패 | 그 페이지 insert 안 함(중복 방지), `failed` → `outcome_to_values`대로 해시·doc_id를 비움(U-IDX-11). 다음 실행에서 insert가 409(같은 file_source 잔여)면 그 문서를 찾아 지우고 다시 넣는다(§6.6 보완) |
+| insert 후 처리 실패/타임아웃 | `failed`, wiki_pages 해시·doc_id NULL → 다음 실행에서 다시 insert(LightRAG에 실패 문서가 남아 있으면 409 → 잔여 문서 삭제 후 재시도) |
 | LightRAG 다운 상태에서 rag_query | 툴 오류 결과(한국어 짧은 메시지) |
 | 후보 file_path가 wiki_pages에 없음 | 그 후보 버림 |
 | MCP 토큰 없음/틀림/`Bearer` 접두어 없음 | 401, 이유 구분 없는 같은 본문 |

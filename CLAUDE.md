@@ -132,4 +132,36 @@ async function transcribe(audio: Blob): Promise<string> {
 - 하네스 규칙: 기존 `git log` 스타일 학습 → 이력이 없으면 Conventional Commits(`feat|fix|refactor|test|docs|chore: 요약`).
 
 ## 명령어
-(G4 이후 작업목록이 확정되면 빌드·테스트·실행 명령을 여기에 추가한다.)
+모두 WSL2 Ubuntu, 레포 루트(`~/code/myAgent`) 기준. 작업이 늘면 이 절에 덧붙인다.
+
+```bash
+# 준비 (최초 1회): uv 설치 → .env 작성(키 이름은 .env.example, 내부 토큰·DB 비밀번호는 openssl rand -hex 32)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+cp .env.example .env
+
+# 단위테스트 (외부 서비스 불필요, 리랭커/torch 없이)
+cd backend && uv sync --no-group reranker && uv run pytest -m "not integration" -q
+
+# 빌드·기동 (호스트 포트 없음. ingest는 테이블 생성 스크립트 적용 후 종료 0)
+docker compose build
+docker compose up -d
+docker compose ps -a
+
+# 적재·재인덱싱·측정 (R = docker compose run --rm ingest)
+docker compose run --rm ingest nadri ingest count                                    # 서울·제주 × 8종 totalCount (TourAPI 16호출)
+docker compose run --rm ingest nadri ingest bootstrap --area 서울 --type 12 --limit 30
+docker compose run --rm ingest nadri ingest reindex [--contentid ID ...]              # TourAPI 없이 다시 렌더·바뀐 페이지만 인덱싱
+docker compose run --rm ingest nadri lightrag sample --query "경복궁" --limit 20     # 한국어 엔티티·관계 표본
+
+# MCP 툴 점검 (langchain-mcp-adapters로 3종 호출, --repeat N은 rag_query 지연 측정)
+docker compose run --rm ingest nadri tools smoke [--question "…"] [--repeat 10]
+
+# 개발 덮어쓰기 (소스 마운트·tour-tools 핫리로드·127.0.0.1 포트: postgres 5432, lightrag 9621, tour-tools 8001)
+docker compose -f compose.yaml -f compose.dev.yaml up -d
+
+# 통합 테스트 (dev 덮어쓰기로 기동·적재 후, 비밀값은 레포 루트 .env에서 읽음)
+cd backend && DB_HOST=127.0.0.1 LIGHTRAG_URL=http://127.0.0.1:9621 TOOLS_URL=http://127.0.0.1:8001/mcp uv run pytest -m integration -q
+```
+
+- `infra/postgres/init/01-init.sh`(롤·DB·비밀번호)는 **빈 `pg-data` 볼륨 첫 기동 때만** 실행된다. `.env` 비밀번호를 나중에 바꾸면 `ALTER ROLE`로 맞추거나 볼륨을 지우고 다시 만든다(`docker compose down -v` — 데이터 삭제).
+- TourAPI 키는 공공데이터포털의 **Decoding** 키를 넣는다.

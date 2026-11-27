@@ -117,8 +117,9 @@ DB_HOST=127.0.0.1 LIGHTRAG_URL=http://127.0.0.1:9621 TOOLS_URL=http://127.0.0.1:
 | U-IDX-6 | 삭제 후 exists가 계속 True → 타임아웃 | `failed("delete_timeout")`, insert 없음 |
 | U-IDX-7 | track 상태 `failed`, error "llm error" | `failed`, reason 포함 |
 | U-IDX-8 | track이 끝나지 않음, 가짜 clock이 `timeout_s` 넘김 | 남은 페이지 전부 `failed("timeout")` |
-| U-IDX-9 | 모든 요청 | 헤더 `X-API-Key`(값 = 주입한 키) 존재(**미확인** 헤더 이름 — A16 확인 후 고정) |
-| U-IDX-10 | insert 본문 | `file_source == page.path`, `text == page.text` |
+| U-IDX-9 | 모든 요청 | 헤더 `X-API-Key`(값 = 주입한 키) 존재(v1.5.7 `utils_api.py`에서 이름 확인) |
+| U-IDX-10 | insert 본문 | `file_source == to_file_source(page.path)`(`/`→`__`, LightRAG가 basename만 남기기 때문 — spec §6.6), `text == page.text` |
+| U-IDX-12 | insert 409 "already contains"(이전 실패 잔여 문서) | 같은 file_source 문서 찾기 → delete → 사라짐 확인 → insert 재시도 → `indexed` |
 | U-IDX-11 | `outcome_to_values(o, now)` | indexed → `{content_hash, lightrag_doc_id, indexed_at}` 채움 / failed → 셋 다 None / skipped → 변경 없음(None 반환) |
 
 ### U-BS `tests/ingest/test_bootstrap.py` — 적재 보조 함수
@@ -191,7 +192,7 @@ DB_HOST=127.0.0.1 LIGHTRAG_URL=http://127.0.0.1:9621 TOOLS_URL=http://127.0.0.1:
 | U-RAG-3 | `top_k_indices([0.1,0.9,0.5,0.9], 2)` | `[1, 3]`(동점은 원래 순서) |
 | U-RAG-4 | `top_k_indices([0.3], 5)` | `[0]` |
 | U-RAG-5 | `rag_query` 정상 — 후보 7개, 가짜 점수, lookup이 7개 모두 메타 반환 | items 5개, 점수 내림차순, 각 항목 `contentid`·`source`·`as_of`·`path`·`score`·`text` 비어 있지 않음, `count==5` |
-| U-RAG-6 | 요청 본문 | `mode=="mix"`, 후보 수 = 설정값 30, 헤더 `X-API-Key`(**미확인**) |
+| U-RAG-6 | 요청 본문 | `mode=="mix"`, 후보 수 = 설정값 30, 헤더 `X-API-Key` |
 | U-RAG-7 | 후보 0개 | `{"items": [], "count": 0}`, 가짜 리랭커 `score` 호출 0회 |
 | U-RAG-8 | 상위 5개 중 1개의 path가 lookup 결과에 없음 | 항목 4개(다시 채우지 않음) |
 | U-RAG-9 | LightRAG 500 / 타임아웃 | 예외, 메시지 "지식 검색을 할 수 없습니다", 메시지에 내부 URL·키 없음 |
