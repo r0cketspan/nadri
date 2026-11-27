@@ -86,7 +86,7 @@ async def test_area_based_list_request():
     resp = await client.area_based_list("서울", 12, num_of_rows=30)
     q = seen[0].url.params
     assert seen[0].url.path.endswith("/areaBasedList2")
-    assert (q["areaCode"], q["contentTypeId"], q["numOfRows"], q["pageNo"]) == ("1", "12", "30", "1")
+    assert (q["lDongRegnCd"], q["contentTypeId"], q["numOfRows"], q["pageNo"]) == ("11", "12", "30", "1")
     assert (q["_type"], q["MobileOS"], q["MobileApp"]) == ("json", "ETC", "nadri")
     assert q["serviceKey"] == KEY
     assert "serviceKey" not in resp.params

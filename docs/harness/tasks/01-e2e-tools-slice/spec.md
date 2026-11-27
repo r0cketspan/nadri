@@ -299,13 +299,13 @@ def session_factory(engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:
 상수:
 ```python
 KST = ZoneInfo("Asia/Seoul")
-AREAS: dict[str, dict[str, str]] = {"서울": {"areaCode": "1"}, "제주": {"areaCode": "39"}}
+AREAS: dict[str, dict[str, str]] = {"서울": {"lDongRegnCd": "11"}, "제주": {"lDongRegnCd": "50"}}
 CONTENT_TYPES: dict[int, str] = {12: "관광지", 14: "문화시설", 15: "축제공연행사", 25: "여행코스",
                                  28: "레포츠", 32: "숙박", 38: "쇼핑", 39: "음식점"}
 QUOTA_CODES = {"22"}       # 일일 한도 초과 (F7)
 RATE_CODES = {"23"}        # 초당 한도 초과 (F7)
 ```
-> **미확인**: KorService2가 `areaCode`(서울 1·제주 39)를 계속 받는지, 법정동 코드(`lDongRegnCd`) 체계로 바뀌었는지. 첫 실호출(A12)에서 확인해 `AREAS` 값만 바꾼다. 응답 필드명(`sigungucode`, `mapx`, `mapy`, `modifiedtime` 등)도 같은 시점에 확인한다.
+> **확인됨(2026-11-28 실호출)**: `areaCode`는 옛 코드가 남은 항목만 잡힌다(서울 관광지 17건). 법정동 시도 코드 `lDongRegnCd`(서울 11·제주 50)로 부르면 768·558건 → `AREAS`를 `lDongRegnCd`로 바꿨다. 응답에는 `sigungucode`와 함께 `lDongRegnCd`·`lDongSignguCd`가 온다(시군구 기준은 허브 작업 20에서 정한다). 응답 필드명(`sigungucode`, `mapx`, `mapy`, `modifiedtime` 등)도 같은 시점에 확인한다.
 
 ```python
 class TourApiError(Exception):
@@ -342,7 +342,7 @@ class TourApiClient:
     async def detail_info(self, contentid: str, content_type_id: int) -> TourApiResponse: ...
     async def aclose(self) -> None: ...
 ```
-- 공통 파라미터: `serviceKey`, `MobileOS=ETC`, `MobileApp=nadri`, `_type=json`. 목록은 `numOfRows`, `pageNo`, `arrange=C`(수정일순 — 표본 선택 기준, **미확인**: v2 정렬 코드), `areaCode`, `contentTypeId`. 상세는 `contentId`(+`contentTypeId`). v2에서 `defaultYN` 등 플래그가 없어졌는지 **미확인** — 실호출로 확인.
+- 공통 파라미터: `serviceKey`, `MobileOS=ETC`, `MobileApp=nadri`, `_type=json`. 목록은 `numOfRows`, `pageNo`, `arrange=C`(수정일순 — 표본 선택 기준, **미확인**: v2 정렬 코드), `lDongRegnCd`, `contentTypeId`. 상세는 `contentId`(+`contentTypeId`). v2에서 `defaultYN` 등 플래그가 없어졌는지 **미확인** — 실호출로 확인.
 - `parse_response` 규칙:
   1. HTTP 상태 ≠ 200 → `TourApiError("http_<상태>")`.
   2. 본문이 XML(`<OpenAPI_ServiceResponse>` 등 게이트웨이 오류)이면 `returnReasonCode`·`returnAuthMsg`를 정규식으로 뽑아 `TourApiError(code)`. 해석 못 하면 `code="parse"`.

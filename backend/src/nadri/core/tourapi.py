@@ -10,8 +10,9 @@ from zoneinfo import ZoneInfo
 import httpx
 
 KST = ZoneInfo("Asia/Seoul")
-# 지역 → 목록 조회 파라미터. KorService2가 areaCode를 계속 받는지는 첫 실호출(A12)에서 확인한다.
-AREAS: dict[str, dict[str, str]] = {"서울": {"areaCode": "1"}, "제주": {"areaCode": "39"}}
+# 지역 → 목록 조회 파라미터. KorService2는 법정동 시도 코드(lDongRegnCd)로 지역을 찾는다
+# (2026-11-28 실호출 확인: areaCode=1은 서울 관광지 17건만, lDongRegnCd=11은 768건).
+AREAS: dict[str, dict[str, str]] = {"서울": {"lDongRegnCd": "11"}, "제주": {"lDongRegnCd": "50"}}
 CONTENT_TYPES: dict[int, str] = {
     12: "관광지", 14: "문화시설", 15: "축제공연행사", 25: "여행코스",
     28: "레포츠", 32: "숙박", 38: "쇼핑", 39: "음식점",

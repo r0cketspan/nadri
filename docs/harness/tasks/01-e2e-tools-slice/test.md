@@ -57,7 +57,7 @@ DB_HOST=127.0.0.1 LIGHTRAG_URL=http://127.0.0.1:9621 TOOLS_URL=http://127.0.0.1:
 | U-TA-6 | 〃 | XML 코드 `23` | `rate_limited is True` |
 | U-TA-7 | 〃 | HTTP 500 | `code=="http_500"` |
 | U-TA-8 | 〃 | 깨진 본문 `"<html>오류"` | `code=="parse"` |
-| U-TA-9 | `area_based_list("서울", 12, num_of_rows=30)` | MockTransport | 요청 쿼리에 `areaCode=1`, `contentTypeId=12`, `numOfRows=30`, `pageNo=1`, `_type=json`, `MobileOS=ETC`, `MobileApp=nadri`, `serviceKey` 존재. 경로 `/areaBasedList2` |
+| U-TA-9 | `area_based_list("서울", 12, num_of_rows=30)` | MockTransport | 요청 쿼리에 `lDongRegnCd=11`, `contentTypeId=12`, `numOfRows=30`, `pageNo=1`, `_type=json`, `MobileOS=ETC`, `MobileApp=nadri`, `serviceKey` 존재. 경로 `/areaBasedList2` |
 | U-TA-10 | `detail_intro("126508", 12)` | MockTransport | 경로 `/detailIntro2`, `contentId=126508`, `contentTypeId=12` |
 | U-TA-11 | 반환값 `params` | 위 호출 | `serviceKey` 키가 없음 |
 | U-TA-12 | `on_call` | 성공 1회 + 오류(22) 1회 | 콜백 2회 호출(오류도 셈), 인자는 오퍼레이션 이름 |

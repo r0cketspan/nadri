@@ -35,7 +35,7 @@ async def test_count_totals():
     def handler(req: httpx.Request) -> httpx.Response:
         """요청을 기록하거나 검사하고 가짜 응답을 돌려준다."""
         seen.append(req.url.params)
-        total = int(req.url.params["contentTypeId"]) * (1 if req.url.params["areaCode"] == "1" else 2)
+        total = int(req.url.params["contentTypeId"]) * (1 if req.url.params["lDongRegnCd"] == "11" else 2)
         body = {"response": {"header": {"resultCode": "0000", "resultMsg": "OK"},
                              "body": {"items": "", "totalCount": total}}}
         return httpx.Response(200, text=json.dumps(body))
