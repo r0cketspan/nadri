@@ -516,7 +516,7 @@ def outcome_to_values(o: IndexOutcome, now: datetime) -> dict | None:
   - 문서 단건 조회 API는 없다 → `document_exists`·잔여 문서 찾기는 `POST /documents/paginated` `{page, page_size(10~200), sort_field:"id", sort_direction}`로 전체 목록을 넘겨 본다(수천 건 규모라 충분). 문서 수는 `GET /documents/status_counts` → `{status_counts:{상태: 수}}`.
   - **file_source 변형**: LightRAG는 file_source를 **basename으로 바꿔 저장**한다(`normalize_file_path` → `canonicalize_parser_hinted_basename`). `entity/12/126508.md`를 그대로 보내면 `126508.md`만 남아 경로 대조가 깨지므로, 경로의 `/`를 `__`로 바꿔 보낸다(`to_file_source`: `entity__12__126508.md`, 역변환 `from_file_source`). §9 A7 대안 "file_path 변형 → 코드로 매핑"에 해당(사용자 확인 불필요).
 - 구현 처리 순서 보완(위 사실 때문에): ① 해시 같으면 skipped ② **바뀐 페이지들의 이전 문서를 먼저 모두 삭제**(삭제 `busy`면 `poll_interval_s` 간격으로 재요청, 목록에서 사라질 때까지 확인) — 페이지마다 delete→insert를 번갈아 하면 앞 insert가 파이프라인을 바쁘게 해 다음 delete가 `busy`로 거절되기 때문 ③ insert — 409 "already contains"(이전 실행의 실패·타임아웃 잔여 문서)면 같은 file_source 문서를 찾아 지우고 **한 번** 다시 넣는다, 그 밖의 409(삭제 진행 중)는 간격을 두고 재시도 ④ track_status 폴링. 시간 상한은 ②~④ 합산 `timeout_s`.
-- LightRAG는 문서 ID를 내용 해시로 만드는 것으로 알려져 있다(**미확인**, I-8·H-10에서 확인). 내용이 바뀌면 doc_id가 바뀌고, 이전 문서를 지우지 않으면 같은 file_source라 409로 넣지 못한다 → 2) 단계가 필수.
+- **확인됨(2026-11-28 H-10·I-8)**: LightRAG v1.5.7은 문서 ID를 내용이 아니라 file_source(경로)로 만든다 — 내용이 바뀌어도 doc_id는 같다. 이전 문서를 지우지 않으면 같은 file_source라 409로 넣지 못한다 → 2) 단계가 필수. 변경 후 LightRAG 저장 본문·검색 결과에 새 내용이 반영됨을 확인했다.
 - 해시가 같아도 `old_doc_id`가 LightRAG에 실제로 없는 경우(수동 삭제 등)는 01에서 감지하지 않는다(상태 대조는 20 lint 범위).
 
 ### 6.7 `ingest/bootstrap.py`
@@ -770,15 +770,15 @@ async def get_datetime() -> dict:
 ## 10. 판정 결과 기록 (구현 시 채움)
 | 가정·측정 | 결과 | 수치 | 판정 | 후속 |
 |---|---|---|---|---|
-| A7 | | | | |
-| A8 | | | | |
-| A9 | | p50 / p95 | | |
-| A12 | | 16칸 totalCount, 한도 단위 | | |
-| A16 | | | | |
-| A21 | | | | |
-| 인덱싱 비용·시간 | | 페이지당 $·초, 전체 추정 | | |
-| 적재 일수 | | | | |
-| 이미지 크기 | | app / tools | | |
+| A7 | `/query/data`의 `data.chunks[]`에 content·file_path·chunk_id. file_path는 파일 이름만 남아 경로 `/`→`__` 변환으로 매핑 | 후보 30개(top_k·chunk_top_k=30), 매핑률 100%(I-3·H-7 결과 항목 전부 wiki_pages 메타 있음) | 통과(대안 적용) | — |
+| A8 | 엔티티 이름 한국어 정상, frontmatter 키가 엔티티로 안 잡힘. 유형명 한/영 혼재(location·장소), 전화번호·"화장실 정보" 같은 잡음 일부 | 질의 3개(광화문·성산일출봉·한라산) | **사용자 판단 대기**(추천: 쓸 만함) | 잡음은 03 템플릿 정리로 줄어드는지 확인 |
+| A9 | PyTorch 원본 rerank 약 28초 → ONNX int8 512·30 p50 17.1/p95 19.2초, 256·20 p50 6.2/p95 10.5초 → **리랭커 끔** | 끔 상태 rag_query total p50 0.29초 / p95 0.59초(같은 질문 반복, 새 질문은 약 2초) | 기준 초과 → 사용자 결정으로 끔 | 22 골든셋에서 on/off 비교 |
+| A12 | `areaCode`는 옛 코드만 잡힘 → `lDongRegnCd`(서울 11·제주 50)로 변경. `sigungucode` 빈 값(대신 `lDongSignguCd`), 여행코스(25) 0건 | 16칸 합계 10,061. 실적재 152호출 + count 16×2 = 앱 카운터 184 | 통과(코드 수정). 한도 단위·포털 표시 대조는 **사용자 확인 대기** | 시군구 기준은 20, 여행코스 0건은 03에서 |
+| A16 | 문서 API 확인(§6.6). doc_id는 경로 기반이라 내용이 바뀌어도 같음 → delete→insert 필수. 변경 후 저장 본문·검색 결과에 반영, 문서 수 불변 | reindex 전부 skipped 50 / 1건 변경 indexed 1, 문서 수 50 유지 | 통과 | — |
+| A21 | `mcp==1.30.0`, `langchain-mcp-adapters==0.3.2`로 툴 3종 목록·호출 성공, 토큰 없음·틀림 401 | I-1~I-4 통과 | 통과 | — |
+| 인덱싱 비용·시간 | 서울 30 = 278초, 제주 20 = 186초 | 페이지당 약 9.3초(순차). 10,061건이면 약 26시간. 비용은 OpenAI Usage로 **사용자 확인 대기** | 기록 | 03 적재 계획에 반영 |
+| 적재 일수 | 하루 한도 기준 | 서비스 전체 한도 38일 / 오퍼레이션별 13일 | 14일 초과 | 03에서 운영계정 증설 여부 결정(03-Q9) |
+| 이미지 크기 | — | app 415MB / tools 1.34GB(ONNX 전환 전 5.13GB) | 기록 | — |
 
 ---
 

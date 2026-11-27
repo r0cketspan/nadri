@@ -218,7 +218,7 @@ DB_HOST=127.0.0.1 LIGHTRAG_URL=http://127.0.0.1:9621 TOOLS_URL=http://127.0.0.1:
 | I-5 | 롤 권한 | `nadri_tools`로 접속: `SELECT count(*) FROM tour_items` 성공, `SELECT * FROM ingest_runs` → 권한 오류, `INSERT INTO tour_items …` → 권한 오류, `lightrag` DB 접속 실패 |
 | I-6 | COMMENT | `nadri_app`으로 `obj_description`·`col_description` 조회 → spec §3.2 표와 일치 |
 | I-7 | upsert 멱등(실DB) | 테스트용 contentid `test-01-<uuid>`: 첫 upsert `inserted` → 같은 레코드 `unchanged`(updated_at 불변) → usetime 변경 `updated`. 종료 시 삭제 |
-| I-8 | 인덱서 왕복(실 LightRAG) | 테스트 페이지 `entity/test/<uuid>.md`: 인덱싱 `indexed`·doc_id A → 같은 내용 `skipped`(요청 0) → 내용 변경 `indexed`·doc_id B≠A, `document_exists(A)` False, 문서 수 전후 동일(A16). 종료 시 B 삭제 |
+| I-8 | 인덱서 왕복(실 LightRAG) | 테스트 페이지 `entity/test/<uuid>.md`: 인덱싱 `indexed`·doc_id A → 같은 내용 `skipped`(요청 0) → 내용 변경 delete→insert로 `indexed`, 문서 수 전후 동일(A16). **doc_id는 같음** — LightRAG v1.5.7은 문서 ID를 경로(file_source)로 만든다(2026-11-28 실측, 원래 기대 'B≠A'를 고침). 종료 시 B 삭제 |
 | I-9 | 테이블 생성 스크립트 되돌리기·재적용 | 별도 임시 DB가 없으므로 **수동 HITL H-3로 대체**(downgrade가 실데이터를 지우므로 자동화하지 않음) |
 
 ---

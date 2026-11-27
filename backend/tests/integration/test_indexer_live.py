@@ -11,14 +11,19 @@ pytestmark = pytest.mark.integration
 
 
 async def test_index_roundtrip(app_settings):
-    """I-8: indexed(A) → 같은 내용 skipped(요청 0) → 내용 변경 indexed(B≠A), A 삭제됨, 문서 수 불변."""
+    """I-8: indexed(A) → 같은 내용 skipped(요청 0) → 내용 변경 delete→insert로 indexed, 문서 수 불변.
+
+    LightRAG v1.5.7은 문서 ID를 내용이 아니라 file_source(경로)로 만든다(2026-11-28 실측) —
+    그래서 내용이 바뀌어도 doc_id는 같고, 이전 문서를 지우지 않으면 409로 insert가 거절된다.
+    """
     path = f"entity/test/{uuid.uuid4()}.md"
     client = LightRagClient(app_settings.lightrag_url, app_settings.lightrag_api_key.get_secret_value())
-    doc_b = None
+    doc_b = a_id = None
     try:
         # 1) 첫 인덱싱
         text_a = f"# 통합 테스트 페이지\n\n관광지 ID: {path}\n\n테스트용 문단 A."
         [a] = await index_pages(client, [PageToIndex(path, text_a, content_hash(text_a), None, None)], timeout_s=600)
+        a_id = a.doc_id
         assert a.status == "indexed" and a.doc_id
         count_after_a = sum((await client.count_documents()).values())
 
@@ -40,10 +45,10 @@ async def test_index_roundtrip(app_settings):
             client, [PageToIndex(path, text_b, content_hash(text_b), a.content_hash, a.doc_id)], timeout_s=600
         )
         doc_b = b.doc_id
-        assert b.status == "indexed" and b.doc_id != a.doc_id
-        assert await client.document_exists(a.doc_id) is False
+        assert b.status == "indexed" and b.doc_id == a.doc_id
         assert sum((await client.count_documents()).values()) == count_after_a
     finally:
-        if doc_b:
-            await client.delete_documents([doc_b])
+        # 4) 테스트 문서 정리(중간에 실패해 B가 없으면 A를 지운다)
+        if doc_b or a_id:
+            await client.delete_documents([doc_b or a_id])
         await client.aclose()
