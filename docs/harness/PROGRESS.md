@@ -1,12 +1,12 @@
 # PROGRESS
-- 현재 단계: Phase 4 완료 (01~26 spec/test 확정, 2026-11-28) → Phase 5 구현 시작 전
+- 현재 단계: Phase 5 — 구현. 01-e2e-tools-slice 코드·단위테스트 완료(2026-11-28), 실 키 HITL(H-1~H-12)·통합 테스트 대기
 - 게이트: G1 ✅ (2026-11-07) · G2 ✅ (2026-11-07) · G3 ✅ (2026-11-07, 재검토 재승인 2026-11-21) · G4 ✅ (2026-11-21) · G5 (작업별, 아래 표)
-- 다음 할 일: Phase 5 — 01-e2e-tools-slice 구현 시작(브랜치 `feat/01-e2e-tools-slice`, TourAPI·OpenAI 키로 시작). Node LTS(fnm)는 14 구현 시작 때 WSL에 설치. 02 시작 직전에 TourAPI 키·`.dev` 도메인·Named Tunnel 토큰·Tavily 키 발급 방법 안내(G4 Q2)
+- 다음 할 일: 사용자가 `.env` 작성(OpenAI·TourAPI Decoding 키 + 내부 토큰·DB 비밀번호 6개) → 01 HITL H-1~H-12·통합 테스트 → spec §10 판정 기록 → G5. **A9 사전 측정에서 리랭커가 기준 초과**(아래 막힌 것). Node LTS(fnm)는 14 구현 시작 때 WSL에 설치. 02 시작 직전에 TourAPI 키·`.dev` 도메인·Named Tunnel 토큰·Tavily 키 발급 방법 안내(G4 Q2)
 - 브랜치: `dev`(작업 기준) · `prod`(릴리스). 2026-11-07 로컬 `master` → `prod` 이름 변경, `dev` 생성. 원격 반영(push·기본 브랜치 변경·원격 master 삭제)은 사용자가 직접
 
 | 작업id | spec/test | 브랜치 | 구현·테스트 | 커밋 | G5 병합 |
 |---|---|---|---|---|---|
-| 01-e2e-tools-slice | ✅ | feat/01-e2e-tools-slice | | | |
+| 01-e2e-tools-slice | ✅ | feat/01-e2e-tools-slice | 단위 124 ✅ · HITL·통합 대기 | 96942b4 | |
 | 02-e2e-chat-slice | ✅ | feat/02-e2e-chat-slice | | | |
 | 03-ingest-bootstrap | ✅ | feat/03-ingest-bootstrap | | | |
 | 04-db-schema | ✅ | feat/04-db-schema | | | |
@@ -51,6 +51,7 @@
 - `docs/harness/tasks/23`~`26` — spec.md·test.md (2026-11-22 초안, 2026-11-28 확인 질문 결정 반영). 병렬 작성 후 24를 기준으로 맞춤: 24가 `eval_reports.stats` 구조의 주인(§9, 공격 세트는 `stats.attack_set`), 23 `run_attack_set`은 `AttackReport`를 돌려주고 24 `to_attack_summary`가 변환(`to_stats()`는 CLI 결과 파일용), 23이 `sf` 없이도 사용량 기록, `UsageRecord.kind`는 23이 `eval`·24가 `proposal` 추가 · 25 화면 키는 24 §9 그대로 + 모르는 키는 "기타 집계" 표 · 조정 설정값은 compose `x-tuning` 하나로 api·tour-tools·ingest 공유(24-Q2·26-Q5, 26 C-27 검사). 발견한 앞 작업 불일치: **21 빈 DB에서 스케줄러가 전체 초기 적재를 스스로 시작**(26-Q1), **간접 인젝션 공격자 주소가 "툴 결과에 있던 주소" 규칙을 통과**(23-Q11, 지금은 검증 에이전트만 막음), 04 `PROPOSAL_TARGETS`에 `faq_cache` 없음(24-Q1), 20 `lock.py`에 키 2 없음(24-Q14), [PL] 23 의존 08→08·22(23-Q10)·25가 19 함수 사용(25-Q6), 03 `--limit`→`--max-items`([PL] 26 완료 기준), [A] §9·§2·ADR-01 문구가 확정 spec과 다름(26-Q8), lightrag healthcheck 없음(26-Q2)
 
 ## 결정 로그 (게이트에서 바뀐 것)
+- 2026-11-28 01 구현 중 확인(spec.md "확인됨" 반영): LightRAG v1.5.7 env 키 이름 일치, 문서 API 경로·`X-API-Key` 확인, 이미지 `ghcr.io/hkuds/lightrag:v1.5.7`·WORKING_DIR `/app/data/rag_storage`, pg18 데이터 볼륨 `/var/lib/postgresql`. LightRAG가 file_source를 basename으로 저장 → 경로 `/`를 `__`로 바꿔 보냄(A7 대안 범위, 코드 처리). FastMCP는 `host="0.0.0.0"`으로 생성(기본값이면 DNS 리바인딩 보호로 `tour-tools` 호스트 거부). 이미지 크기 app 415MB / tools 5.13GB(CUDA 휠 없음)
 - 2026-10-25 (G1 전): 리버스 프록시 Caddy → **Nginx**
 - 2026-10-25 (G1 전): 프로젝트 이름 **nadri**. 로컬 디렉터리는 `myAgent` 유지
 - 2026-10-25 (G1 전): 확장 데이터 원천 4곳을 MVP 이후 항목으로 추가(FR-49). 크롤링 기본 미사용
@@ -90,5 +91,6 @@
 - 확인 질문 Q1~Q4 답변 완료(위 결정 로그 참고)
 
 ## 막힌 것 / 사용자 확인 필요
+- 01 A9(리랭커 지연) 사전 측정(2026-11-28, 실 키 없이 tools 컨테이너에서 직접): bge-reranker-v2-m3 CPU, 30쌍(쌍당 약 325토큰) p50 **16.3초**, max_length 256으로도 약 12초(Ryzen 5 5600, torch 스레드 6). 기준 p95 ≤ 2초를 크게 넘어 spec §9상 **사용자 결정 필요**(ONNX 변환·리랭커 끔·GPU·후보 수 축소 등). H-9 실측(실제 위키 페이지)으로 다시 확인 후 결정
 - (해결) 2026-11-20 G3 재검토 요청 → 2026-11-21 재승인 완료. 상세 내용은 위 "G3 재검토 요약"·결정 로그, requirements.md §8
 - 사용자: `.dev` 도메인 구입(Cloudflare Registrar) — 인프라 작업 전까지. Gmail 발신 계정·앱 비밀번호 — 메일 작업 전까지 `.env`에 직접
