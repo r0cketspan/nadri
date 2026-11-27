@@ -1,4 +1,4 @@
-"""rag_query 툴 — LightRAG 후보 30개 → CrossEncoder 리랭크 → 상위 5개 + 출처·기준일."""
+"""rag_query 툴 — LightRAG 후보 30개 → 리랭커(ONNX) 재채점 → 상위 5개 + 출처·기준일."""
 
 from __future__ import annotations
 

@@ -139,10 +139,11 @@ async function transcribe(audio: Blob): Promise<string> {
 curl -LsSf https://astral.sh/uv/install.sh | sh
 cp .env.example .env
 
-# 단위테스트 (외부 서비스 불필요, 리랭커/torch 없이)
+# 단위테스트 (외부 서비스 불필요, 리랭커/onnxruntime 없이)
 cd backend && uv sync --no-group reranker && uv run pytest -m "not integration" -q
 
 # 빌드·기동 (호스트 포트 없음. ingest는 테이블 생성 스크립트 적용 후 종료 0)
+# tools 이미지는 빌드 스테이지에서 리랭커를 ONNX int8로 변환한다(torch는 빌드에만, 수 분 걸림)
 docker compose build
 docker compose up -d
 docker compose ps -a

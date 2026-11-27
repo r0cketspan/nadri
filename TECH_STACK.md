@@ -19,7 +19,7 @@
 | Graph RAG | **LightRAG** (`PGTableGraphStorage`) | 그래프 + 벡터, 문서 단위 삭제·증분 갱신. 질의 모드 `mix`로 시작 → `hybrid`와 비교해 확정 |
 | DB | **PostgreSQL + pgvector** (단일 DB) | 벡터·그래프 테이블·관광 정형데이터·사용자·세션·대화 |
 | 임베딩 | OpenAI `text-embedding-3-small` | 로컬 `bge-m3`는 소량 샘플 비교 실험용만 — **바꾸면 전체 재인덱싱** |
-| 리랭커 | `BAAI/bge-reranker-v2-m3` CrossEncoder | **tour-tools 안에서 직접 재정렬**(별도 컨테이너 없음). LightRAG는 `/query/data`로 후보만, 자체 리랭크 끔 |
+| 리랭커 | `BAAI/bge-reranker-v2-m3` CrossEncoder (**ONNX Runtime int8, CPU** — 이미지 빌드 때 변환, 런타임 torch 없음) | **tour-tools 안에서 직접 재정렬**(별도 컨테이너 없음). LightRAG는 `/query/data`로 후보만, 자체 리랭크 끔 |
 | 툴 연결 | **MCP 서버** `tour-tools` (공식 `mcp` Python SDK **1.30.x**/FastMCP, Streamable HTTP) | api가 `langchain-mcp-adapters`로 연결(내부 토큰 헤더). 어댑터가 `mcp<2`를 요구해 2.x 아님 |
 | 웹 검색 | **`langchain-tavily`** `TavilySearch` (Tavily) | 답변 에이전트에 직접 붙임. 무료 월 1,000크레딧(basic 1회 = 1크레딧) |
 | AI 보안 | 자체 `guard` 모듈 + OpenAI **Moderation API**(`omni-moderation-latest`, 무료) | 입력: 개인정보 가리기 → Moderation → LLM 분류기(순서대로, 실패 시 차단). 출력: Moderation + 코드 검사 + 검증 에이전트. [`SECURITY_GUIDE.md`](SECURITY_GUIDE.md) |

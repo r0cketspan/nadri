@@ -38,8 +38,8 @@
 | `.env.example` | 이 작업에서 쓰는 키 이름 8개만(§4) |
 | `infra/postgres/init/01-init.sh` | 롤 3개·DB 2개·`vector` 확장·접속 권한 (G4 Q8 — `.sh`, 비밀번호는 환경변수) |
 | `infra/lightrag/lightrag.env` | LightRAG 비밀 아닌 설정(PG 저장소, `PGTableGraphStorage`, HNSW, 한국어, 리랭크 off, 모델) |
-| `backend/pyproject.toml`, `backend/uv.lock` | Python 3.12, 의존 버전 고정, 그룹 `reranker`(tools 타깃만)·`dev`(테스트) |
-| `backend/Dockerfile` | 타깃 `app`(ingest, 02부터 api) / `tools`(tour-tools, 빌드 시 리랭커 가중치 내려받기), 비루트 |
+| `backend/pyproject.toml`, `backend/uv.lock` | Python 3.12, 의존 버전 고정, 그룹 `reranker`(tools 런타임)·`reranker-export`(이미지 빌드 전용)·`dev`(테스트) |
+| `backend/Dockerfile` | 타깃 `app`(ingest, 02부터 api) / `tools`(tour-tools, 빌드 스테이지에서 리랭커 가중치를 int8 ONNX로 변환해 복사), 비루트 |
 | `backend/alembic.ini`, `backend/alembic/env.py`, `backend/alembic/versions/0001_tour_ingest.py` | async Alembic, 테이블 4개 + 한글 COMMENT + `nadri_tools` SELECT 권한 부여 |
 | `backend/src/nadri/__init__.py` | 패키지 표시(빈 파일) |
 | `backend/src/nadri/core/config.py` | 환경변수 설정(pydantic-settings) |
@@ -55,7 +55,8 @@
 | `backend/src/nadri/ingest/bootstrap.py` | `--area --type --limit` 소량 적재, `reindex`, `count`, 호출 수 기록 |
 | `backend/src/nadri/tools/server.py` | FastMCP(stateless Streamable HTTP) + Bearer 토큰 ASGI 미들웨어 + 툴 3종 등록 + 실행 진입점 |
 | `backend/src/nadri/tools/rag_query.py` | LightRAG `/query/data`(mix, 후보 30) → 리랭크 → 상위 5 + `wiki_pages` 메타 |
-| `backend/src/nadri/tools/reranker.py` | `bge-reranker-v2-m3` CrossEncoder(CPU) 래퍼 |
+| `backend/src/nadri/tools/reranker.py` | `bge-reranker-v2-m3` 리랭커(ONNX Runtime int8, CPU) 래퍼 |
+| `backend/scripts/export_reranker_onnx.py` | 이미지 빌드 전용: 가중치 → ONNX 내보내기 + int8 동적 양자화 (A9 대안, 2026-11-28 추가) |
 | `backend/src/nadri/tools/data_query.py` | `tour_items` 파라미터화 조회, 하버사인 |
 | `backend/src/nadri/tools/get_datetime.py` | 현재 KST·요일·이번 주말/다음 주 범위 |
 | `backend/src/nadri/cli.py` | `nadri` 명령: `ingest bootstrap·reindex·count`, `tools smoke`, `lightrag sample` (§6.9) |
@@ -262,7 +263,7 @@ def require(value: SecretStr | None, name: str) -> str:
 - 통합 테스트용 포트(WSL 안에서만 접속, `127.0.0.1` 바인드): postgres `127.0.0.1:5432`, lightrag `127.0.0.1:9621`, tour-tools `127.0.0.1:8001→8000`. 운영 `compose.yaml`에는 여전히 호스트 포트 없음.
 
 ### 5.3a 개발·테스트 환경 (Q4 결정, 2026-11-21)
-- 코드 작성·테스트는 **WSL2 Ubuntu**에서 한다. uv를 설치하고 `backend/`에서 `uv sync`(Python 3.12는 uv가 받음, 시스템 Python 3.11 미사용) → `backend/.venv` 생성(`.gitignore` 대상). 리랭커 그룹은 받지 않는다(`uv sync --no-group reranker`, torch 불필요).
+- 코드 작성·테스트는 **WSL2 Ubuntu**에서 한다. uv를 설치하고 `backend/`에서 `uv sync`(Python 3.12는 uv가 받음, 시스템 Python 3.11 미사용) → `backend/.venv` 생성(`.gitignore` 대상). 리랭커 그룹은 받지 않는다(`uv sync --no-group reranker`, onnxruntime 불필요).
 - 단위테스트: `cd backend && uv run pytest -m "not integration"`.
 - 통합 테스트: compose를 dev 덮어쓰기로 띄운 뒤 접속 주소만 바꿔 실행 — `DB_HOST=127.0.0.1 LIGHTRAG_URL=http://127.0.0.1:9621 TOOLS_URL=http://127.0.0.1:8001/mcp uv run pytest -m integration` (비밀값은 레포 루트 `.env`에서 읽음).
 - 서비스(postgres·lightrag·tour-tools·ingest)는 계속 Docker Compose로만 띄운다.
@@ -270,14 +271,16 @@ def require(value: SecretStr | None, name: str) -> str:
 ### 5.4 `backend/Dockerfile` (멀티 스테이지)
 1. `base`: `python:3.12-slim` + `uv`(공식 이미지에서 바이너리 복사, 버전 고정), 사용자 `nadri`(uid 10001), `WORKDIR /app`, `/data/wiki`·`/data/raw` 생성·소유권.
 2. `app`: `uv sync --frozen --no-dev --no-group reranker` → 소스 복사 → `USER nadri` → `CMD ["alembic","upgrade","head"]`.
-3. `tools`: `uv sync --frozen --no-dev --group reranker` → 빌드 시 `huggingface_hub.snapshot_download("BAAI/bge-reranker-v2-m3", revision=<고정 커밋>, local_dir=/opt/models/bge-reranker-v2-m3)` → `ENV HF_HUB_OFFLINE=1` → `USER nadri` → `CMD ["nadri-tools"]`(= `nadri.tools.server:main`).
-- torch는 **CPU 전용 휠**을 쓴다(`[tool.uv.sources]`에 pytorch CPU 인덱스 지정) — CUDA 휠은 수 GB가 더 붙는다. 가중치 약 2.3GB(**미확인**, 빌드 후 이미지 크기 기록).
+3. `reranker-export`(빌드 전용, 최종 이미지에 안 들어감): `uv sync --frozen --only-group reranker-export` → `huggingface_hub.snapshot_download("BAAI/bge-reranker-v2-m3", revision=<고정 커밋>, local_dir=/build/hf)` → `scripts/export_reranker_onnx.py`: `transformers`로 올려(eager 어텐션) `torch.onnx.export`(TorchScript 경로 `dynamo=False`, opset 17, 입력 `input_ids`·`attention_mask` 배치·길이 동적, 출력 `logits`) → `onnxruntime.quantization.quantize_dynamic`(가중치 int8) → `/opt/models/bge-reranker-v2-m3/{model.onnx, tokenizer.json}`.
+4. `tools`: `uv sync --frozen --no-dev --group reranker`(onnxruntime·tokenizers·numpy, **torch 없음**) → `COPY --from=reranker-export /opt/models/bge-reranker-v2-m3` → `USER nadri` → `CMD ["nadri-tools"]`(= `nadri.tools.server:main`). 런타임에 HF 라이브러리를 쓰지 않으므로 다운로드 경로 자체가 없다.
+- torch는 빌드 스테이지에서만 쓰고 **CPU 전용 휠**(`[tool.uv.sources]` pytorch CPU 인덱스). 공식 ONNX 변환본은 HF 저장소에 없어(2026-11-28 확인, 파일 목록에 `*.onnx` 없음) 고정 리비전 원본 가중치로 직접 변환한다 — 제3자 변환본은 쓰지 않는다. int8 모델 약 570MB.
+- (변경 이력) 2026-11-28 A9 사용자 결정으로 런타임을 PyTorch CrossEncoder → ONNX Runtime int8로 바꿨다. 이전 tools 이미지 5.13GB.
 
 ### 5.5 `backend/pyproject.toml`
 - `requires-python = ">=3.12,<3.13"`, `[project.scripts] nadri = "nadri.cli:main"`, `nadri-tools = "nadri.tools.server:main"`.
 - 의존(01에서 쓰는 것만, `==`로 고정 — [A] §1 고정 후보 버전): `mcp==1.30.0`, `langchain-mcp-adapters==0.3.2`, `langchain-core==1.8.4`, `pydantic-settings`, `sqlalchemy[asyncio]`, `asyncpg`, `alembic`, `httpx`, `jinja2`, `uvicorn`. 버전 미지정 항목은 구현 시점 최신으로 `uv.lock`에 고정.
-  - 구현 시 고정값(2026-11-28): `pydantic-settings==2.16.3`, `sqlalchemy[asyncio]==2.1.9`, `asyncpg==0.32.0`, `alembic==1.20.1`, `httpx==0.29.0`, `jinja2==3.1.6`, `uvicorn==0.54.0` / reranker `torch==2.15.0`(CPU 인덱스), `sentence-transformers==6.3.0`, `huggingface-hub==2.5.0` / dev `pytest==9.2.0`, `pytest-asyncio==1.5.0`, `pyyaml==6.0.4`. `[tool.uv] default-groups = ["dev"]`(그냥 `uv sync`해도 torch를 받지 않음). 리랭커 가중치 리비전 `953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e`(HF API 확인, 모델 파일만 `allow_patterns`). uv 이미지 `ghcr.io/astral-sh/uv:0.13.10`.
-- 그룹 `reranker`: `torch`(CPU 인덱스), `sentence-transformers`, `huggingface-hub`. 그룹 `dev`: `pytest`, `pytest-asyncio`, `pyyaml`(frontmatter 파싱 테스트).
+  - 구현 시 고정값(2026-11-28): `pydantic-settings==2.16.3`, `sqlalchemy[asyncio]==2.1.9`, `asyncpg==0.32.0`, `alembic==1.20.1`, `httpx==0.29.0`, `jinja2==3.1.6`, `uvicorn==0.54.0` / reranker `onnxruntime==1.32.0`, `tokenizers==0.23.3`, `numpy==2.5.5` / reranker-export `torch==2.15.0`(CPU 인덱스), `transformers==5.24.1`, `onnx==1.23.2`, `onnxruntime==1.32.0`, `huggingface-hub==2.5.0` / dev `pytest==9.2.0`, `pytest-asyncio==1.5.0`, `pyyaml==6.0.4`. `[tool.uv] default-groups = ["dev"]`(그냥 `uv sync`해도 리랭커 그룹을 받지 않음). 리랭커 가중치 리비전 `953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e`(HF API 확인, 모델 파일만 `allow_patterns`). uv 이미지 `ghcr.io/astral-sh/uv:0.13.10`.
+- 그룹 `reranker`(tools 런타임): `onnxruntime`, `tokenizers`, `numpy`. 그룹 `reranker-export`(빌드 전용): `torch`(CPU 인덱스), `transformers`, `onnx`, `onnxruntime`, `huggingface-hub`. 그룹 `dev`: `pytest`, `pytest-asyncio`, `pyyaml`(frontmatter 파싱 테스트).
 - `[tool.pytest.ini_options]`: `markers = ["integration: 실 compose·실 키가 필요한 테스트"]`, `asyncio_mode = "auto"`, 기본 실행에서 integration 제외는 명령에서 `-m "not integration"`.
 - LangGraph·langchain-openai·FastAPI 등은 02에서 추가한다.
 
@@ -627,7 +630,7 @@ async def rag_query(question: str, deps: ToolDeps,
 #### `tools/reranker.py`
 ```python
 class CrossEncoderReranker:
-    """bge-reranker-v2-m3 CrossEncoder를 CPU에서 돌려 질문-문단 쌍 점수를 낸다. sentence_transformers는 생성자에서 지연 import."""
+    """bge-reranker-v2-m3(크로스 인코더)를 ONNX Runtime CPU로 돌려 질문-문단 쌍 점수를 낸다. onnxruntime·tokenizers는 생성자에서 지연 import."""
     def __init__(self, model_path: str, max_length: int = 512) -> None: ...
     def score(self, query: str, passages: Sequence[str]) -> list[float]: ...
 
@@ -636,7 +639,9 @@ def top_k_indices(scores: Sequence[float], k: int) -> list[int]:
 async def rerank(reranker, query: str, passages: Sequence[str], k: int) -> list[tuple[int, float]]:
     """score를 스레드에서 실행(이벤트 루프 막지 않음)하고 (인덱스, 점수) 상위 k개를 돌려준다."""
 ```
-- 모델 로드는 `main()`에서 1회(첫 요청 지연 방지). `HF_HUB_OFFLINE=1`이라 런타임 다운로드 없음.
+- 모델 로드는 `main()`에서 1회(첫 요청 지연 방지). 이미지에 들어 있는 `model.onnx`·`tokenizer.json`만 읽어 런타임 다운로드 없음.
+- 토큰화: `tokenizers.Tokenizer.from_file(tokenizer.json)` + `longest_first` 자르기(`max_length`) + `<pad>` 패딩 — sentence-transformers CrossEncoder와 같은 토큰 결과. 후보 전체를 한 배치로 추론, 스레드 수는 onnxruntime 기본(물리 코어 수).
+- 점수: 로짓의 sigmoid(0~1) — 이전 CrossEncoder.predict(num_labels=1 → Sigmoid)와 같은 의미라 출력 `score` 범위가 바뀌지 않는다.
 
 #### `tools/data_query.py`
 ```python
@@ -751,7 +756,7 @@ async def get_datetime() -> dict:
 |---|---|---|---|
 | **A7** `/query/data`가 청크·문서 식별자 반환, 후보 ~30 조절 | 1) v1.5.7 `query_routes.py`로 요청·응답 스키마 확인 2) `nadri lightrag sample`·통합 테스트로 실제 응답 저장(키 이름 기록) 3) `top_k`/`chunk_top_k`=30 요청 시 청크 수, 10/20으로 바꿨을 때 수 변화 | 청크마다 `file_path`(= 넣은 `file_source`)가 있어 `wiki_pages.path`로 100% 매핑되고, 요청 값으로 후보 수가 조절됨(위키 50페이지라 30 미만일 수 있음 — 그 경우 "요청 값 이하로 줄어드는지"로 판단) | file_path 없음/변형 → 청크 본문 "관광지 ID: N" 줄(또는 frontmatter `contentid`)을 정규식으로 뽑아 매핑(코드 변경, 사용자 확인 불필요). 후보 수 조절 불가 → 받은 만큼 쓰고 기록. 둘 다 안 되면 LightRAG 라이브러리 직접 사용 → ADR-06 변경이라 **사용자 확인** |
 | **A8** 한국어 엔티티 추출 품질 | 50페이지 인덱싱 후 `nadri lightrag sample --query`를 "경복궁", "성산일출봉", "한라산" 등 3개로 실행 → 엔티티·관계 10~20개씩 사용자에게 제시 | 사용자 판단 "쓸 만함". 참고 기준(제안): 엔티티 80% 이상이 한국어 고유명사·시설·지역으로 올바름, frontmatter 키(`source`, `as_of` 등)가 엔티티로 잡히지 않음, 관계 70% 이상 의미가 맞음 | ① frontmatter 제거 후 본문만 인덱싱 ② LightRAG 엔티티 유형·프롬프트 조정 ③ 질의 `naive` 비교 ④ 인덱싱만 상위 모델 → **사용자 확인**(비용·D-05). ①②는 재인덱싱 비용(50페이지분)만 듦 |
-| **A9** CPU CrossEncoder 30쌍 지연 | `nadri tools smoke --repeat 10`(워밍업 1회 제외) → tour-tools 로그 `rerank_ms`로 p50·p95, 컨테이너 CPU 정보(`nproc`, 모델명) 기록. 후보가 30 미만이면 실제 개수도 기록하고, 별도로 30개 문단(위키 페이지 본문 반복)으로 `CrossEncoderReranker.score`를 직접 10회 측정 | p95 ≤ 2.0초 (TECH_STACK "+1~2초" 기준 — Q3) | 2~5초: `RERANKER_MAX_LENGTH=256`, `RAG_CANDIDATES=20`으로 재측정, 통과하면 설정값만 바꾸고 기록. 그래도 초과 또는 5초 초과: ONNX 변환·리랭커 끔·GPU → **사용자 확인** |
+| **A9** CPU 리랭커 30쌍 지연 (2026-11-28부터 ONNX Runtime int8) | `nadri tools smoke --repeat 10`(워밍업 1회 제외) → tour-tools 로그 `rerank_ms`로 p50·p95, 컨테이너 CPU 정보(`nproc`, 모델명) 기록. 후보가 30 미만이면 실제 개수도 기록하고, 별도로 30개 문단(위키 페이지 본문 반복)으로 `CrossEncoderReranker.score`를 직접 10회 측정. ONNX 전환 정확도는 같은 질문 5개 × 실제 후보로 PyTorch fp32 원본과 순위 비교(상위 5 겹침률·스피어만·1위 일치) | p95 ≤ 2.0초 (TECH_STACK "+1~2초" 기준 — Q3) | 2~5초: `RERANKER_MAX_LENGTH=256`, `RAG_CANDIDATES=20`으로 재측정, 통과하면 설정값만 바꾸고 기록. 그래도 초과 또는 5초 초과: 리랭커 끔·GPU 등 → **사용자 확인**. (2026-11-28 PyTorch 원본 실측 rerank 약 28초 → 사용자 결정으로 **ONNX int8 변환 적용**, 이후 수치는 ONNX 기준) |
 | **A12**(일부) TourAPI 실제 호출·`totalCount`·한도 단위 | 1) 실적재 호출 성공·응답 필드 기록(`areaCode` 체계, `sigungucode`·`mapx/mapy`·`modifiedtime` 유무, 타입 12 요금 위치) 2) `nadri ingest count`로 16칸 `totalCount` 3) `ingest_state` 호출 수와 공공데이터포털 마이페이지 트래픽 표시를 대조하고, 한도가 오퍼레이션별인지 서비스 전체인지 화면으로 확인(사용자) | 호출 성공, 16칸 기록, 셈이 포털과 일치, 한도 단위 확인(못 하면 "미확인 — 서비스 전체로 보수 가정" 기록) | 키 오류 → 재발급·활성화 대기. 필드명 다름 → 매핑·`AREAS` 수정(코드). 적재 일수가 길면 운영계정 트래픽 증설 신청 여부 → **사용자 확인**(03에서 최종) |
 | **A16** delete→insert·상태 조회 경로 | 1) v1.5.7 `document_routes.py`로 insert·track_status·delete·문서 조회 경로 확인 2) DoD 7 절차(재실행 skipped → 행 수정 → reindex) 3) 삭제 후 이전 doc_id 조회 결과, 문서 수 전후, 수정 내용이 `rag_query`에 반영되는지 | 재실행 시 LightRAG 호출 0, 수정 시 이전 doc 없음 + 새 doc 1개 + 문서 수 불변 + 새 내용 검색됨 | 삭제가 비동기·파이프라인 busy로 거부 → 폴링·재시도 간격 조정(코드). doc_id로 삭제 불가 → file_path 기준 삭제·해시 문서 ID(코드). 그래프 엔티티가 지워지지 않고 남음 → 기록 후 "정기 전체 재인덱싱" 정책 여부 **사용자 확인** |
 | **A21** 어댑터 0.3.2 ↔ mcp 1.30 FastMCP, `headers` 토큰 | `uv.lock`에서 `mcp==1.30.0`·`langchain-mcp-adapters==0.3.2` 확인 → `nadri tools smoke`로 `get_tools()` 3종·스키마·호출 결과 → 통합 테스트로 토큰 없음/틀림 401, 맞음 200 | 3종 모두 호출 성공, 401/200 구분 | 어댑터가 헤더를 안 보냄 → 어댑터 `httpx_client_factory` 등으로 헤더 주입(코드). 버전 비호환 → `mcp>=1.24,<2` 범위 다른 버전(코드, 기록). 토큰 전달 자체 불가 → 내부망 신뢰로 퇴화(NFR-08 영향) **사용자 확인** |
