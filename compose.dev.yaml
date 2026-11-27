@@ -1,0 +1,24 @@
+# 개발 덮어쓰기: docker compose -f compose.yaml -f compose.dev.yaml up -d
+# - 소스 마운트 + tour-tools 핫리로드
+# - 통합 테스트용 포트(WSL 안에서만 접속하도록 127.0.0.1에만 바인드)
+services:
+  postgres:
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  lightrag:
+    ports:
+      - "127.0.0.1:9621:9621"
+
+  ingest:
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/alembic:/app/alembic
+
+  tour-tools:
+    command: ["uvicorn", "nadri.tools.server:build_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app/src"]
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/alembic:/app/alembic
+    ports:
+      - "127.0.0.1:8001:8000"

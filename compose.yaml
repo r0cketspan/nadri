@@ -1,0 +1,101 @@
+# nadri — 01 최소 E2E: postgres · lightrag · tour-tools · ingest
+# 호스트 포트는 열지 않는다(통합 테스트용 포트는 compose.dev.yaml).
+# 각 서비스에는 필요한 비밀값만 넣는다(.env에서 읽음).
+name: nadri
+
+x-hardening: &hardening
+  # 자체 이미지 공통: 비루트(이미지 USER nadri) + 권한 최소화
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg18
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?}
+      TOOLS_DB_PASSWORD: ${TOOLS_DB_PASSWORD:?}
+      LIGHTRAG_DB_PASSWORD: ${LIGHTRAG_DB_PASSWORD:?}
+    volumes:
+      # pg18 이미지는 PGDATA=/var/lib/postgresql/18/docker, VOLUME=/var/lib/postgresql
+      - pg-data:/var/lib/postgresql
+      # 첫 기동 때만 실행되는 초기화 스크립트(롤·DB·확장)
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  lightrag:
+    image: ghcr.io/hkuds/lightrag:v1.5.7
+    restart: unless-stopped
+    env_file: ./infra/lightrag/lightrag.env
+    environment:
+      LLM_BINDING_API_KEY: ${OPENAI_API_KEY:?}
+      EMBEDDING_BINDING_API_KEY: ${OPENAI_API_KEY:?}
+      LIGHTRAG_API_KEY: ${LIGHTRAG_API_KEY:?}
+      POSTGRES_PASSWORD: ${LIGHTRAG_DB_PASSWORD:?}
+    volumes:
+      # 이미지의 WORKING_DIR(/app/data/rag_storage) — 저장소는 PostgreSQL이지만 로컬 파일 유실 방지
+      - lightrag-data:/app/data/rag_storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  ingest:
+    <<: *hardening
+    build:
+      context: ./backend
+      target: app
+    image: nadri-app:dev
+    # 기본 명령: 테이블 생성 스크립트(alembic upgrade head) 적용 후 종료(0).
+    # 적재는 docker compose run --rm ingest nadri ingest bootstrap …
+    restart: "no"
+    environment:
+      DB_USER: nadri_app
+      DB_PASSWORD: ${APP_DB_PASSWORD:?}
+      TOURAPI_SERVICE_KEY: ${TOURAPI_SERVICE_KEY:-}
+      LIGHTRAG_API_KEY: ${LIGHTRAG_API_KEY:?}
+      TOOLS_API_KEY: ${TOOLS_API_KEY:?}
+      LANGSMITH_TRACING: "false"
+      LANGCHAIN_TRACING_V2: "false"
+    volumes:
+      - wiki-data:/data/wiki
+      - raw-data:/data/raw
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  tour-tools:
+    <<: *hardening
+    build:
+      context: ./backend
+      target: tools
+    image: nadri-tools:dev
+    restart: unless-stopped
+    environment:
+      DB_USER: nadri_tools
+      DB_PASSWORD: ${TOOLS_DB_PASSWORD:?}
+      LIGHTRAG_API_KEY: ${LIGHTRAG_API_KEY:?}
+      TOOLS_API_KEY: ${TOOLS_API_KEY:?}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health', timeout=3).status == 200 else 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      lightrag:
+        condition: service_started
+      ingest:
+        condition: service_completed_successfully
+
+volumes:
+  pg-data:
+  wiki-data:
+  raw-data:
+  lightrag-data:

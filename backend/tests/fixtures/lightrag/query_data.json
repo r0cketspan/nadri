@@ -1,0 +1,40 @@
+{
+  "status": "success",
+  "message": "ok",
+  "data": {
+    "entities": [
+      {
+        "entity_name": "경복궁",
+        "entity_type": "location",
+        "description": "조선 궁궐",
+        "file_path": "entity__12__126500.md",
+        "reference_id": "1"
+      }
+    ],
+    "relationships": [],
+    "chunks": [
+      {
+        "content": "---\ncontentid: \"126500\"\n---\n# 장소0\n본문 0",
+        "file_path": "entity__12__126500.md",
+        "chunk_id": "chunk-0",
+        "reference_id": "0"
+      },
+      {
+        "content": "---\ncontentid: \"126501\"\n---\n# 장소1\n본문 1",
+        "file_path": "entity__12__126501.md",
+        "chunk_id": "chunk-1",
+        "reference_id": "1"
+      },
+      {
+        "content": "---\ncontentid: \"126502\"\n---\n# 장소2\n본문 2",
+        "file_path": "entity__12__126502.md",
+        "chunk_id": "chunk-2",
+        "reference_id": "2"
+      }
+    ],
+    "references": []
+  },
+  "metadata": {
+    "query_mode": "mix"
+  }
+}

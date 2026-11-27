@@ -1,0 +1,37 @@
+---
+contentid: {{ item.contentid | yq }}
+content_type_id: {{ item.content_type_id }}
+title: {{ item.title | yq }}
+area: {{ item.area | yq }}
+{% if item.sigungu_code %}
+sigungu_code: {{ item.sigungu_code | yq }}
+{% endif %}
+source: {{ source | yq }}
+as_of: {{ item.as_of.isoformat() }}
+updated_at: {{ updated_at | yq }}
+---
+# {{ item.title }}
+
+관광지 ID: {{ item.contentid }} · 유형: {{ type_name }} · 지역: {{ item.area }}
+{% if extra.get("overview") %}
+
+## 개요
+{{ extra["overview"] }}
+{% endif %}
+{% if basics %}
+
+## 기본 정보
+{% for label, value in basics %}
+- {{ label }}: {{ value | indent(2) }}
+{% endfor %}
+{% endif %}
+{% if more %}
+
+## 추가 정보
+{% for label, value in more %}
+- {{ label }}: {{ value | indent(2) }}
+{% endfor %}
+{% endif %}
+
+---
+출처: 한국관광공사 TourAPI 4.0 (공공누리), 기준일 {{ item.as_of.isoformat() }}
