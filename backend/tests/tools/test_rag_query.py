@@ -175,3 +175,14 @@ async def test_log_line(caplog):
     text = caplog.text
     assert "tool=rag_query" in text and "candidates=7" in text and "rerank_ms=" in text
     assert "비밀스러운 질문" not in text
+
+
+async def test_rerank_disabled_keeps_lightrag_order():
+    """리랭커 끔(RAG_RERANK_ENABLED=false): 리랭커 호출 0회, LightRAG 순서 앞 5개, score None, 로그 rerank=off."""
+    deps = make_deps(ok_handler(7))
+    deps = ToolDeps(settings=make_settings(rag_rerank_enabled=False), sf=None,
+                    lightrag_http=deps.lightrag_http, reranker=deps.reranker)
+    out = await rag_query("경복궁 관람 시간", deps, lookup_pages=lookup_all)
+    assert deps.reranker.calls == 0
+    assert [i["path"] for i in out["items"]] == [f"entity/12/{n}.md" for n in range(5)]
+    assert all(i["score"] is None for i in out["items"])

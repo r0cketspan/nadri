@@ -47,6 +47,8 @@ class Settings(BaseSettings):
     rag_top_k: int = 5
     reranker_model_path: str = "/opt/models/bge-reranker-v2-m3"
     reranker_max_length: int = 512
+    # False면 리랭커를 부르지 않고 LightRAG 순서 그대로 상위 rag_top_k(22 평가에서 on/off 비교)
+    rag_rerank_enabled: bool = True
 
     # LightRAG 인덱싱 처리 대기 상한(초)
     index_timeout_s: int = 1800

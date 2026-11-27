@@ -80,6 +80,9 @@ services:
       DB_PASSWORD: ${TOOLS_DB_PASSWORD:?}
       LIGHTRAG_API_KEY: ${LIGHTRAG_API_KEY:?}
       TOOLS_API_KEY: ${TOOLS_API_KEY:?}
+      # 리랭커 끔(2026-11-28 사용자 결정): CPU에서 후보 30개 재채점이 17초+ 걸려 LightRAG 순서를 그대로 쓴다.
+      # 켤지 말지는 22 골든셋 평가(리랭커 on/off 비교)에서 다시 정한다.
+      RAG_RERANK_ENABLED: "false"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health', timeout=3).status == 200 else 1)"]
       interval: 10s

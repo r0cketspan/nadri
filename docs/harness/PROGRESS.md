@@ -98,7 +98,8 @@
 - H-7: 툴 3종 정상, data_query 27ms, get_datetime 21ms, **rag_query 약 30초(lightrag 2초 + rerank 28초)** → ONNX 전환 필요(사용자 결정)
 - H-10: 전체 reindex skipped 50·문서 수 50 유지 ✅. 1건 변경 reindex는 indexed 1·문서 수 유지지만 **doc_id가 바뀌지 않음**(LightRAG 문서 ID가 내용 해시가 아닐 수 있음), 변경 문구가 rag_query 상위 결과에 안 보임 → ONNX 후 재확인
 - ONNX int8 전환 커밋 `858fd7e`: tools 이미지 5.13GB→1.34GB(torch 제거), 원본 대비 상위5 겹침 평균 0.88·1위 5/5 일치. **rerank p50 17.1초/p95 19.2초(512·30)**, 256·20이면 p50 6.2초/p95 10.5초 — 여전히 2초 기준 초과(이 CPU에 int8 가속 명령 없음 추정). 사용자 결정 대기: 작은 다국어 리랭커 교체 / 후보·길이 축소 / 리랭커 끄고 22 평가에서 재판단 / GPU / 기준 완화. 원본 이미지 `nadri-tools:torch-baseline` 보존 중
-- 남은 것: 리랭커 방향 결정 → H-9 재측정 → H-10 재확인 → 통합 테스트(I-1~I-8) → spec §10 판정 → G5
+- 2026-11-28 사용자 결정: **리랭커 끔**(compose `RAG_RERANK_ENABLED=false`, 코드·ONNX 모델은 유지). 끔 상태 rag_query p50 0.29초/p95 0.59초(같은 질문 반복이라 LightRAG 캐시 영향 가능, 새 질문은 약 2초). 켤지는 22 골든셋 on/off 비교로 재판단
+- 남은 것: H-10 doc_id 불변·변경 문구 미검색 재확인 → H-10 재확인 → 통합 테스트(I-1~I-8) → spec §10 판정 → G5
 
 ## 막힌 것 / 사용자 확인 필요
 - 01 A9(리랭커 지연) 사전 측정(2026-11-28, 실 키 없이 tools 컨테이너에서 직접): bge-reranker-v2-m3 CPU, 30쌍(쌍당 약 325토큰) p50 **16.3초**, max_length 256으로도 약 12초(Ryzen 5 5600, torch 스레드 6). 기준 p95 ≤ 2초를 크게 넘어 spec §9상 **사용자 결정 필요**(ONNX 변환·리랭커 끔·GPU·후보 수 축소 등). H-9 실측(실제 위키 페이지)으로 다시 확인 후 결정

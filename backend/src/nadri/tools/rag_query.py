@@ -1,4 +1,4 @@
-"""rag_query 툴 — LightRAG 후보 30개 → 리랭커(ONNX) 재채점 → 상위 5개 + 출처·기준일."""
+"""rag_query 툴 — LightRAG 후보 30개 → 리랭커(ONNX) 재채점(끌 수 있음) → 상위 5개 + 출처·기준일."""
 
 from __future__ import annotations
 
@@ -116,6 +116,7 @@ async def rag_query(
 ) -> dict:
     """
     질문으로 위키 문단 후보 30개를 받아 리랭크하고 상위 5개를 출처·기준일과 함께 돌려준다.
+    설정 rag_rerank_enabled가 False면 리랭크 없이 LightRAG 순서 그대로 상위 5개(score는 None).
 
     Args:
         question: 사용자 질문(1~500자)
@@ -123,7 +124,7 @@ async def rag_query(
         lookup_pages: path 목록 → PageMeta (테스트 주입용, 기본은 wiki_pages 조회)
 
     Returns:
-        {"items": [{contentid, title, source, as_of, path, score, text}], "count": n} — 점수 내림차순
+        {"items": [{contentid, title, source, as_of, path, score, text}], "count": n} — 점수 내림차순(리랭커 끔이면 LightRAG 순서)
 
     Raises:
         ValueError: 질문이 비었거나 너무 김(HTTP 호출 없음)
@@ -148,9 +149,13 @@ async def rag_query(
         log.info("tool=rag_query candidates=0 lightrag_ms=%d rerank_ms=0 total_ms=%d", lightrag_ms, lightrag_ms)
         return {"items": [], "count": 0}
 
-    # 4) 리랭크 → 상위 k
+    # 4) 리랭크 → 상위 k (리랭커를 끄면 LightRAG 순서 그대로 앞 k개, 점수 없음)
     t1 = time.monotonic()
-    top = await rerank(deps.reranker, q, [c.content for c in candidates], deps.settings.rag_top_k)
+    rerank_on = deps.settings.rag_rerank_enabled
+    if rerank_on:
+        top = await rerank(deps.reranker, q, [c.content for c in candidates], deps.settings.rag_top_k)
+    else:
+        top = [(i, None) for i in range(min(deps.settings.rag_top_k, len(candidates)))]
     rerank_ms = (time.monotonic() - t1) * 1000
 
     # 5) 페이지 메타 조회 — 메타 없는 후보는 버리고 다시 채우지 않는다
@@ -173,13 +178,13 @@ async def rag_query(
             "source": SOURCE_LABEL,
             "as_of": meta.as_of,
             "path": paths[i],
-            "score": round(float(score), 4),
+            "score": None if score is None else round(float(score), 4),
             "text": candidates[i].content,
         })
 
     # 7) 측정용 로그(질문 원문 없음)
     log.info(
-        "tool=rag_query candidates=%d lightrag_ms=%d rerank_ms=%d total_ms=%d",
-        len(candidates), lightrag_ms, rerank_ms, (time.monotonic() - t0) * 1000,
+        "tool=rag_query rerank=%s candidates=%d lightrag_ms=%d rerank_ms=%d total_ms=%d",
+        "on" if rerank_on else "off", len(candidates), lightrag_ms, rerank_ms, (time.monotonic() - t0) * 1000,
     )
     return {"items": items, "count": len(items)}
