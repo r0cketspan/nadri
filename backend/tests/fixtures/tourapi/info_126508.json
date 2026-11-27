@@ -1,0 +1,33 @@
+{
+  "response": {
+    "header": {
+      "resultCode": "0000",
+      "resultMsg": "OK"
+    },
+    "body": {
+      "items": {
+        "item": [
+          {
+            "contentid": "126508",
+            "contenttypeid": "12",
+            "fldgubun": "1",
+            "infoname": "입 장 료",
+            "infotext": "대인 3,000원<br>소인 1,500원",
+            "serialnum": "0"
+          },
+          {
+            "contentid": "126508",
+            "contenttypeid": "12",
+            "fldgubun": "1",
+            "infoname": "화장실",
+            "infotext": "있음",
+            "serialnum": "1"
+          }
+        ]
+      },
+      "numOfRows": 30,
+      "pageNo": 1,
+      "totalCount": 2
+    }
+  }
+}

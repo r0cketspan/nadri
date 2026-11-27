@@ -1,0 +1,35 @@
+{
+  "response": {
+    "header": {
+      "resultCode": "0000",
+      "resultMsg": "OK"
+    },
+    "body": {
+      "items": {
+        "item": {
+          "contentid": "126508",
+          "contenttypeid": "12",
+          "title": "경복궁",
+          "createdtime": "20071106090000",
+          "modifiedtime": "20261120103000",
+          "tel": "",
+          "telname": "",
+          "homepage": "<a href=\"https://royal.khs.go.kr/gbg\" target=\"_blank\" title=\"새창 : 경복궁 홈페이지로 이동\">https://royal.khs.go.kr/gbg</a>",
+          "firstimage": "",
+          "areacode": "1",
+          "sigungucode": "23",
+          "addr1": "서울특별시 종로구 사직로 161",
+          "addr2": "(세종로)",
+          "zipcode": "03045",
+          "mapx": "126.9770162",
+          "mapy": "37.5788407",
+          "mlevel": "6",
+          "overview": "경복궁은 1395년 태조 이성계가 새로운 조선왕조를 세우고 지은 첫 번째 궁궐이다.<br>\n광화문 &amp; 근정전이 대표적이다."
+        }
+      },
+      "numOfRows": 30,
+      "pageNo": 1,
+      "totalCount": 1
+    }
+  }
+}

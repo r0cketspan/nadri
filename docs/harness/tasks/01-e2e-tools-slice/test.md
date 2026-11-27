@@ -57,7 +57,7 @@ DB_HOST=127.0.0.1 LIGHTRAG_URL=http://127.0.0.1:9621 TOOLS_URL=http://127.0.0.1:
 | U-TA-6 | 〃 | XML 코드 `23` | `rate_limited is True` |
 | U-TA-7 | 〃 | HTTP 500 | `code=="http_500"` |
 | U-TA-8 | 〃 | 깨진 본문 `"<html>오류"` | `code=="parse"` |
-| U-TA-9 | `area_based_list("서울", 12, num_of_rows=30)` | MockTransport | 요청 쿼리에 `areaCode=1`, `contentTypeId=12`, `numOfRows=30`, `pageNo=1`, `_type=json`, `MobileOS=ETC`, `MobileApp=nadri`, `serviceKey` 존재. 경로 `/areaBasedList2` |
+| U-TA-9 | `area_based_list("서울", 12, num_of_rows=30)` | MockTransport | 요청 쿼리에 `lDongRegnCd=11`, `contentTypeId=12`, `numOfRows=30`, `pageNo=1`, `_type=json`, `MobileOS=ETC`, `MobileApp=nadri`, `serviceKey` 존재. 경로 `/areaBasedList2` |
 | U-TA-10 | `detail_intro("126508", 12)` | MockTransport | 경로 `/detailIntro2`, `contentId=126508`, `contentTypeId=12` |
 | U-TA-11 | 반환값 `params` | 위 호출 | `serviceKey` 키가 없음 |
 | U-TA-12 | `on_call` | 성공 1회 + 오류(22) 1회 | 콜백 2회 호출(오류도 셈), 인자는 오퍼레이션 이름 |
@@ -117,8 +117,9 @@ DB_HOST=127.0.0.1 LIGHTRAG_URL=http://127.0.0.1:9621 TOOLS_URL=http://127.0.0.1:
 | U-IDX-6 | 삭제 후 exists가 계속 True → 타임아웃 | `failed("delete_timeout")`, insert 없음 |
 | U-IDX-7 | track 상태 `failed`, error "llm error" | `failed`, reason 포함 |
 | U-IDX-8 | track이 끝나지 않음, 가짜 clock이 `timeout_s` 넘김 | 남은 페이지 전부 `failed("timeout")` |
-| U-IDX-9 | 모든 요청 | 헤더 `X-API-Key`(값 = 주입한 키) 존재(**미확인** 헤더 이름 — A16 확인 후 고정) |
-| U-IDX-10 | insert 본문 | `file_source == page.path`, `text == page.text` |
+| U-IDX-9 | 모든 요청 | 헤더 `X-API-Key`(값 = 주입한 키) 존재(v1.5.7 `utils_api.py`에서 이름 확인) |
+| U-IDX-10 | insert 본문 | `file_source == to_file_source(page.path)`(`/`→`__`, LightRAG가 basename만 남기기 때문 — spec §6.6), `text == page.text` |
+| U-IDX-12 | insert 409 "already contains"(이전 실패 잔여 문서) | 같은 file_source 문서 찾기 → delete → 사라짐 확인 → insert 재시도 → `indexed` |
 | U-IDX-11 | `outcome_to_values(o, now)` | indexed → `{content_hash, lightrag_doc_id, indexed_at}` 채움 / failed → 셋 다 None / skipped → 변경 없음(None 반환) |
 
 ### U-BS `tests/ingest/test_bootstrap.py` — 적재 보조 함수
@@ -191,7 +192,7 @@ DB_HOST=127.0.0.1 LIGHTRAG_URL=http://127.0.0.1:9621 TOOLS_URL=http://127.0.0.1:
 | U-RAG-3 | `top_k_indices([0.1,0.9,0.5,0.9], 2)` | `[1, 3]`(동점은 원래 순서) |
 | U-RAG-4 | `top_k_indices([0.3], 5)` | `[0]` |
 | U-RAG-5 | `rag_query` 정상 — 후보 7개, 가짜 점수, lookup이 7개 모두 메타 반환 | items 5개, 점수 내림차순, 각 항목 `contentid`·`source`·`as_of`·`path`·`score`·`text` 비어 있지 않음, `count==5` |
-| U-RAG-6 | 요청 본문 | `mode=="mix"`, 후보 수 = 설정값 30, 헤더 `X-API-Key`(**미확인**) |
+| U-RAG-6 | 요청 본문 | `mode=="mix"`, 후보 수 = 설정값 30, 헤더 `X-API-Key` |
 | U-RAG-7 | 후보 0개 | `{"items": [], "count": 0}`, 가짜 리랭커 `score` 호출 0회 |
 | U-RAG-8 | 상위 5개 중 1개의 path가 lookup 결과에 없음 | 항목 4개(다시 채우지 않음) |
 | U-RAG-9 | LightRAG 500 / 타임아웃 | 예외, 메시지 "지식 검색을 할 수 없습니다", 메시지에 내부 URL·키 없음 |
@@ -217,7 +218,7 @@ DB_HOST=127.0.0.1 LIGHTRAG_URL=http://127.0.0.1:9621 TOOLS_URL=http://127.0.0.1:
 | I-5 | 롤 권한 | `nadri_tools`로 접속: `SELECT count(*) FROM tour_items` 성공, `SELECT * FROM ingest_runs` → 권한 오류, `INSERT INTO tour_items …` → 권한 오류, `lightrag` DB 접속 실패 |
 | I-6 | COMMENT | `nadri_app`으로 `obj_description`·`col_description` 조회 → spec §3.2 표와 일치 |
 | I-7 | upsert 멱등(실DB) | 테스트용 contentid `test-01-<uuid>`: 첫 upsert `inserted` → 같은 레코드 `unchanged`(updated_at 불변) → usetime 변경 `updated`. 종료 시 삭제 |
-| I-8 | 인덱서 왕복(실 LightRAG) | 테스트 페이지 `entity/test/<uuid>.md`: 인덱싱 `indexed`·doc_id A → 같은 내용 `skipped`(요청 0) → 내용 변경 `indexed`·doc_id B≠A, `document_exists(A)` False, 문서 수 전후 동일(A16). 종료 시 B 삭제 |
+| I-8 | 인덱서 왕복(실 LightRAG) | 테스트 페이지 `entity/test/<uuid>.md`: 인덱싱 `indexed`·doc_id A → 같은 내용 `skipped`(요청 0) → 내용 변경 delete→insert로 `indexed`, 문서 수 전후 동일(A16). **doc_id는 같음** — LightRAG v1.5.7은 문서 ID를 경로(file_source)로 만든다(2026-11-28 실측, 원래 기대 'B≠A'를 고침). 종료 시 B 삭제 |
 | I-9 | 테이블 생성 스크립트 되돌리기·재적용 | 별도 임시 DB가 없으므로 **수동 HITL H-3로 대체**(downgrade가 실데이터를 지우므로 자동화하지 않음) |
 
 ---

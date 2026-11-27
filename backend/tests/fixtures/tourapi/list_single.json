@@ -1,0 +1,26 @@
+{
+  "response": {
+    "header": {
+      "resultCode": "0000",
+      "resultMsg": "OK"
+    },
+    "body": {
+      "items": {
+        "item": {
+          "contentid": "126508",
+          "contenttypeid": "12",
+          "title": "경복궁",
+          "areacode": "1",
+          "sigungucode": "23",
+          "addr1": "서울특별시 종로구 사직로 161",
+          "mapx": "126.9770162",
+          "mapy": "37.5788407",
+          "modifiedtime": "20261120103000"
+        }
+      },
+      "numOfRows": 30,
+      "pageNo": 1,
+      "totalCount": 1
+    }
+  }
+}

@@ -32,7 +32,7 @@
 | LLM 호출 | **LangChain** (`ChatOpenAI`, `OpenAIEmbeddings`) · STT·Moderation만 OpenAI SDK |
 | LLM | OpenAI API `gpt-6-luna` (답변·검증·분류·제목·요약·평가·인덱싱 통일) |
 | 임베딩 | OpenAI `text-embedding-3-small` |
-| Graph RAG | LightRAG + 리랭커 (`bge-reranker-v2-m3` CrossEncoder, tour-tools 내장) |
+| Graph RAG | LightRAG + 리랭커 (`bge-reranker-v2-m3` CrossEncoder, ONNX Runtime int8, tour-tools 내장) |
 | DB | PostgreSQL + pgvector (단일 DB) |
 | 툴 연결 | 자체 MCP 서버 `tour-tools` (공식 `mcp` Python SDK) |
 | 웹 검색 | Tavily (`langchain-tavily`) |

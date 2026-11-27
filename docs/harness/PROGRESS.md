@@ -1,12 +1,12 @@
 # PROGRESS
-- 현재 단계: Phase 4 완료 (01~26 spec/test 확정, 2026-11-28) → Phase 5 구현 시작 전
+- 현재 단계: Phase 5 — 구현 (01 G5 병합 완료 2026-11-28, 02 시작)
 - 게이트: G1 ✅ (2026-11-07) · G2 ✅ (2026-11-07) · G3 ✅ (2026-11-07, 재검토 재승인 2026-11-21) · G4 ✅ (2026-11-21) · G5 (작업별, 아래 표)
-- 다음 할 일: Phase 5 — 01-e2e-tools-slice 구현 시작(브랜치 `feat/01-e2e-tools-slice`, TourAPI·OpenAI 키로 시작). Node LTS(fnm)는 14 구현 시작 때 WSL에 설치. 02 시작 직전에 TourAPI 키·`.dev` 도메인·Named Tunnel 토큰·Tavily 키 발급 방법 안내(G4 Q2)
+- 다음 할 일: 02-e2e-chat-slice 구현(브랜치 `feat/02-e2e-chat-slice`). 사용자 준비: `.dev` 도메인·Named Tunnel 토큰·Tavily 키(발급 방법 안내함). 01 미뤄 둔 것: A8 엔티티 품질은 02에서 여러 질문의 실제 답변을 보고 판단. Node LTS(fnm)는 14 구현 시작 때
 - 브랜치: `dev`(작업 기준) · `prod`(릴리스). 2026-11-07 로컬 `master` → `prod` 이름 변경, `dev` 생성. 원격 반영(push·기본 브랜치 변경·원격 master 삭제)은 사용자가 직접
 
 | 작업id | spec/test | 브랜치 | 구현·테스트 | 커밋 | G5 병합 |
 |---|---|---|---|---|---|
-| 01-e2e-tools-slice | ✅ | feat/01-e2e-tools-slice | | | |
+| 01-e2e-tools-slice | ✅ | feat/01-e2e-tools-slice | ✅ 단위 125·통합 8 통과, HITL 완료 | 7332115 | ✅ (2026-11-28) |
 | 02-e2e-chat-slice | ✅ | feat/02-e2e-chat-slice | | | |
 | 03-ingest-bootstrap | ✅ | feat/03-ingest-bootstrap | | | |
 | 04-db-schema | ✅ | feat/04-db-schema | | | |
@@ -51,6 +51,7 @@
 - `docs/harness/tasks/23`~`26` — spec.md·test.md (2026-11-22 초안, 2026-11-28 확인 질문 결정 반영). 병렬 작성 후 24를 기준으로 맞춤: 24가 `eval_reports.stats` 구조의 주인(§9, 공격 세트는 `stats.attack_set`), 23 `run_attack_set`은 `AttackReport`를 돌려주고 24 `to_attack_summary`가 변환(`to_stats()`는 CLI 결과 파일용), 23이 `sf` 없이도 사용량 기록, `UsageRecord.kind`는 23이 `eval`·24가 `proposal` 추가 · 25 화면 키는 24 §9 그대로 + 모르는 키는 "기타 집계" 표 · 조정 설정값은 compose `x-tuning` 하나로 api·tour-tools·ingest 공유(24-Q2·26-Q5, 26 C-27 검사). 발견한 앞 작업 불일치: **21 빈 DB에서 스케줄러가 전체 초기 적재를 스스로 시작**(26-Q1), **간접 인젝션 공격자 주소가 "툴 결과에 있던 주소" 규칙을 통과**(23-Q11, 지금은 검증 에이전트만 막음), 04 `PROPOSAL_TARGETS`에 `faq_cache` 없음(24-Q1), 20 `lock.py`에 키 2 없음(24-Q14), [PL] 23 의존 08→08·22(23-Q10)·25가 19 함수 사용(25-Q6), 03 `--limit`→`--max-items`([PL] 26 완료 기준), [A] §9·§2·ADR-01 문구가 확정 spec과 다름(26-Q8), lightrag healthcheck 없음(26-Q2)
 
 ## 결정 로그 (게이트에서 바뀐 것)
+- 2026-11-28 01 구현 중 확인(spec.md "확인됨" 반영): LightRAG v1.5.7 env 키 이름 일치, 문서 API 경로·`X-API-Key` 확인, 이미지 `ghcr.io/hkuds/lightrag:v1.5.7`·WORKING_DIR `/app/data/rag_storage`, pg18 데이터 볼륨 `/var/lib/postgresql`. LightRAG가 file_source를 basename으로 저장 → 경로 `/`를 `__`로 바꿔 보냄(A7 대안 범위, 코드 처리). FastMCP는 `host="0.0.0.0"`으로 생성(기본값이면 DNS 리바인딩 보호로 `tour-tools` 호스트 거부). 이미지 크기 app 415MB / tools 5.13GB(CUDA 휠 없음)
 - 2026-10-25 (G1 전): 리버스 프록시 Caddy → **Nginx**
 - 2026-10-25 (G1 전): 프로젝트 이름 **nadri**. 로컬 디렉터리는 `myAgent` 유지
 - 2026-10-25 (G1 전): 확장 데이터 원천 4곳을 MVP 이후 항목으로 추가(FR-49). 크롤링 기본 미사용
@@ -89,6 +90,23 @@
 - 비용: 질문 1건 약 $0.0019, 1인 월 약 $3~4. `mcp`는 1.30.x 고정(어댑터가 `mcp<2` 요구)
 - 확인 질문 Q1~Q4 답변 완료(위 결정 로그 참고)
 
+## 01 G5 결정
+- 2026-11-28 01 G5: 사용자 승인 → dev 병합·push. A8 판단은 02에서 실제 답변으로(사용자: "여러 케이스를 질문하고 답변을 봐야 알 것 같다") · A12 포털 트래픽 대조는 하지 않음 → **미확인, 서비스 전체 한도로 보수 가정** · 인덱싱 비용 Usage 확인 생략
+- 2026-11-28 작업 방식(사용자 요청): G5 승인 시 dev 병합 → **push까지 Claude가** → 다음 작업 브랜치 생성 후 바로 작업
+
+## 01 HITL 진행 (2026-11-28)
+- H-2·H-3 통과(포트 없음, 테이블 4개 한글 설명, nadri_tools는 ingest_runs 거부) · H-8 `401 401`
+- H-4: KorService2는 `areaCode`가 아니라 법정동 코드 `lDongRegnCd`(서울 11·제주 50) — 수정 커밋 `e172331`. 16칸 합계 10,061, 적재 일수 서비스 전체 한도 38일 / 오퍼레이션별 13일(14일 초과 → 03에서 운영계정 증설 여부 결정). 여행코스(25)는 두 지역 모두 0
+- H-5: 서울 30(91호출, 인덱싱 278초)·제주 20(61호출, 186초), 실패 0, wiki_pages 50/50/50, 카운터 ingest 184. **sigungu_code 50건 모두 비어 있음**(응답의 `sigungucode` 빈 값, 대신 `lDongSignguCd` 있음 → 20 허브 시군구 기준에 영향). 페이지에 입장료·전화 중복, `heritage1: 0` 같은 잡음(03 템플릿에서 정리)
+- H-6(A8): 엔티티 이름 한국어 정상, frontmatter 키가 엔티티로 잡히지 않음. 엔티티 유형이 한/영 섞임(location·장소), 전화번호·"화장실 정보" 같은 잡음 엔티티 일부 — 사용자 판단 대기
+- H-7: 툴 3종 정상, data_query 27ms, get_datetime 21ms, **rag_query 약 30초(lightrag 2초 + rerank 28초)** → ONNX 전환 필요(사용자 결정)
+- H-10: 전체 reindex skipped 50·문서 수 50 유지 ✅. 1건 변경 reindex는 indexed 1·문서 수 유지지만 **doc_id가 바뀌지 않음**(LightRAG 문서 ID가 내용 해시가 아닐 수 있음), 변경 문구가 rag_query 상위 결과에 안 보임 → ONNX 후 재확인
+- ONNX int8 전환 커밋 `858fd7e`: tools 이미지 5.13GB→1.34GB(torch 제거), 원본 대비 상위5 겹침 평균 0.88·1위 5/5 일치. **rerank p50 17.1초/p95 19.2초(512·30)**, 256·20이면 p50 6.2초/p95 10.5초 — 여전히 2초 기준 초과(이 CPU에 int8 가속 명령 없음 추정). 사용자 결정 대기: 작은 다국어 리랭커 교체 / 후보·길이 축소 / 리랭커 끄고 22 평가에서 재판단 / GPU / 기준 완화. 원본 이미지 `nadri-tools:torch-baseline` 보존 중
+- 2026-11-28 사용자 결정: **리랭커 끔**(compose `RAG_RERANK_ENABLED=false`, 코드·ONNX 모델은 유지). 끔 상태 rag_query p50 0.29초/p95 0.59초(같은 질문 반복이라 LightRAG 캐시 영향 가능, 새 질문은 약 2초). 켤지는 22 골든셋 on/off 비교로 재판단
+- H-10 재확인 ✅: doc_id는 경로 기반(내용이 바뀌어도 같음), 변경 문구가 LightRAG 저장 본문·검색 1위 결과에 반영. 통합 테스트 I-1~I-8 통과(I-8 기대값 수정). spec §10 판정표 기록. H-11(핫리로드)은 생략. 현재 compose는 dev 덮어쓰기(127.0.0.1 포트)로 떠 있음 → H-10 재확인 → 통합 테스트(I-1~I-8) → spec §10 판정 → G5
+
 ## 막힌 것 / 사용자 확인 필요
+- 01 A9(리랭커 지연) 사전 측정(2026-11-28, 실 키 없이 tools 컨테이너에서 직접): bge-reranker-v2-m3 CPU, 30쌍(쌍당 약 325토큰) p50 **16.3초**, max_length 256으로도 약 12초(Ryzen 5 5600, torch 스레드 6). 기준 p95 ≤ 2초를 크게 넘어 spec §9상 **사용자 결정 필요**(ONNX 변환·리랭커 끔·GPU·후보 수 축소 등). H-9 실측(실제 위키 페이지)으로 다시 확인 후 결정
+  - 2026-11-28 사용자 결정: **ONNX 변환으로 CPU 최적화** 방향. H-9 전에 tour-tools 리랭커를 ONNX(필요 시 int8 양자화)로 바꿔 재측정, 그래도 2초 초과면 후보 수 축소 등 다시 결정
 - (해결) 2026-11-20 G3 재검토 요청 → 2026-11-21 재승인 완료. 상세 내용은 위 "G3 재검토 요약"·결정 로그, requirements.md §8
 - 사용자: `.dev` 도메인 구입(Cloudflare Registrar) — 인프라 작업 전까지. Gmail 발신 계정·앱 비밀번호 — 메일 작업 전까지 `.env`에 직접

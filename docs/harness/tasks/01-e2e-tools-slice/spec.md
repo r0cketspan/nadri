@@ -1,6 +1,6 @@
 # 01-e2e-tools-slice — 최소 E2E ① 데이터 → RAG → MCP 툴
 
-> 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-21). 상태: **초안 — 사용자 검토 대기**.
+> 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-21). 상태: 확정(확인 질문 결정 반영). 2026-11-28 Phase 5 구현 첫 단계에서 공식 소스로 확인한 사실을 각 절에 "확인됨"으로 반영.
 > 입력: `program_list.md` §2 표·§3 "01-e2e-tools-slice"(G4 승인본) · `architecture.md`(G3 재승인본) §1·§2.1·§4·§5·§6.2·§7·§8·§9·§12 · `erd.md`/`docs/images/src/erd.py` · `requirements.md` · `TECH_STACK.md` · `PROGRESS.md` 결정 로그(G4 Q1~Q9).
 > 출처 표기: [PL]=program_list.md, [A]=architecture.md, [R]=requirements.md, [E]=ERD(`erd.py`), [TS]=TECH_STACK.md, [S]=stack-options.md, [PG]=PROGRESS.md.
 > **미확인** = 문서·공식 자료로 확인하지 못해 구현 중 실제 호출/소스로 확인해야 하는 사실. 이 작업의 가정 판정(§9) 항목과 겹친다.
@@ -38,8 +38,8 @@
 | `.env.example` | 이 작업에서 쓰는 키 이름 8개만(§4) |
 | `infra/postgres/init/01-init.sh` | 롤 3개·DB 2개·`vector` 확장·접속 권한 (G4 Q8 — `.sh`, 비밀번호는 환경변수) |
 | `infra/lightrag/lightrag.env` | LightRAG 비밀 아닌 설정(PG 저장소, `PGTableGraphStorage`, HNSW, 한국어, 리랭크 off, 모델) |
-| `backend/pyproject.toml`, `backend/uv.lock` | Python 3.12, 의존 버전 고정, 그룹 `reranker`(tools 타깃만)·`dev`(테스트) |
-| `backend/Dockerfile` | 타깃 `app`(ingest, 02부터 api) / `tools`(tour-tools, 빌드 시 리랭커 가중치 내려받기), 비루트 |
+| `backend/pyproject.toml`, `backend/uv.lock` | Python 3.12, 의존 버전 고정, 그룹 `reranker`(tools 런타임)·`reranker-export`(이미지 빌드 전용)·`dev`(테스트) |
+| `backend/Dockerfile` | 타깃 `app`(ingest, 02부터 api) / `tools`(tour-tools, 빌드 스테이지에서 리랭커 가중치를 int8 ONNX로 변환해 복사), 비루트 |
 | `backend/alembic.ini`, `backend/alembic/env.py`, `backend/alembic/versions/0001_tour_ingest.py` | async Alembic, 테이블 4개 + 한글 COMMENT + `nadri_tools` SELECT 권한 부여 |
 | `backend/src/nadri/__init__.py` | 패키지 표시(빈 파일) |
 | `backend/src/nadri/core/config.py` | 환경변수 설정(pydantic-settings) |
@@ -55,7 +55,8 @@
 | `backend/src/nadri/ingest/bootstrap.py` | `--area --type --limit` 소량 적재, `reindex`, `count`, 호출 수 기록 |
 | `backend/src/nadri/tools/server.py` | FastMCP(stateless Streamable HTTP) + Bearer 토큰 ASGI 미들웨어 + 툴 3종 등록 + 실행 진입점 |
 | `backend/src/nadri/tools/rag_query.py` | LightRAG `/query/data`(mix, 후보 30) → 리랭크 → 상위 5 + `wiki_pages` 메타 |
-| `backend/src/nadri/tools/reranker.py` | `bge-reranker-v2-m3` CrossEncoder(CPU) 래퍼 |
+| `backend/src/nadri/tools/reranker.py` | `bge-reranker-v2-m3` 리랭커(ONNX Runtime int8, CPU) 래퍼 |
+| `backend/scripts/export_reranker_onnx.py` | 이미지 빌드 전용: 가중치 → ONNX 내보내기 + int8 동적 양자화 (A9 대안, 2026-11-28 추가) |
 | `backend/src/nadri/tools/data_query.py` | `tour_items` 파라미터화 조회, 하버사인 |
 | `backend/src/nadri/tools/get_datetime.py` | 현재 KST·요일·이번 주말/다음 주 범위 |
 | `backend/src/nadri/cli.py` | `nadri` 명령: `ingest bootstrap·reindex·count`, `tools smoke`, `lightrag sample` (§6.9) |
@@ -197,6 +198,7 @@ LIGHTRAG_DB_PASSWORD=
 | `RAW_DIR` | Path | `/data/raw` | ingest |
 | `RAG_CANDIDATES` | int | `30` | tour-tools (A9 대안 "후보 20" 대비) |
 | `RAG_TOP_K` | int | `5` | tour-tools |
+| `RAG_RERANK_ENABLED` | bool | `True` | tour-tools. **compose에서 `false`**(2026-11-28 A9 결정) — 끄면 리랭커 없이 LightRAG 순서 앞 `RAG_TOP_K`개, `score`는 null. 22 평가에서 on/off 재판단 |
 | `RERANKER_MODEL_PATH` | str | `/opt/models/bge-reranker-v2-m3` | tour-tools |
 | `RERANKER_MAX_LENGTH` | int | `512` | tour-tools (A9 대안 "max_length 축소" 대비) |
 | `INDEX_TIMEOUT_S` | int | `1800` | ingest(LightRAG 처리 대기 상한) |
@@ -233,7 +235,7 @@ def require(value: SecretStr | None, name: str) -> str:
 | `RERANK_BINDING` | `null` | 리랭크는 tour-tools CrossEncoder |
 
 비밀값(compose `environment`): `LLM_BINDING_API_KEY=${OPENAI_API_KEY}`, `EMBEDDING_BINDING_API_KEY=${OPENAI_API_KEY}`, `LIGHTRAG_API_KEY=${LIGHTRAG_API_KEY}`, `POSTGRES_PASSWORD=${LIGHTRAG_DB_PASSWORD}`.
-> **미확인**: 위 키 이름은 LightRAG v1.5.7 `env.example` 기준 추정(F11에서 일부 확인). 구현 첫 단계에서 v1.5.7 태그의 `env.example`과 대조해 다르면 그 이름을 쓰고 이 표를 고친다. 동시 처리 수(`MAX_PARALLEL_INSERT` 등)는 기본값.
+> **확인됨(2026-11-28, 구현)**: 위 키 이름은 LightRAG `v1.5.7` 태그의 `env.example`(https://github.com/HKUDS/LightRAG/blob/v1.5.7/env.example)과 대조해 모두 일치. `PGTableGraphStorage`는 "AGE 없이 PostgreSQL 14+ 일반 테이블, `pgvector/pgvector:pg18`로 충분"하다고 명시돼 있다. 구현 파일에는 `LLM_BINDING_HOST`·`EMBEDDING_BINDING_HOST`(=`https://api.openai.com/v1`, env.example 기본값)를 명시로 추가했다. 인증 헤더 이름 `X-API-Key`는 `lightrag/api/utils_api.py`(`APIKeyHeader(name="X-API-Key")`)에서 확인, `/health`는 기본 인증 예외 경로(`WHITELIST_PATHS` 기본 `/health,/api/*`). 동시 처리 수(`MAX_PARALLEL_INSERT` 등)는 기본값.
 
 ---
 
@@ -247,8 +249,8 @@ def require(value: SecretStr | None, name: str) -> str:
 ### 5.2 서비스별
 | 서비스 | 이미지/빌드 | 주입 환경변수 | 볼륨 | 기동 순서·헬스 |
 |---|---|---|---|---|
-| `postgres` | `pgvector/pgvector:pg18` | `POSTGRES_PASSWORD`, `APP_DB_PASSWORD`, `TOOLS_DB_PASSWORD`, `LIGHTRAG_DB_PASSWORD` | `pg-data:/var/lib/postgresql/data`(**미확인**: pg18 이미지의 데이터 경로가 바뀌었을 수 있음 — 이미지 문서로 확인), `./infra/postgres/init:/docker-entrypoint-initdb.d:ro` | healthcheck `pg_isready -U postgres` |
-| `lightrag` | LightRAG 공식 이미지 **v1.5.7 태그 고정**(이미지 주소 **미확인** — 예: `ghcr.io/hkuds/lightrag:v1.5.7`) | §4.3 비밀값 4개 + `env_file: infra/lightrag/lightrag.env` | `lightrag-data:<작업 디렉터리>`(경로 **미확인** — v1.5.7 이미지의 `WORKING_DIR` 확인, Q7) | `depends_on: postgres(service_healthy)` |
+| `postgres` | `pgvector/pgvector:pg18` | `POSTGRES_PASSWORD`, `APP_DB_PASSWORD`, `TOOLS_DB_PASSWORD`, `LIGHTRAG_DB_PASSWORD` | `pg-data:/var/lib/postgresql`(**확인됨**: pg18 이미지는 `PGDATA=/var/lib/postgresql/18/docker`, `VOLUME /var/lib/postgresql` — `docker image inspect`로 확인. 옛 경로 `/var/lib/postgresql/data`에 마운트하면 데이터가 볼륨 밖에 생긴다), `./infra/postgres/init:/docker-entrypoint-initdb.d:ro` | healthcheck `pg_isready -U postgres` |
+| `lightrag` | `ghcr.io/hkuds/lightrag:v1.5.7`(**확인됨**: `docker manifest inspect`로 amd64·arm64 존재) | §4.3 비밀값 4개 + `env_file: infra/lightrag/lightrag.env` | `lightrag-data:/app/data/rag_storage`(**확인됨**: v1.5.7 `Dockerfile`의 `ENV WORKING_DIR=/app/data/rag_storage`. 이미지는 root로 시작해 마운트 소유권을 고친 뒤 uid 1000 `lightrag`로 내려가므로 `cap_drop`은 자체 이미지에만 적용) | `depends_on: postgres(service_healthy)` |
 | `ingest` | `build: {context: ./backend, target: app}` | `DB_USER=nadri_app`, `DB_PASSWORD=${APP_DB_PASSWORD}`, `TOURAPI_SERVICE_KEY`, `LIGHTRAG_API_KEY`, `TOOLS_API_KEY`, `LANGSMITH_TRACING=false`, `LANGCHAIN_TRACING_V2=false` | `wiki-data:/data/wiki`, `raw-data:/data/raw` | `depends_on: postgres(service_healthy)`. **기본 명령 `alembic upgrade head` 후 종료(0)**, `restart: "no"`. 적재는 `docker compose run --rm ingest nadri …` (Q1) |
 | `tour-tools` | `build: {context: ./backend, target: tools}` | `DB_USER=nadri_tools`, `DB_PASSWORD=${TOOLS_DB_PASSWORD}`, `LIGHTRAG_API_KEY`, `TOOLS_API_KEY` | 없음 | `depends_on: postgres(service_healthy), lightrag(service_started), ingest(service_completed_successfully)`. healthcheck: `GET http://localhost:8000/health` → 200 (python 한 줄 스크립트, curl 의존 안 함) |
 
@@ -262,7 +264,7 @@ def require(value: SecretStr | None, name: str) -> str:
 - 통합 테스트용 포트(WSL 안에서만 접속, `127.0.0.1` 바인드): postgres `127.0.0.1:5432`, lightrag `127.0.0.1:9621`, tour-tools `127.0.0.1:8001→8000`. 운영 `compose.yaml`에는 여전히 호스트 포트 없음.
 
 ### 5.3a 개발·테스트 환경 (Q4 결정, 2026-11-21)
-- 코드 작성·테스트는 **WSL2 Ubuntu**에서 한다. uv를 설치하고 `backend/`에서 `uv sync`(Python 3.12는 uv가 받음, 시스템 Python 3.11 미사용) → `backend/.venv` 생성(`.gitignore` 대상). 리랭커 그룹은 받지 않는다(`uv sync --no-group reranker`, torch 불필요).
+- 코드 작성·테스트는 **WSL2 Ubuntu**에서 한다. uv를 설치하고 `backend/`에서 `uv sync`(Python 3.12는 uv가 받음, 시스템 Python 3.11 미사용) → `backend/.venv` 생성(`.gitignore` 대상). 리랭커 그룹은 받지 않는다(`uv sync --no-group reranker`, onnxruntime 불필요).
 - 단위테스트: `cd backend && uv run pytest -m "not integration"`.
 - 통합 테스트: compose를 dev 덮어쓰기로 띄운 뒤 접속 주소만 바꿔 실행 — `DB_HOST=127.0.0.1 LIGHTRAG_URL=http://127.0.0.1:9621 TOOLS_URL=http://127.0.0.1:8001/mcp uv run pytest -m integration` (비밀값은 레포 루트 `.env`에서 읽음).
 - 서비스(postgres·lightrag·tour-tools·ingest)는 계속 Docker Compose로만 띄운다.
@@ -270,13 +272,16 @@ def require(value: SecretStr | None, name: str) -> str:
 ### 5.4 `backend/Dockerfile` (멀티 스테이지)
 1. `base`: `python:3.12-slim` + `uv`(공식 이미지에서 바이너리 복사, 버전 고정), 사용자 `nadri`(uid 10001), `WORKDIR /app`, `/data/wiki`·`/data/raw` 생성·소유권.
 2. `app`: `uv sync --frozen --no-dev --no-group reranker` → 소스 복사 → `USER nadri` → `CMD ["alembic","upgrade","head"]`.
-3. `tools`: `uv sync --frozen --no-dev --group reranker` → 빌드 시 `huggingface_hub.snapshot_download("BAAI/bge-reranker-v2-m3", revision=<고정 커밋>, local_dir=/opt/models/bge-reranker-v2-m3)` → `ENV HF_HUB_OFFLINE=1` → `USER nadri` → `CMD ["nadri-tools"]`(= `nadri.tools.server:main`).
-- torch는 **CPU 전용 휠**을 쓴다(`[tool.uv.sources]`에 pytorch CPU 인덱스 지정) — CUDA 휠은 수 GB가 더 붙는다. 가중치 약 2.3GB(**미확인**, 빌드 후 이미지 크기 기록).
+3. `reranker-export`(빌드 전용, 최종 이미지에 안 들어감): `uv sync --frozen --only-group reranker-export` → `huggingface_hub.snapshot_download("BAAI/bge-reranker-v2-m3", revision=<고정 커밋>, local_dir=/build/hf)` → `scripts/export_reranker_onnx.py`: `transformers`로 올려(eager 어텐션) `torch.onnx.export`(TorchScript 경로 `dynamo=False`, opset 17, 입력 `input_ids`·`attention_mask` 배치·길이 동적, 출력 `logits`) → `onnxruntime.quantization.quantize_dynamic`(가중치 int8) → `/opt/models/bge-reranker-v2-m3/{model.onnx, tokenizer.json}`.
+4. `tools`: `uv sync --frozen --no-dev --group reranker`(onnxruntime·tokenizers·numpy, **torch 없음**) → `COPY --from=reranker-export /opt/models/bge-reranker-v2-m3` → `USER nadri` → `CMD ["nadri-tools"]`(= `nadri.tools.server:main`). 런타임에 HF 라이브러리를 쓰지 않으므로 다운로드 경로 자체가 없다.
+- torch는 빌드 스테이지에서만 쓰고 **CPU 전용 휠**(`[tool.uv.sources]` pytorch CPU 인덱스). 공식 ONNX 변환본은 HF 저장소에 없어(2026-11-28 확인, 파일 목록에 `*.onnx` 없음) 고정 리비전 원본 가중치로 직접 변환한다 — 제3자 변환본은 쓰지 않는다. int8 모델 약 570MB.
+- (변경 이력) 2026-11-28 A9 사용자 결정으로 런타임을 PyTorch CrossEncoder → ONNX Runtime int8로 바꿨다. 이전 tools 이미지 5.13GB.
 
 ### 5.5 `backend/pyproject.toml`
 - `requires-python = ">=3.12,<3.13"`, `[project.scripts] nadri = "nadri.cli:main"`, `nadri-tools = "nadri.tools.server:main"`.
 - 의존(01에서 쓰는 것만, `==`로 고정 — [A] §1 고정 후보 버전): `mcp==1.30.0`, `langchain-mcp-adapters==0.3.2`, `langchain-core==1.8.4`, `pydantic-settings`, `sqlalchemy[asyncio]`, `asyncpg`, `alembic`, `httpx`, `jinja2`, `uvicorn`. 버전 미지정 항목은 구현 시점 최신으로 `uv.lock`에 고정.
-- 그룹 `reranker`: `torch`(CPU 인덱스), `sentence-transformers`, `huggingface-hub`. 그룹 `dev`: `pytest`, `pytest-asyncio`, `pyyaml`(frontmatter 파싱 테스트).
+  - 구현 시 고정값(2026-11-28): `pydantic-settings==2.16.3`, `sqlalchemy[asyncio]==2.1.9`, `asyncpg==0.32.0`, `alembic==1.20.1`, `httpx==0.29.0`, `jinja2==3.1.6`, `uvicorn==0.54.0` / reranker `onnxruntime==1.32.0`, `tokenizers==0.23.3`, `numpy==2.5.5` / reranker-export `torch==2.15.0`(CPU 인덱스), `transformers==5.24.1`, `onnx==1.23.2`, `onnxruntime==1.32.0`, `huggingface-hub==2.5.0` / dev `pytest==9.2.0`, `pytest-asyncio==1.5.0`, `pyyaml==6.0.4`. `[tool.uv] default-groups = ["dev"]`(그냥 `uv sync`해도 리랭커 그룹을 받지 않음). 리랭커 가중치 리비전 `953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e`(HF API 확인, 모델 파일만 `allow_patterns`). uv 이미지 `ghcr.io/astral-sh/uv:0.13.10`.
+- 그룹 `reranker`(tools 런타임): `onnxruntime`, `tokenizers`, `numpy`. 그룹 `reranker-export`(빌드 전용): `torch`(CPU 인덱스), `transformers`, `onnx`, `onnxruntime`, `huggingface-hub`. 그룹 `dev`: `pytest`, `pytest-asyncio`, `pyyaml`(frontmatter 파싱 테스트).
 - `[tool.pytest.ini_options]`: `markers = ["integration: 실 compose·실 키가 필요한 테스트"]`, `asyncio_mode = "auto"`, 기본 실행에서 integration 제외는 명령에서 `-m "not integration"`.
 - LangGraph·langchain-openai·FastAPI 등은 02에서 추가한다.
 
@@ -298,13 +303,13 @@ def session_factory(engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:
 상수:
 ```python
 KST = ZoneInfo("Asia/Seoul")
-AREAS: dict[str, dict[str, str]] = {"서울": {"areaCode": "1"}, "제주": {"areaCode": "39"}}
+AREAS: dict[str, dict[str, str]] = {"서울": {"lDongRegnCd": "11"}, "제주": {"lDongRegnCd": "50"}}
 CONTENT_TYPES: dict[int, str] = {12: "관광지", 14: "문화시설", 15: "축제공연행사", 25: "여행코스",
                                  28: "레포츠", 32: "숙박", 38: "쇼핑", 39: "음식점"}
 QUOTA_CODES = {"22"}       # 일일 한도 초과 (F7)
 RATE_CODES = {"23"}        # 초당 한도 초과 (F7)
 ```
-> **미확인**: KorService2가 `areaCode`(서울 1·제주 39)를 계속 받는지, 법정동 코드(`lDongRegnCd`) 체계로 바뀌었는지. 첫 실호출(A12)에서 확인해 `AREAS` 값만 바꾼다. 응답 필드명(`sigungucode`, `mapx`, `mapy`, `modifiedtime` 등)도 같은 시점에 확인한다.
+> **확인됨(2026-11-28 실호출)**: `areaCode`는 옛 코드가 남은 항목만 잡힌다(서울 관광지 17건). 법정동 시도 코드 `lDongRegnCd`(서울 11·제주 50)로 부르면 768·558건 → `AREAS`를 `lDongRegnCd`로 바꿨다. 응답에는 `sigungucode`와 함께 `lDongRegnCd`·`lDongSignguCd`가 온다(시군구 기준은 허브 작업 20에서 정한다). 응답 필드명(`sigungucode`, `mapx`, `mapy`, `modifiedtime` 등)도 같은 시점에 확인한다.
 
 ```python
 class TourApiError(Exception):
@@ -341,7 +346,7 @@ class TourApiClient:
     async def detail_info(self, contentid: str, content_type_id: int) -> TourApiResponse: ...
     async def aclose(self) -> None: ...
 ```
-- 공통 파라미터: `serviceKey`, `MobileOS=ETC`, `MobileApp=nadri`, `_type=json`. 목록은 `numOfRows`, `pageNo`, `arrange=C`(수정일순 — 표본 선택 기준, **미확인**: v2 정렬 코드), `areaCode`, `contentTypeId`. 상세는 `contentId`(+`contentTypeId`). v2에서 `defaultYN` 등 플래그가 없어졌는지 **미확인** — 실호출로 확인.
+- 공통 파라미터: `serviceKey`, `MobileOS=ETC`, `MobileApp=nadri`, `_type=json`. 목록은 `numOfRows`, `pageNo`, `arrange=C`(수정일순 — 표본 선택 기준, **미확인**: v2 정렬 코드), `lDongRegnCd`, `contentTypeId`. 상세는 `contentId`(+`contentTypeId`). v2에서 `defaultYN` 등 플래그가 없어졌는지 **미확인** — 실호출로 확인.
 - `parse_response` 규칙:
   1. HTTP 상태 ≠ 200 → `TourApiError("http_<상태>")`.
   2. 본문이 XML(`<OpenAPI_ServiceResponse>` 등 게이트웨이 오류)이면 `returnReasonCode`·`returnAuthMsg`를 정규식으로 뽑아 `TourApiError(code)`. 해석 못 하면 `code="parse"`.
@@ -504,8 +509,14 @@ def outcome_to_values(o: IndexOutcome, now: datetime) -> dict | None:
 2. 나머지 페이지마다 순서대로: `old_doc_id`가 있으면 `delete_documents([old_doc_id])` → `document_exists`가 False가 될 때까지 폴링(삭제가 비동기일 수 있음, **미확인** A16). 삭제 실패·타임아웃이면 그 페이지 `failed`(insert 하지 않음 — 중복 방지 우선).
 3. `insert_text(text, file_source=path)` → track_id 수집.
 4. 모든 track_id를 `poll_interval_s`마다 `track_status`로 확인, 문서 상태가 처리 완료(`processed`, **미확인**: 상태 문자열)면 `indexed`+doc_id, 실패(`failed`)면 `failed`+error, `timeout_s` 경과면 남은 것 모두 `failed("timeout")`.
-- **엔드포인트 미확인**(A16): `POST /documents/text`(본문 `{text, file_source}` → `track_id`), `GET /documents/track_status/{track_id}`, `DELETE /documents/delete_document`(본문 `{doc_ids, …}`), 문서 목록/상태 조회 경로. 구현 첫 단계에서 v1.5.7 `document_routes.py`로 확인하고 이 절을 고친다.
-- LightRAG는 문서 ID를 내용 해시로 만드는 것으로 알려져 있다(**미확인**). 그래서 내용이 바뀌면 doc_id가 바뀌고 이전 문서를 지우지 않으면 중복이 남는다 → 2) 단계가 필수.
+- **엔드포인트 확인됨(2026-11-28)** — v1.5.7 `lightrag/api/routers/document_routes.py`(라우터 prefix `/documents`):
+  - `POST /documents/text` `{text, file_source}` → `{status, message, track_id}`. **같은 file_source가 doc_status에 이미 있으면 409**("Document storage already contains … Delete the existing record before re-inserting"), 삭제 진행 중(`destructive_busy`)에도 409.
+  - `GET /documents/track_status/{track_id}` → `{track_id, documents:[{id, status, file_path, error_msg, chunks_count, …}], total_count, status_summary}`. 상태 문자열은 **소문자** `pending·parsing·analyzing·processing·processed·failed`(`lightrag/base.py` `DocStatus`).
+  - `DELETE /documents/delete_document` `{doc_ids, delete_file, delete_llm_cache}` → `status` = `deletion_started`(백그라운드 삭제 시작) / `busy`(파이프라인 사용 중 — 나중에 재시도) / `not_allowed`.
+  - 문서 단건 조회 API는 없다 → `document_exists`·잔여 문서 찾기는 `POST /documents/paginated` `{page, page_size(10~200), sort_field:"id", sort_direction}`로 전체 목록을 넘겨 본다(수천 건 규모라 충분). 문서 수는 `GET /documents/status_counts` → `{status_counts:{상태: 수}}`.
+  - **file_source 변형**: LightRAG는 file_source를 **basename으로 바꿔 저장**한다(`normalize_file_path` → `canonicalize_parser_hinted_basename`). `entity/12/126508.md`를 그대로 보내면 `126508.md`만 남아 경로 대조가 깨지므로, 경로의 `/`를 `__`로 바꿔 보낸다(`to_file_source`: `entity__12__126508.md`, 역변환 `from_file_source`). §9 A7 대안 "file_path 변형 → 코드로 매핑"에 해당(사용자 확인 불필요).
+- 구현 처리 순서 보완(위 사실 때문에): ① 해시 같으면 skipped ② **바뀐 페이지들의 이전 문서를 먼저 모두 삭제**(삭제 `busy`면 `poll_interval_s` 간격으로 재요청, 목록에서 사라질 때까지 확인) — 페이지마다 delete→insert를 번갈아 하면 앞 insert가 파이프라인을 바쁘게 해 다음 delete가 `busy`로 거절되기 때문 ③ insert — 409 "already contains"(이전 실행의 실패·타임아웃 잔여 문서)면 같은 file_source 문서를 찾아 지우고 **한 번** 다시 넣는다, 그 밖의 409(삭제 진행 중)는 간격을 두고 재시도 ④ track_status 폴링. 시간 상한은 ②~④ 합산 `timeout_s`.
+- **확인됨(2026-11-28 H-10·I-8)**: LightRAG v1.5.7은 문서 ID를 내용이 아니라 file_source(경로)로 만든다 — 내용이 바뀌어도 doc_id는 같다. 이전 문서를 지우지 않으면 같은 file_source라 409로 넣지 못한다 → 2) 단계가 필수. 변경 후 LightRAG 저장 본문·검색 결과에 새 내용이 반영됨을 확인했다.
 - 해시가 같아도 `old_doc_id`가 LightRAG에 실제로 없는 경우(수동 삭제 등)는 01에서 감지하지 않는다(상태 대조는 20 lint 범위).
 
 ### 6.7 `ingest/bootstrap.py`
@@ -553,7 +564,7 @@ async def count_totals(tourapi: TourApiClient, areas: list[str], types: list[int
    - `quota_exceeded`/`rate_limited` → 남은 항목 중단, 이미 받은 것은 유지하고 6)으로.
 6. 이번 실행에서 쓴 페이지들을 `PageToIndex`로 만들어 `index_pages` → `apply_outcomes`.
 7. `ingest_runs` 갱신: `finished_at`, `stats=asdict(result)`, `status = failed`(한도 중단·인덱싱 실패 1건 이상·예외) / `done`. 예외는 `error`에 메시지(비밀값 없음) 저장 후 다시 던진다.
-- 호출 수 기록: `TourApiClient(on_call=lambda op: record_call(sf, today))`.
+- 호출 수 기록: `TourApiClient(on_call=make_call_recorder(sf))`(호출 시각의 KST 날짜로 `record_call`). 실행 요약의 `calls`는 클라이언트가 세는 `TourApiClient.calls`(보낸 요청 수, 실패·타임아웃 포함)의 실행 전후 차이.
 - 표준 출력: 진행 줄(`[12/30] 126508 경복궁 inserted`)과 마지막 요약 JSON.
 
 ### 6.8 `tools/` — MCP 서버와 툴 3종
@@ -587,6 +598,8 @@ def main() -> None:
 ```
 - 미들웨어 규칙: `scope["type"] != "http"`(lifespan 등) → 그대로 통과. `GET /health` → 토큰 없이 200 `ok`(헬스체크 전용, 다른 정보 없음). 그 외 → 헤더가 정확히 `Bearer <token>`이고 `hmac.compare_digest`로 같으면 통과, 아니면 401 `{"error":"unauthorized"}`(본문에 이유 구분 없음). 토큰이 빈 문자열이면 `build_app`이 기동을 거부.
 - MCP 경로는 FastMCP 기본 `/mcp`. 끝 슬래시 리다이렉트(307) 여부 **미확인** — 어댑터가 따라가지 못하면 클라이언트 URL을 맞춘다.
+- **확인됨(mcp 1.30.0 소스)**: `FastMCP(host=…)` 기본값 `127.0.0.1`이면 DNS 리바인딩 보호가 자동으로 켜져 Host가 `localhost`·`127.0.0.1`이 아닌 요청(`tour-tools:8000`)을 거부한다. 그래서 `FastMCP(..., host="0.0.0.0")`로 만든다(접근 통제는 Bearer 미들웨어). `streamable_http_app()`의 Starlette lifespan이 세션 매니저를 돌리므로 미들웨어는 lifespan을 그대로 넘긴다.
+- `build_app(settings=None)`: 테스트에서 설정을 넘길 수 있게 인자를 하나 둔다(uvicorn `--factory`는 인자 없이 호출). 리랭커는 `build_app` 안에서 1회 로드(`main`도 `build_app`을 거침).
 - 툴 등록은 각 모듈의 함수를 `deps`를 묶은 얇은 래퍼로 등록한다. 래퍼 docstring = LLM이 보는 툴 설명(한국어, 짧게, 고정 문자열 — NFR-40 고정 프리픽스).
 
 #### `tools/rag_query.py`
@@ -611,14 +624,14 @@ async def rag_query(question: str, deps: ToolDeps,
 4. `rerank(question, [c.content …])` → 상위 `RAG_TOP_K` 인덱스.
 5. 상위 후보의 `file_path`로 `wiki_pages` 조회(`path IN (...)`) → 메타가 없는 후보는 버린다(삭제 경합 등). 버린 뒤 5개가 안 되어도 채우지 않는다.
 6. 결과 항목: `{"contentid", "title", "source": SOURCE_LABEL, "as_of": "YYYY-MM-DD", "path", "score": float(소수 4자리), "text": 청크 원문}`. 점수 내림차순.
-7. 로그: `tool=rag_query candidates=<n> lightrag_ms= rerank_ms= total_ms=` (A9·A7 측정용).
-- 요청 본문의 `top_k`/`chunk_top_k` 의미, 응답의 `data.chunks[].file_path` 존재 여부는 **미확인**(A7). 같은 페이지의 청크 여러 개는 합치지 않는다(엔티티 페이지는 대부분 1청크로 예상 — A7에서 기록).
+7. 로그: `tool=rag_query rerank=on|off candidates=<n> lightrag_ms= rerank_ms= total_ms=` (A9·A7 측정용).
+- 요청 본문의 `top_k`/`chunk_top_k` 의미, 응답의 `data.chunks[].file_path` 존재 여부는 **미확인**(A7). v1.5.7 `query_routes.py` 응답 스키마 문서에는 `data.chunks[]`에 `content`·`file_path`·`chunk_id`·`reference_id`가 있고, `top_k`는 엔티티/관계 수, `chunk_top_k`는 "벡터 검색에서 처음 가져와 리랭크 후 남길 청크 수"로 적혀 있다(실제 응답은 A7에서 확인). `file_path`는 `from_file_source`로 위키 경로로 되돌린다. 같은 페이지의 청크 여러 개는 합치지 않는다(엔티티 페이지는 대부분 1청크로 예상 — A7에서 기록).
 - `PageMeta`(`contentid`, `title`, `as_of`)는 rag_query.py 안의 작은 dataclass. `lookup_pages` 기본값은 `deps.sf`로 SELECT하는 함수(테스트에서 대체).
 
 #### `tools/reranker.py`
 ```python
 class CrossEncoderReranker:
-    """bge-reranker-v2-m3 CrossEncoder를 CPU에서 돌려 질문-문단 쌍 점수를 낸다. sentence_transformers는 생성자에서 지연 import."""
+    """bge-reranker-v2-m3(크로스 인코더)를 ONNX Runtime CPU로 돌려 질문-문단 쌍 점수를 낸다. onnxruntime·tokenizers는 생성자에서 지연 import."""
     def __init__(self, model_path: str, max_length: int = 512) -> None: ...
     def score(self, query: str, passages: Sequence[str]) -> list[float]: ...
 
@@ -627,7 +640,9 @@ def top_k_indices(scores: Sequence[float], k: int) -> list[int]:
 async def rerank(reranker, query: str, passages: Sequence[str], k: int) -> list[tuple[int, float]]:
     """score를 스레드에서 실행(이벤트 루프 막지 않음)하고 (인덱스, 점수) 상위 k개를 돌려준다."""
 ```
-- 모델 로드는 `main()`에서 1회(첫 요청 지연 방지). `HF_HUB_OFFLINE=1`이라 런타임 다운로드 없음.
+- 모델 로드는 `main()`에서 1회(첫 요청 지연 방지). 이미지에 들어 있는 `model.onnx`·`tokenizer.json`만 읽어 런타임 다운로드 없음.
+- 토큰화: `tokenizers.Tokenizer.from_file(tokenizer.json)` + `longest_first` 자르기(`max_length`) + `<pad>` 패딩 — sentence-transformers CrossEncoder와 같은 토큰 결과. 후보 전체를 한 배치로 추론, 스레드 수는 onnxruntime 기본(물리 코어 수).
+- 점수: 로짓의 sigmoid(0~1) — 이전 CrossEncoder.predict(num_labels=1 → Sigmoid)와 같은 의미라 출력 `score` 범위가 바뀌지 않는다.
 
 #### `tools/data_query.py`
 ```python
@@ -706,8 +721,8 @@ async def get_datetime() -> dict:
 | HTML 섞인 텍스트(`<br>`, `&amp;`) | DB·위키는 정리된 텍스트, raw는 원문 |
 | 같은 날 bootstrap 재실행 | upsert `unchanged`, 페이지 같음 → 인덱싱 `skipped`, raw는 순번 파일로 추가 저장(호출은 다시 소모) |
 | 페이지 내용 변경 | 이전 doc 삭제 확인 후 insert, 성공 시 해시·doc_id 교체 |
-| LightRAG 삭제 실패 | 그 페이지 insert 안 함(중복 방지), `failed`, 해시 유지 → 다음 실행 재시도 |
-| insert 후 처리 실패/타임아웃 | `failed`, wiki_pages 해시·doc_id NULL → 다음 실행에서 다시 insert |
+| LightRAG 삭제 실패 | 그 페이지 insert 안 함(중복 방지), `failed` → `outcome_to_values`대로 해시·doc_id를 비움(U-IDX-11). 다음 실행에서 insert가 409(같은 file_source 잔여)면 그 문서를 찾아 지우고 다시 넣는다(§6.6 보완) |
+| insert 후 처리 실패/타임아웃 | `failed`, wiki_pages 해시·doc_id NULL → 다음 실행에서 다시 insert(LightRAG에 실패 문서가 남아 있으면 409 → 잔여 문서 삭제 후 재시도) |
 | LightRAG 다운 상태에서 rag_query | 툴 오류 결과(한국어 짧은 메시지) |
 | 후보 file_path가 wiki_pages에 없음 | 그 후보 버림 |
 | MCP 토큰 없음/틀림/`Bearer` 접두어 없음 | 401, 이유 구분 없는 같은 본문 |
@@ -742,7 +757,7 @@ async def get_datetime() -> dict:
 |---|---|---|---|
 | **A7** `/query/data`가 청크·문서 식별자 반환, 후보 ~30 조절 | 1) v1.5.7 `query_routes.py`로 요청·응답 스키마 확인 2) `nadri lightrag sample`·통합 테스트로 실제 응답 저장(키 이름 기록) 3) `top_k`/`chunk_top_k`=30 요청 시 청크 수, 10/20으로 바꿨을 때 수 변화 | 청크마다 `file_path`(= 넣은 `file_source`)가 있어 `wiki_pages.path`로 100% 매핑되고, 요청 값으로 후보 수가 조절됨(위키 50페이지라 30 미만일 수 있음 — 그 경우 "요청 값 이하로 줄어드는지"로 판단) | file_path 없음/변형 → 청크 본문 "관광지 ID: N" 줄(또는 frontmatter `contentid`)을 정규식으로 뽑아 매핑(코드 변경, 사용자 확인 불필요). 후보 수 조절 불가 → 받은 만큼 쓰고 기록. 둘 다 안 되면 LightRAG 라이브러리 직접 사용 → ADR-06 변경이라 **사용자 확인** |
 | **A8** 한국어 엔티티 추출 품질 | 50페이지 인덱싱 후 `nadri lightrag sample --query`를 "경복궁", "성산일출봉", "한라산" 등 3개로 실행 → 엔티티·관계 10~20개씩 사용자에게 제시 | 사용자 판단 "쓸 만함". 참고 기준(제안): 엔티티 80% 이상이 한국어 고유명사·시설·지역으로 올바름, frontmatter 키(`source`, `as_of` 등)가 엔티티로 잡히지 않음, 관계 70% 이상 의미가 맞음 | ① frontmatter 제거 후 본문만 인덱싱 ② LightRAG 엔티티 유형·프롬프트 조정 ③ 질의 `naive` 비교 ④ 인덱싱만 상위 모델 → **사용자 확인**(비용·D-05). ①②는 재인덱싱 비용(50페이지분)만 듦 |
-| **A9** CPU CrossEncoder 30쌍 지연 | `nadri tools smoke --repeat 10`(워밍업 1회 제외) → tour-tools 로그 `rerank_ms`로 p50·p95, 컨테이너 CPU 정보(`nproc`, 모델명) 기록. 후보가 30 미만이면 실제 개수도 기록하고, 별도로 30개 문단(위키 페이지 본문 반복)으로 `CrossEncoderReranker.score`를 직접 10회 측정 | p95 ≤ 2.0초 (TECH_STACK "+1~2초" 기준 — Q3) | 2~5초: `RERANKER_MAX_LENGTH=256`, `RAG_CANDIDATES=20`으로 재측정, 통과하면 설정값만 바꾸고 기록. 그래도 초과 또는 5초 초과: ONNX 변환·리랭커 끔·GPU → **사용자 확인** |
+| **A9** CPU 리랭커 30쌍 지연 (2026-11-28부터 ONNX Runtime int8) | `nadri tools smoke --repeat 10`(워밍업 1회 제외) → tour-tools 로그 `rerank_ms`로 p50·p95, 컨테이너 CPU 정보(`nproc`, 모델명) 기록. 후보가 30 미만이면 실제 개수도 기록하고, 별도로 30개 문단(위키 페이지 본문 반복)으로 `CrossEncoderReranker.score`를 직접 10회 측정. ONNX 전환 정확도는 같은 질문 5개 × 실제 후보로 PyTorch fp32 원본과 순위 비교(상위 5 겹침률·스피어만·1위 일치) | p95 ≤ 2.0초 (TECH_STACK "+1~2초" 기준 — Q3) | 2~5초: `RERANKER_MAX_LENGTH=256`, `RAG_CANDIDATES=20`으로 재측정, 통과하면 설정값만 바꾸고 기록. 그래도 초과 또는 5초 초과: 리랭커 끔·GPU 등 → **사용자 확인**. (2026-11-28 PyTorch 원본 실측 rerank 약 28초 → 사용자 결정으로 **ONNX int8 변환 적용**, 이후 수치는 ONNX 기준. ONNX int8도 512·30 p95 19.2초, 256·20 p95 10.5초로 초과 → 2026-11-28 사용자 결정 **리랭커 끔**(`RAG_RERANK_ENABLED=false`), 끔 상태 total p95 0.6초. 켤지는 22 골든셋 on/off 비교로 다시 결정) |
 | **A12**(일부) TourAPI 실제 호출·`totalCount`·한도 단위 | 1) 실적재 호출 성공·응답 필드 기록(`areaCode` 체계, `sigungucode`·`mapx/mapy`·`modifiedtime` 유무, 타입 12 요금 위치) 2) `nadri ingest count`로 16칸 `totalCount` 3) `ingest_state` 호출 수와 공공데이터포털 마이페이지 트래픽 표시를 대조하고, 한도가 오퍼레이션별인지 서비스 전체인지 화면으로 확인(사용자) | 호출 성공, 16칸 기록, 셈이 포털과 일치, 한도 단위 확인(못 하면 "미확인 — 서비스 전체로 보수 가정" 기록) | 키 오류 → 재발급·활성화 대기. 필드명 다름 → 매핑·`AREAS` 수정(코드). 적재 일수가 길면 운영계정 트래픽 증설 신청 여부 → **사용자 확인**(03에서 최종) |
 | **A16** delete→insert·상태 조회 경로 | 1) v1.5.7 `document_routes.py`로 insert·track_status·delete·문서 조회 경로 확인 2) DoD 7 절차(재실행 skipped → 행 수정 → reindex) 3) 삭제 후 이전 doc_id 조회 결과, 문서 수 전후, 수정 내용이 `rag_query`에 반영되는지 | 재실행 시 LightRAG 호출 0, 수정 시 이전 doc 없음 + 새 doc 1개 + 문서 수 불변 + 새 내용 검색됨 | 삭제가 비동기·파이프라인 busy로 거부 → 폴링·재시도 간격 조정(코드). doc_id로 삭제 불가 → file_path 기준 삭제·해시 문서 ID(코드). 그래프 엔티티가 지워지지 않고 남음 → 기록 후 "정기 전체 재인덱싱" 정책 여부 **사용자 확인** |
 | **A21** 어댑터 0.3.2 ↔ mcp 1.30 FastMCP, `headers` 토큰 | `uv.lock`에서 `mcp==1.30.0`·`langchain-mcp-adapters==0.3.2` 확인 → `nadri tools smoke`로 `get_tools()` 3종·스키마·호출 결과 → 통합 테스트로 토큰 없음/틀림 401, 맞음 200 | 3종 모두 호출 성공, 401/200 구분 | 어댑터가 헤더를 안 보냄 → 어댑터 `httpx_client_factory` 등으로 헤더 주입(코드). 버전 비호환 → `mcp>=1.24,<2` 범위 다른 버전(코드, 기록). 토큰 전달 자체 불가 → 내부망 신뢰로 퇴화(NFR-08 영향) **사용자 확인** |
@@ -755,15 +770,15 @@ async def get_datetime() -> dict:
 ## 10. 판정 결과 기록 (구현 시 채움)
 | 가정·측정 | 결과 | 수치 | 판정 | 후속 |
 |---|---|---|---|---|
-| A7 | | | | |
-| A8 | | | | |
-| A9 | | p50 / p95 | | |
-| A12 | | 16칸 totalCount, 한도 단위 | | |
-| A16 | | | | |
-| A21 | | | | |
-| 인덱싱 비용·시간 | | 페이지당 $·초, 전체 추정 | | |
-| 적재 일수 | | | | |
-| 이미지 크기 | | app / tools | | |
+| A7 | `/query/data`의 `data.chunks[]`에 content·file_path·chunk_id. file_path는 파일 이름만 남아 경로 `/`→`__` 변환으로 매핑 | 후보 30개(top_k·chunk_top_k=30), 매핑률 100%(I-3·H-7 결과 항목 전부 wiki_pages 메타 있음) | 통과(대안 적용) | — |
+| A8 | 엔티티 이름 한국어 정상, frontmatter 키가 엔티티로 안 잡힘. 유형명 한/영 혼재(location·장소), 전화번호·"화장실 정보" 같은 잡음 일부 | 질의 3개(광화문·성산일출봉·한라산) | **사용자 판단 대기**(추천: 쓸 만함) | 잡음은 03 템플릿 정리로 줄어드는지 확인 |
+| A9 | PyTorch 원본 rerank 약 28초 → ONNX int8 512·30 p50 17.1/p95 19.2초, 256·20 p50 6.2/p95 10.5초 → **리랭커 끔** | 끔 상태 rag_query total p50 0.29초 / p95 0.59초(같은 질문 반복, 새 질문은 약 2초) | 기준 초과 → 사용자 결정으로 끔 | 22 골든셋에서 on/off 비교 |
+| A12 | `areaCode`는 옛 코드만 잡힘 → `lDongRegnCd`(서울 11·제주 50)로 변경. `sigungucode` 빈 값(대신 `lDongSignguCd`), 여행코스(25) 0건 | 16칸 합계 10,061. 실적재 152호출 + count 16×2 = 앱 카운터 184 | 통과(코드 수정). 한도 단위·포털 표시 대조는 **사용자 확인 대기** | 시군구 기준은 20, 여행코스 0건은 03에서 |
+| A16 | 문서 API 확인(§6.6). doc_id는 경로 기반이라 내용이 바뀌어도 같음 → delete→insert 필수. 변경 후 저장 본문·검색 결과에 반영, 문서 수 불변 | reindex 전부 skipped 50 / 1건 변경 indexed 1, 문서 수 50 유지 | 통과 | — |
+| A21 | `mcp==1.30.0`, `langchain-mcp-adapters==0.3.2`로 툴 3종 목록·호출 성공, 토큰 없음·틀림 401 | I-1~I-4 통과 | 통과 | — |
+| 인덱싱 비용·시간 | 서울 30 = 278초, 제주 20 = 186초 | 페이지당 약 9.3초(순차). 10,061건이면 약 26시간. 비용은 OpenAI Usage로 **사용자 확인 대기** | 기록 | 03 적재 계획에 반영 |
+| 적재 일수 | 하루 한도 기준 | 서비스 전체 한도 38일 / 오퍼레이션별 13일 | 14일 초과 | 03에서 운영계정 증설 여부 결정(03-Q9) |
+| 이미지 크기 | — | app 415MB / tools 1.34GB(ONNX 전환 전 5.13GB) | 기록 | — |
 
 ---
 

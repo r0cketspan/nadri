@@ -1,0 +1,50 @@
+{
+  "response": {
+    "header": {
+      "resultCode": "0000",
+      "resultMsg": "OK"
+    },
+    "body": {
+      "items": {
+        "item": [
+          {
+            "contentid": "126508",
+            "contenttypeid": "12",
+            "title": "경복궁",
+            "areacode": "1",
+            "sigungucode": "23",
+            "addr1": "서울특별시 종로구 사직로 161",
+            "mapx": "126.9770162",
+            "mapy": "37.5788407",
+            "modifiedtime": "20261120103000"
+          },
+          {
+            "contentid": "126512",
+            "contenttypeid": "12",
+            "title": "창덕궁과 후원",
+            "areacode": "1",
+            "sigungucode": "23",
+            "addr1": "서울특별시 종로구 율곡로 99",
+            "mapx": "126.9910",
+            "mapy": "37.5794",
+            "modifiedtime": "20261119090000"
+          },
+          {
+            "contentid": "126535",
+            "contenttypeid": "12",
+            "title": "남산서울타워",
+            "areacode": "1",
+            "sigungucode": "15",
+            "addr1": "서울특별시 용산구 남산공원길 105",
+            "mapx": "126.9882",
+            "mapy": "37.5512",
+            "modifiedtime": "20261118080000"
+          }
+        ]
+      },
+      "numOfRows": 30,
+      "pageNo": 1,
+      "totalCount": 120
+    }
+  }
+}
