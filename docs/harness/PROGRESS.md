@@ -1,12 +1,12 @@
 # PROGRESS
 - 현재 단계: Phase 5 — 구현. 01-e2e-tools-slice 코드·단위테스트 완료(2026-11-28), 실 키 HITL(H-1~H-12)·통합 테스트 대기
 - 게이트: G1 ✅ (2026-11-07) · G2 ✅ (2026-11-07) · G3 ✅ (2026-11-07, 재검토 재승인 2026-11-21) · G4 ✅ (2026-11-21) · G5 (작업별, 아래 표)
-- 다음 할 일: 사용자가 `.env` 작성(OpenAI·TourAPI Decoding 키 + 내부 토큰·DB 비밀번호 6개) → 01 HITL H-1~H-12·통합 테스트 → spec §10 판정 기록 → G5. **A9 사전 측정에서 리랭커가 기준 초과**(아래 막힌 것). Node LTS(fnm)는 14 구현 시작 때 WSL에 설치. 02 시작 직전에 TourAPI 키·`.dev` 도메인·Named Tunnel 토큰·Tavily 키 발급 방법 안내(G4 Q2)
+- 다음 할 일: **01 G5(dev 병합) 사용자 승인 대기** — 남은 사용자 확인: A8 엔티티 품질 판단(추천 쓸 만함), 포털 트래픽 화면의 한도 단위·호출 수(A12), 다음 날 OpenAI Usage로 인덱싱 비용. 승인 후 02-e2e-chat-slice(02 시작 직전에 `.dev` 도메인·Named Tunnel 토큰·Tavily 키 발급 방법 안내, G4 Q2). Node LTS(fnm)는 14 구현 시작 때
 - 브랜치: `dev`(작업 기준) · `prod`(릴리스). 2026-11-07 로컬 `master` → `prod` 이름 변경, `dev` 생성. 원격 반영(push·기본 브랜치 변경·원격 master 삭제)은 사용자가 직접
 
 | 작업id | spec/test | 브랜치 | 구현·테스트 | 커밋 | G5 병합 |
 |---|---|---|---|---|---|
-| 01-e2e-tools-slice | ✅ | feat/01-e2e-tools-slice | 단위 124 ✅ · HITL·통합 대기 | 96942b4 | |
+| 01-e2e-tools-slice | ✅ | feat/01-e2e-tools-slice | ✅ 단위 125·통합 8 통과, HITL 완료 | 7332115 | 대기 |
 | 02-e2e-chat-slice | ✅ | feat/02-e2e-chat-slice | | | |
 | 03-ingest-bootstrap | ✅ | feat/03-ingest-bootstrap | | | |
 | 04-db-schema | ✅ | feat/04-db-schema | | | |
@@ -99,7 +99,7 @@
 - H-10: 전체 reindex skipped 50·문서 수 50 유지 ✅. 1건 변경 reindex는 indexed 1·문서 수 유지지만 **doc_id가 바뀌지 않음**(LightRAG 문서 ID가 내용 해시가 아닐 수 있음), 변경 문구가 rag_query 상위 결과에 안 보임 → ONNX 후 재확인
 - ONNX int8 전환 커밋 `858fd7e`: tools 이미지 5.13GB→1.34GB(torch 제거), 원본 대비 상위5 겹침 평균 0.88·1위 5/5 일치. **rerank p50 17.1초/p95 19.2초(512·30)**, 256·20이면 p50 6.2초/p95 10.5초 — 여전히 2초 기준 초과(이 CPU에 int8 가속 명령 없음 추정). 사용자 결정 대기: 작은 다국어 리랭커 교체 / 후보·길이 축소 / 리랭커 끄고 22 평가에서 재판단 / GPU / 기준 완화. 원본 이미지 `nadri-tools:torch-baseline` 보존 중
 - 2026-11-28 사용자 결정: **리랭커 끔**(compose `RAG_RERANK_ENABLED=false`, 코드·ONNX 모델은 유지). 끔 상태 rag_query p50 0.29초/p95 0.59초(같은 질문 반복이라 LightRAG 캐시 영향 가능, 새 질문은 약 2초). 켤지는 22 골든셋 on/off 비교로 재판단
-- 남은 것: H-10 doc_id 불변·변경 문구 미검색 재확인 → H-10 재확인 → 통합 테스트(I-1~I-8) → spec §10 판정 → G5
+- H-10 재확인 ✅: doc_id는 경로 기반(내용이 바뀌어도 같음), 변경 문구가 LightRAG 저장 본문·검색 1위 결과에 반영. 통합 테스트 I-1~I-8 통과(I-8 기대값 수정). spec §10 판정표 기록. H-11(핫리로드)은 생략. 현재 compose는 dev 덮어쓰기(127.0.0.1 포트)로 떠 있음 → H-10 재확인 → 통합 테스트(I-1~I-8) → spec §10 판정 → G5
 
 ## 막힌 것 / 사용자 확인 필요
 - 01 A9(리랭커 지연) 사전 측정(2026-11-28, 실 키 없이 tools 컨테이너에서 직접): bge-reranker-v2-m3 CPU, 30쌍(쌍당 약 325토큰) p50 **16.3초**, max_length 256으로도 약 12초(Ryzen 5 5600, torch 스레드 6). 기준 p95 ≤ 2초를 크게 넘어 spec §9상 **사용자 결정 필요**(ONNX 변환·리랭커 끔·GPU·후보 수 축소 등). H-9 실측(실제 위키 페이지)으로 다시 확인 후 결정
