@@ -169,7 +169,7 @@ async def run_daily_sync(deps: SyncDeps) -> SyncResult:
     단계 하나가 실패해도 다음 단계를 계속하고, 정리 단계(9)는 항상 시도한다."""
 
 async def run_scheduled_daily(settings: Settings, sf) -> None:
-    """스케줄러용 래퍼: SyncDeps를 만들고 run_daily_sync → (21-Q1) 초기 적재가 안 끝났으면 run_bootstrap 이어하기.
+    """스케줄러용 래퍼: SyncDeps를 만들고 run_daily_sync → (21-Q1·26-Q1) 초기 적재를 시작했고 안 끝났으면 run_bootstrap 이어하기(빈 DB면 안 함).
     클라이언트 정리(aclose)까지 한다. 예외는 serve의 래퍼가 로그로 남긴다."""
 
 def final_status(steps: dict[str, StepOutcome], index_failed: int, removal_failed: int) -> Literal["done", "failed"]:
@@ -201,7 +201,8 @@ def final_status(steps: dict[str, StepOutcome], index_failed: int, removal_faile
 
 추천안(21-Q1): **스케줄러 작업이 두 일을 차례로 한다** — `run_scheduled_daily`가
 1. `run_daily_sync`(잠금 획득 → 1~9 → 잠금 해제)를 먼저 돌려 현행화가 예산을 먼저 쓰고(하루 수십~수백 건 예상, **미확인**),
-2. `ingest_state`에 `bootstrap:completed_at`이 없으면 이어서 [03] `run_bootstrap(BootstrapOptions())`(자체적으로 잠금을 다시 잡음 — 실패하면 `LockBusy` 로그만)을 실행해 남은 예산을 쓴다. 결과는 03 형식으로 `kind='bootstrap'` 행이 따로 남는다.
+2. **초기 적재를 한 번이라도 시작했고(`ingest_runs`에 `kind='bootstrap'` 행이 있음) 아직 안 끝났으면**(`ingest_state`에 `bootstrap:completed_at` 없음) 이어서 [03] `run_bootstrap(BootstrapOptions())`(자체적으로 잠금을 다시 잡음 — 실패하면 `LockBusy` 로그만)을 실행해 남은 예산을 쓴다. 결과는 03 형식으로 `kind='bootstrap'` 행이 따로 남는다.
+- (26-Q1, 2026-11-28) 한 번도 시작하지 않은 빈 DB에서는 이어하기를 하지 않는다. 그러지 않으면 새로 설치하자마자 따라잡기(21-Q2)가 전체 초기 적재(TourAPI 800건·인덱싱 비용)를 스스로 시작한다. 초기 적재의 첫 시작은 [A] §3.3대로 CLI(`ingest bootstrap`)만 한다.
 - 21 병합 뒤에는 `--follow` 컨테이너를 멈춘다(HITL H-0). `--follow` 코드는 지우지 않는다(수동 실행용으로 남김 — 수술적 변경).
 - `nadri ingest sync --now`는 1만 한다(초기 적재는 [03] `ingest bootstrap` 명령이 따로 있음).
 

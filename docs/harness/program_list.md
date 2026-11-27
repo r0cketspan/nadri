@@ -30,14 +30,14 @@
                     │                       │                 ▼
                     ├─▶ 07 guard-pii ───────┴────────────▶ 08 guard-pipeline ─▶ 09 chat-sessions ─▶ 11 quota-usage ─▶ 12 faq-cache ─▶ 13 feedback
                     │                                          │                                     │                 │                │
-                    ├─▶ 10 tool-tour-live (01·02)              └─▶ 23 eval-attack-set                │                 │                │
+                    ├─▶ 10 tool-tour-live (01·02)              └─▶ 23 eval-attack-set (08·22)        │                 │                │
                     │                                                                                │                 ▼                │
                     └─▶ 03 ingest-bootstrap ─▶ 20 ingest-hubs-lint (03·11) ─────────────────────────▶ 21 ingest-daily-sync (12·20)       │
                                                                                                                        │                │
  14 + 09 + 11 ─▶ 15 web-chat ─┬─▶ 16 web-chat-actions (13·15)                                                           ▼                │
                               └─▶ 17 voice (11·15)                                       24 eval-daily-quality (13·21·23) ◀─────────────┘
  05 + 14 ─▶ 18 admin-users ─▶ 19 admin-usage                                                     │
-                              └──────────────────────────────────────────▶ 25 admin-quality-hitl (18·24)
+                              └──────────────────────────────────────────▶ 25 admin-quality-hitl (18·19·24)
  03 + 08 + 10 + 11 ─▶ 22 eval-golden
  01~25 전부 ─▶ 26 release-readiness
 ```
@@ -88,9 +88,9 @@
 | 20-ingest-hubs-lint | 허브 페이지·lint·위키 git | `nadri/ingest/wiki/{hubs,lint,git}.py`, `nadri/prompts/hub.md`, `backend/Dockerfile`(git 설치), `nadri/cli.py`(`ingest hubs`) | 시군구 허브 27개 LLM 작성·인덱싱 / 깨진 링크·기준일 경과·모순 리포트 / 위키 볼륨 git 커밋 | 03, 11 | FR-43·46·47, NFR-24 |
 | 21-ingest-daily-sync | 매일 01:00 현행화·90일 정리 | `nadri/ingest/{scheduler,sync,cleanup}.py`, `nadri/ingest/jobs/daily_sync.py`, `nadri/cli.py`(`ingest sync --now`), compose(ingest 상주) | APScheduler(Asia/Seoul)+advisory lock / SyncList 변경·삭제 반영 / 90일·만료 정리 / 작업 묶음 | 12, 20 | FR-45, NFR-31, ADR-09 |
 | 22-eval-golden | 골든 Q&A 평가 | `eval/golden/golden.jsonl`, `eval/README.md`, `nadri/eval/golden.py`, `nadri/cli.py`(`eval golden`), `nadri/tools/rag_query.py`·`nadri/core/config.py`(리랭커·모드 설정값) | 평가셋(관광·스몰토크) / 정답률·근거 일치율·지연·토큰·비용, 리랭커 on/off·검증 0/1/2·mix/hybrid 비교 | 03, 08, 10, 11 | FR-70(골든). A10·A22(오탐)·A24·A25 |
-| 23-eval-attack-set | 공격 질문 세트 | `eval/attack_set/attacks.jsonl`, `nadri/eval/attack.py`, `nadri/cli.py`(`eval attack`) | 유형별 공격(한국어 포함)·통과 기준 / 실제 guard+그래프, 오염된 가짜 웹 툴, 코드 판정 우선 | 08 | NFR-16, FR-70(방어율), [SG] §4 |
+| 23-eval-attack-set | 공격 질문 세트 | `eval/attack_set/attacks.jsonl`, `nadri/eval/attack.py`, `nadri/cli.py`(`eval attack`) | 유형별 공격(한국어 포함)·통과 기준 / 실제 guard+그래프, 오염된 가짜 웹 툴, 코드 판정 우선 | 08, 22 | NFR-16, FR-70(방어율), [SG] §4 |
 | 24-eval-daily-quality | 매일 03:00 평가·개선안 에이전트 | `nadri/eval/{anonymize,quality,proposals}.py`, `nadri/ingest/jobs/daily_quality.py`, `nadri/prompts/{evaluate,propose}.md`, `nadri/ingest/scheduler.py`(등록), `nadri/cli.py`(`eval quality --date`) | 익명화 / 턴 채점·집계·보고서 / 개선안 작성 / 배치 작업 | 13, 21, 23 | FR-100·101·104·105, NFR-36, ADR-09·23 |
-| 25-admin-quality-hitl | 관리자: 품질 리포트·개선안 결정 | `nadri/api/admin/quality.py`, `web/app/admin/quality/{page.tsx,[reportId]/page.tsx,proposals/page.tsx}` | 보고서·개선안 조회 API, 채택/보류/기각+메모 / 화면 | 18, 24 | FR-102 |
+| 25-admin-quality-hitl | 관리자: 품질 리포트·개선안 결정 | `nadri/api/admin/quality.py`, `web/app/admin/quality/{page.tsx,[reportId]/page.tsx,proposals/page.tsx}` | 보고서·개선안 조회 API, 채택/보류/기각+메모 / 화면 | 18, 19, 24 | FR-102 |
 | 26-release-readiness | 릴리스 준비 점검 | `backend/tests/test_compose_hardening.py`, `compose.yaml`·`.env.example`(최종), `README.md`(시작하기·상태), `CLAUDE.md`(명령어) | compose 보안 설정·서비스별 비밀값 주입 검사 / 클린 볼륨 기동 확인 / 실행 문서 | 01~25 | NFR-08·09·17·20·21, ADR-01·26 |
 
 ---

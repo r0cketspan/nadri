@@ -1,9 +1,9 @@
 # 24-eval-daily-quality — 매일 03:00 평가·개선안 에이전트 (spec)
 
-> 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-22). 상태: **초안 — 확인 질문 대기**(마지막 절 표). 브랜치 `feat/24-eval-daily-quality`, 의존 작업 13-feedback · 21-ingest-daily-sync · 23-eval-attack-set (→ 22·20·12·11·09·08·07·04·02·01).
+> 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-22). 상태: **확정(2026-11-28, 확인 질문 전부 추천안대로)**(마지막 절 표). 브랜치 `feat/24-eval-daily-quality`, 의존 작업 13-feedback · 21-ingest-daily-sync · 23-eval-attack-set (→ 22·20·12·11·09·08·07·04·02·01).
 > 근거: [PL]=program_list.md(G4 승인본) §2 표·§3 "24-eval-daily-quality"·§5 X-d · [A]=architecture.md(G3 재승인본) §2.1 ingest `jobs.daily_quality`·§3.3 9)(90일 정리)·§3.7(1~8단계·HITL)·§5.1(`eval_reports`·`eval_scores`·`improvement_proposals`·`usage_events` kind)·§9 개인정보·§10 비용("하루 ≈ $0.05")·§13 범위 밖("개선안 자동 적용·자동 PR")·ADR-09·23 · [R]=requirements.md FR-100·101·102·103·104·105, NFR-16·31·36 · [E]=ERD 18개 · [PG]=PROGRESS.md 결정 로그(22-Q7 `usage_events kind=eval`, 22-Q11 조정값은 compose `environment`, 21-Q2 놓친 실행 기동 때 1회, 20-Q11 잠금 `nadri/ingest/lock.py`, 07-Q1 답변은 가리지 않음).
 > **이어받는 확정 spec**: [02](`build_chat_model`·`UsageRecord`·`usage_from_message`·`VerifyAttempt`·`FACT_KINDS`·`SECURITY_KINDS`·`wrap_as_material`·`load_tools`·`LLM_MODEL`·timings 정의) · [04](`EvalReport`·`EvalScore`·`ImprovementProposal`·`MessageFeedback`·`SecurityEvent`·`ChatMessage`·`UsageEvent`·`PROPOSAL_TARGETS`·`PROPOSAL_PRIORITIES`·`EVAL_REPORT_STATUSES`·`SECURITY_*`·`FEEDBACK_REASONS`·FK 삭제 동작 §4.5·`db_sf` 픽스처) · [07](`mask_pii`·`PII_TYPES`·멱등성 §6) · [08](`CANARY`·`load_prompt`·`fixed_messages`·`security_events` 기록 표 §7.2) · [09](`chat_messages.tool_results`·`verification`·`timings` 저장 모양 §6.2·§6.3, `build_chat_model(settings, *, reasoning_effort=None)`) · [11](`record_usage`·`usage_row`·`cost_usd`·`LLM_KINDS`에 `eval`·`proposal`) · [12](캐시 턴 저장 모양: `from_cache=true`·`verify_status=cached`·`tool_results=NULL`) · [13](`message_feedback` 1메시지 1행·사유) · [20](`nadri/ingest/lock.py`·`LockBusy`) · [21](`JobSpec`·`default_jobs`·`build_scheduler`·`needs_catch_up`·`serve`·작업 래퍼 규칙·`KST`·C5 정리 기준 `report_date`) · [22](`./eval:/app/eval:ro` 마운트·ingest의 `OPENAI_API_KEY`·`TAVILY_API_KEY`·`TOOLS_*`, 백분위 계산 규칙, `kind="eval"` 기록 방식).
-> **같은 날 작성 중인 spec**: [23](`nadri.eval.attack.run_attack_set(...)` — 반환 필드 이름은 23이 정함. 이 문서는 "유형별 {total, passed}·전체 방어율·실패 id 목록"만 쓴다고 가정하고, 이름이 걸리는 곳은 **"23 spec 필드명에 맞춤"**으로 표시) · [25](이 문서 §9 `stats`·§12.4 개선안 필드를 그대로 화면에 씀, 개선안 `status`를 `new → adopted|held|rejected`로 바꿈).
+> **함께 맞춘 spec**: [23 확정](`nadri.eval.attack.run_attack_set(settings)` → `AttackReport`. 24가 읽는 필드는 23 §9.1 "24가 읽는 필드" — `by_type[유형].total`·`.passed`, `defense_rate`, `failed_ids`, `cost_usd`. 호출 규칙은 23 §9.4) · [25](이 문서 §9 `stats`·§12.4 개선안 필드를 그대로 화면에 씀, 개선안 `status`를 `new → adopted|held|rejected`로 바꿈).
 > **미확인** = 문서·공식 자료로 확인하지 못한 사실.
 
 ---
@@ -52,10 +52,10 @@
 | `nadri/prompts/propose.md` | 신규 | 개선안 에이전트 시스템 프롬프트 (§12.5) |
 | `nadri/ingest/scheduler.py` | 수정(21) | `default_jobs`에 `daily_quality` 한 줄 (§14) |
 | `nadri/ingest/lock.py` | 수정(20) ([PL] 밖, 24-Q14) | 품질 배치 잠금(키 2) 추가 (§14.2) |
-| `nadri/agent/state.py` | 수정(02·20) ([PL] 밖) | `UsageRecord.kind` Literal에 `"eval"`·`"proposal"` 추가(타입만 — 04 `USAGE_KINDS`에는 이미 있음) |
-| `nadri/core/models/quality.py` | 수정(04) — **24-Q1 결정 시에만** | `PROPOSAL_TARGETS`에 `"faq_cache"` 추가 (+ 04 테이블 생성 스크립트의 CHECK 문자열) |
+| `nadri/agent/state.py` | 수정(02·20) ([PL] 밖) | `UsageRecord.kind` Literal에 `"proposal"` 추가(타입만 — `"eval"`은 23이 먼저 넣음, 04 `USAGE_KINDS`에는 둘 다 있음) |
+| (`nadri/core/models/quality.py`) | 04가 반영(24-Q1 확정) — 24는 고치지 않음 | `PROPOSAL_TARGETS`에 `"faq_cache"`가 들어 있음(04 spec·DDL은 코디네이터가 갱신) |
 | `nadri/cli.py` | 수정 | `nadri eval quality --date YYYY-MM-DD [--force]` (§15) |
-| `compose.yaml` | 수정 — **24-Q2 결정 시에만** | 조정 설정값 공용 블록(`x-tuning`)을 api·tour-tools·ingest에 같이 적용 (§3.3) |
+| `compose.yaml` | 수정(24-Q2 확정) | 조정 설정값 공용 블록(`x-tuning`)을 api·tour-tools·ingest에 같이 적용 (§3.3) |
 | `eval/README.md` | 수정(22·23) | "매일 품질 평가" 절: 채점 기준표(§7)·수동 재실행 방법 |
 | `backend/tests/...` | 신규·수정 | test.md, 앞 작업 테스트 수정(§18) |
 
@@ -90,7 +90,7 @@
 
 ### 3.3 조정 설정값이 ingest에 보이게 하기 (24-Q2)
 개선안 에이전트는 "지금 설정"을 봐야 한다([A] §3.7 7)). 그런데 22-Q11 결정으로 `VERIFY_MAX_REWRITES`·`FAQ_CACHE_THRESHOLD`는 **api**, `RAG_RERANK_ENABLED`·`RAG_QUERY_MODE`·`RAG_CANDIDATES`·`RAG_TOP_K`는 **tour-tools**의 compose `environment`에만 들어간다. ingest가 자기 `Settings`를 읽으면 기본값이 보여 실제와 다를 수 있다.
-- 추천(24-Q2 A): compose에 `x-tuning: &tuning` 블록을 두고 위 6개 값을 api·tour-tools·ingest에 `<<: *tuning`으로 같이 넣는다(값을 한 곳에만 적음). 비밀값이 아니므로 NFR-09(서비스별 키만 주입)와 충돌하지 않는다.
+- 확정(24-Q2): compose에 `x-tuning: &tuning` 블록을 두고 위 6개 값을 api·tour-tools·ingest에 `<<: *tuning`으로 같이 넣는다(값을 한 곳에만 적음). 비밀값이 아니므로 NFR-09(서비스별 키만 주입)와 충돌하지 않는다.
 - 그와 별도로 스냅샷에는 **실제로 관측한 값**도 넣는다: 전날 `chat_messages.verification.max_rewrites`(09 §6.3)의 값 집합(§12.1 `observed`). 설정과 관측이 다르면 개선안 에이전트 입력에 그대로 보이고, 본문에도 한 줄 경고를 낸다.
 
 ---
@@ -422,12 +422,12 @@ def build_stats(day: DayData, anon: AnonDay, scoring: ScoringResult | None, atta
 | `security.pii_types` | `{PiiType: int}` | 가린 개인정보 종류별(07 `PII_TYPES` 전부 키) |
 | `security.samples` | `[{alias, at, stage, check, outcome, categories, excerpt}]` 최대 10 | 가장 최근 순, 결과가 `masked`인 것은 제외(양이 많고 덜 중요), `at`="HH:MM" KST, `excerpt`는 가린 글 ≤300자 또는 null |
 | `attack_set.status` | `"done"`\|`"failed"` | 공격 세트 실행 결과 |
-| `attack_set.total` / `.passed` | int\|null | 전체 / 방어 성공 |
-| `attack_set.defense_rate` | float\|null | `passed / total` (23이 주는 값을 그대로 쓰되 소수 4자리) |
-| `attack_set.by_type` | `{유형: {total, passed, rate}}` | 유형 키·이름은 **23 spec 필드명에 맞춤** |
-| `attack_set.failed_ids` | str[] | 방어 실패 항목 id(23 attacks.jsonl id) |
+| `attack_set.total` / `.passed` | int\|null | 전체 / 방어 성공 — 23 `AttackReport.total`·`.passed`(= Σ `by_type`) |
+| `attack_set.defense_rate` | float\|null | 23 `AttackReport.defense_rate`(항목 수 기준 `passed / total`, total 0이면 null)를 소수 4자리로 |
+| `attack_set.by_type` | `{유형: {total, passed, rate}}` | 23 `AttackReport.by_type`(`ATTACK_TYPES` 9개 키를 항상, 그 순서)의 `TypeScore.total`·`.passed`, `rate = passed/total`(24가 계산, total 0이면 null) |
+| `attack_set.failed_ids` | str[] | 23 `AttackReport.failed_ids`(뚫린 항목 id, 파일 순서). 답변 원문은 넣지 않는다(23-Q8) |
 | `attack_set.error` | str\|null | 실패 시 `"<예외 클래스>: <메시지 앞 300자>"` |
-| `attack_set.cost_usd` | str\|null | 23이 비용을 돌려주면 그 값, 아니면 null(§11) |
+| `attack_set.cost_usd` | str\|null | 23 `AttackReport.cost_usd`(Decimal → 문자열). 실행 실패면 null |
 | `data_gaps` | `[{topic, count, refs}]` 최대 10 | 데이터 부족 주제 묶음(§10.1). `refs` = 턴 ref 목록 |
 | `eval_run.model` | str\|null | 응답 모델명(= `eval_reports.model`) |
 | `eval_run.config_sha256` | str\|null | 개선안 입력 설정 스냅샷의 SHA-256(§12.1). 개선안 단계가 안 돌면 null |
@@ -499,12 +499,12 @@ async def summarize_report(stats: dict, briefs: Sequence[dict], *, runner: Runna
 
 ---
 
-## 11. 공격 세트 연결 (23 계약)
+## 11. 공격 세트 연결 (23 확정 spec §9.1·§9.4)
 
 ```python
 @dataclass(frozen=True)
 class AttackSummary:
-    """23 run_attack_set 결과를 24 stats 모양으로 옮긴 것."""
+    """23 AttackReport를 24 stats.attack_set 모양으로 옮긴 것."""
     status: Literal["done", "failed"]
     total: int | None; passed: int | None; defense_rate: float | None
     by_type: dict[str, dict]        # {유형: {"total", "passed", "rate"}}
@@ -512,19 +512,26 @@ class AttackSummary:
     error: str | None
     cost_usd: Decimal | None
 
-def to_attack_summary(result) -> AttackSummary:
-    """23 결과 객체의 필드를 옮긴다 — 필드 이름은 23 spec 필드명에 맞춤(병합 때 이 함수만 고침)."""
+def to_attack_summary(report: AttackReport) -> AttackSummary:
+    """23 §9.1 "24가 읽는 필드"만 옮긴다(순수 함수):
+    by_type[유형].total·.passed → {"total", "passed", "rate": passed/total(0이면 None, 소수 4자리)},
+    total·passed(= Σ by_type), defense_rate(소수 4자리), failed_ids, cost_usd.
+    by_type 키는 23 ATTACK_TYPES 9개 그대로(0건 유형도 키가 있음). 나머지 필드(error_ids·not_exercised_ids·
+    moderation_detection·items 등)는 읽지 않는다 — 답변 원문이 stats로 들어오지 않게(23-Q8)."""
 
 async def run_attack(settings: Settings) -> AttackSummary:
-    """23 nadri.eval.attack.run_attack_set(...)을 부르고(인자는 23 spec에 맞춤) to_attack_summary로 바꾼다.
-    예외가 나면 AttackSummary(status="failed", error=…)를 돌려주고 다시 올리지 않는다(§4.2)."""
+    """23 run_attack_set(settings)을 기본값으로 부른다(sf 생략 → 23이 직접 만듦, record=True, judge=True, out_dir=None).
+    성공하면 to_attack_summary. 예외(AttackSetError·RuntimeUnavailable·그 밖)는 잡아
+    AttackSummary(status="failed", error="<예외 클래스>: <메시지 앞 300자>", 나머지 None/빈 값)를 돌려주고 다시 올리지 않는다(§4.2).
+    asyncio.CancelledError만 그대로 올린다(23 §9.4 — 사용량은 23이 먼저 기록)."""
 ```
-24가 23에 기대하는 것(23 spec과 대조 — 24-Q13):
-1. 반환에 유형별 `{total, passed}`·전체 방어율·실패 id 목록이 있다(이름은 23이 정함).
-2. 공격 질문 실행이 **`security_events`에 기록되지 않는다**(22 `EvalTurnStore`처럼 메모리 저장소). 기록되면 다음 날 보고서의 보안 요약이 공격 세트로 오염된다.
-3. 사용량은 **23이 스스로** `usage_events`에 `kind="eval"`, `user_id=NULL`로 기록한다(22-Q7과 같은 방식). 24는 공격 세트 사용량을 다시 기록하지 않는다. 23 결과에 비용 합이 있으면 `attack_set.cost_usd`에 넣고, 없으면 null.
-4. 23이 런타임(툴 로딩·그래프)을 스스로 조립한다. 24는 `settings`만 넘긴다.
-5. 웹 툴은 가짜(Tavily 호출 없음 — [A] §3.7 5)).
+23과의 약속(23 §9.4에서 확정, 24-Q13):
+1. 호출은 `run_attack_set(settings)` 한 줄 — 24는 `settings`만 넘긴다. 23이 런타임(툴 로딩·그래프)과 사용량 기록용 세션 팩토리를 스스로 만든다.
+2. 공격 실행은 **`security_events`에 기록되지 않는다**(23-Q13) — 다음 날 보고서의 보안 요약이 공격 세트로 오염되지 않음.
+3. 사용량은 **23이 스스로** `usage_events`에 `kind="eval"`, `user_id=NULL`로 기록한다(23-Q12, 가짜 웹 검색은 빠짐). 24는 공격 세트 사용량을 다시 기록하지 않고, 비용은 `AttackReport.cost_usd`를 `attack_set.cost_usd`에 옮기기만 한다.
+4. 웹 툴은 가짜(Tavily 호출 없음 — [A] §3.7 5)), 결과 파일은 쓰지 않는다(`out_dir=None`).
+5. 23이 24의 잠금(키 2) 안에서 돈다. CLI `nadri eval attack` 수동 실행과 겹쳐도 DB 쓰기는 사용량 행 추가뿐이라 충돌 없음(23 §9.4).
+- 23 §9.1 다섯 필드 이름이 바뀌면 `to_attack_summary`만 고친다.
 
 ---
 
@@ -569,7 +576,7 @@ class EvidenceDraft(BaseModel):
     note: str = Field(max_length=200)           # 이 근거가 무엇을 보여 주는지
 
 class ProposalDraft(BaseModel):
-    target: Literal[*PROPOSAL_TARGETS]          # 04 상수(24-Q1 결정 반영)
+    target: Literal[*PROPOSAL_TARGETS]          # 04 상수(faq_cache 포함 8개 — 24-Q1)
     title: str = Field(max_length=60)
     problem: str = Field(max_length=500)
     evidence: list[EvidenceDraft] = Field(min_length=1, max_length=5)
@@ -612,7 +619,7 @@ async def draft_proposals(..., runner: Runnable) -> tuple[ProposalSet, UsageReco
 | `status` | 항상 `new` | 결정 |
 | `decision_note`·`decided_by`·`decided_at` | NULL (25가 채움) | 결정 메모·결정자·결정 시각 |
 
-**대상(`target`) 값** — 04 `PROPOSAL_TARGETS` + 24-Q1:
+**대상(`target`) 값** — 04 `PROPOSAL_TARGETS`(24-Q1로 `faq_cache` 추가된 8개):
 | 값 | 뜻 | 예 |
 |---|---|---|
 | `system_prompt` | 프롬프트(answer·verify·classify·title·summary, 고정 안내 문구) | 답변 규칙 보강 |
@@ -620,12 +627,12 @@ async def draft_proposals(..., runner: Runnable) -> tuple[ProposalSet, UsageReco
 | `reranker` | 리랭커·검색 설정(`RAG_*`) | 후보 수 조정 |
 | `verifier` | 검증 에이전트·다시 쓰기 상한(`VERIFY_MAX_REWRITES`) | 상한 1로 |
 | `guard` | 입력·출력 검사(분류기·Moderation·PII 규칙) | off_topic 오탐 완화 |
-| `faq_cache` | **FAQ 캐시 임계값**(`FAQ_CACHE_THRESHOLD`) — **24-Q1 결정 시 추가** | 0.95 → 0.93 |
+| `faq_cache` | **FAQ 캐시 임계값**(`FAQ_CACHE_THRESHOLD`) | 0.95 → 0.93 |
 | `data_scope` | 데이터 범위(지역·유형·허브·현행화) | 제주 렌터카 정보 원천 추가 |
 | `other` | 그 밖(평가셋·공격 세트 보강, 화면 등) | |
 
 정리 규칙 (`clean_proposals`):
-1. 근거마다 `ref` 검사: `turn` → 이번 채점 ref 집합, `attack` → `attack_set.failed_ids` ∪ (23이 주면) 전체 id, `security` → `samples[i]`의 i 범위, `stat` → `stats`에 실제로 있는 경로(점 구분, 숫자 인덱스 허용). 없는 ref는 **버린다**.
+1. 근거마다 `ref` 검사: `turn` → 이번 채점 ref 집합, `attack` → `attack_set.failed_ids`(23 `AttackReport.failed_ids`), `security` → `samples[i]`의 i 범위, `stat` → `stats`에 실제로 있는 경로(점 구분, 숫자 인덱스 허용). 없는 ref는 **버린다**.
 2. 근거가 하나도 남지 않은 개선안은 **버린다**(근거 없는 제안 금지 — FR-101 "근거(대화 발췌)").
 3. 모든 글 필드와 `quote`에 `mask_excerpt`(필드 길이 상한 그대로) — 개인정보가 개선안에 남지 않게.
 4. 글 필드가 공백뿐이면(필수 칸: `title`·`problem`·`proposal`) 그 개선안을 버린다. `cause`·`expected_effect`·`cost_note`·`risk`가 공백이면 NULL.
@@ -744,9 +751,9 @@ async def quality_lock(engine: AsyncEngine) -> AsyncIterator[None]:
 |---|---|---|---|
 | 1 | `default_jobs`가 2개(`daily_sync`·`daily_quality`) | 21 U-SCH(작업 목록 고정 비교라면) | 기대값에 `daily_quality@03:00` 추가 |
 | 2 | `lock.py`에 `quality_lock`·`QUALITY_LOCK_KEY`, 내부 `_advisory_lock` | 20·03 잠금 테스트 | 동작 같음 — 그대로 통과해야 함 |
-| 3 | `UsageRecord.kind` Literal에 `eval`·`proposal` | 11 "Literal ⊆ USAGE_KINDS" 테스트 | 그대로 통과(부분집합 유지) |
-| 4 | (24-Q1) `PROPOSAL_TARGETS`에 `faq_cache` | 04 테이블 생성 스크립트 CHECK·ERD 명칭 대조 테스트 | 04가 아직 구현 전이면 04 spec·DDL에 반영, 구현 후면 새 테이블 생성 스크립트 `0004`로 CHECK 교체 |
-| 5 | (24-Q2) compose `x-tuning` 블록 | 22 compose 기대값, 26 `test_compose_hardening`(서비스별 비밀값 표) | 비밀값 아님 — 26 검사 대상 밖이라고 26에 알림 |
+| 3 | `UsageRecord.kind` Literal에 `proposal`(23이 `eval`을 먼저 넣음) | 11 "Literal ⊆ USAGE_KINDS" 테스트 | 그대로 통과(부분집합 유지) |
+| 4 | (24-Q1 확정) `PROPOSAL_TARGETS`에 `faq_cache` | 04 테이블 생성 스크립트 CHECK·스키마 테스트 | 04 spec·DDL에 반영(코디네이터가 04 문서 갱신). 24는 04 상수를 import만 함 |
+| 5 | (24-Q2 확정) compose `x-tuning` 블록(api·tour-tools·ingest) | 22 compose 기대값, 26 `test_compose_hardening`(서비스별 비밀값 표) | 비밀값 아님 — 26 검사 대상 밖이라고 26에 알림 |
 | 6 | 21 스케줄러 시작 로그의 jobs 목록 | 21 로그 테스트(있으면) | 기대 문자열 갱신 |
 
 상위 문서와의 차이(구현 판단):
@@ -756,7 +763,7 @@ async def quality_lock(engine: AsyncEngine) -> AsyncIterator[None]:
 4. **놓친 실행 따라잡기**: [A]에 없음(21-Q2와 같은 이유, 24-Q10).
 5. **`--force`**: [PL] CLI는 `--date`만. HITL에서 채점 기준을 고친 뒤 같은 날을 다시 보려면 필요(24-Q8).
 6. **lock.py 수정**: [PL] 파일 목록 밖(24-Q14).
-7. **[PL] 표의 개선안 대상 "FAQ 임계값"이 04 `PROPOSAL_TARGETS`에 없음**(24-Q1).
+7. **[PL] 표의 개선안 대상 "FAQ 임계값"이 04 `PROPOSAL_TARGETS`에 없었음** → `faq_cache` 추가로 확정(24-Q1, 04 문서는 코디네이터가 갱신).
 
 ---
 
@@ -818,18 +825,18 @@ async def quality_lock(engine: AsyncEngine) -> AsyncIterator[None]:
 
 | # | 질문 | 선택지 | 추천안 |
 |---|---|---|---|
-| 24-Q1 | 개선안 대상에 **FAQ 임계값**을 넣어야 하는데 04 `PROPOSAL_TARGETS`(`system_prompt`·`tool_description`·`reranker`·`verifier`·`guard`·`data_scope`·`other`)에 없다([A] §5.1과 같음) | A: **04 상수·CHECK에 `faq_cache` 추가**(04는 아직 구현 전 — spec·DDL 문서만 고침, ERD는 값 목록이 없어 변경 없음) / B: `other`로 넣고 제목에 "[FAQ]" | **A** — 25 화면에서 대상별로 거를 때 FAQ 임계값 제안이 "기타"에 묻히지 않음 |
-| 24-Q2 | 조정 설정값(`VERIFY_MAX_REWRITES`·`FAQ_CACHE_THRESHOLD`·`RAG_*`)은 22-Q11로 api·tour-tools 환경에만 들어가 ingest 스냅샷은 기본값을 보게 된다 | A: **compose `x-tuning` 공용 블록으로 api·tour-tools·ingest에 같은 값**(한 곳에 적음) + 관측값(`max_rewrites_seen`) 병기 / B: 관측값만(FAQ 임계값·리랭커는 알 수 없음) / C: ingest에 값을 따로 복사(어긋날 위험) | **A** |
-| 24-Q3 | 평가 에이전트가 👍/👎를 보고 채점할까 | A: **안 보여 줌(블라인드)** — 피드백은 우선순위·일치율·보고서에만 / B: 보여 줌(피드백 쪽으로 점수가 끌려가 일치율이 의미 없어짐) | **A** — FR-103 "LLM 채점 보정"은 사람이 불일치 목록(`disagree_refs`)을 보고 기준을 고치는 방식으로 |
-| 24-Q4 | 채점 척도·강도 | A: **0·1·2 + 해당 없음, 엄격(틀린 관광 사실 1개면 정확성 0, 근거는 툴 결과만)** / B: 1~5점 / C: 합격·불합격만 | **A** — 단계가 적어 LLM 채점이 덜 흔들리고, 0의 뜻이 분명함 |
-| 24-Q5 | 대화 없는 날의 상태 | A: **`skipped` + 공격 세트 결과는 `stats.attack_set`에** / B: `done`(목록에서 대화 있는 날과 구분 어려움) | **A** |
-| 24-Q6 | 공격 세트·요약·개선안 중 하나가 실패하면 | A: **보고서는 `done`, 실패 단계는 `stats.steps`·본문 맨 위 경고**(채점 비용을 버리지 않음). 채점 전부 실패·수집·저장 실패만 `failed` / B: 하나라도 실패면 `failed` | **A** |
-| 24-Q7 | 보고서 요약문을 만들 프롬프트 | A: **`prompts/eval_summary.md`를 하나 더 둠**([PL] 밖, 호출 1회 추가 ≈ $0.001) / B: 개선안 에이전트가 요약도 같이 씀(파일 2개 유지, 개선안 실패 시 요약도 없음) | **A** — 역할이 섞이지 않고 단계별 실패가 분리됨 |
-| 24-Q8 | 같은 날짜를 다시 만들기 | A: **`--force` — 그 보고서에 결정된 개선안이 없을 때만 지우고 다시** / B: 실패본만 재실행 가능(채점 기준을 고친 뒤 같은 날로 비교 불가) | **A** |
-| 24-Q9 | 매일 같은 개선안이 반복되는 것 | A: **기존 열린 개선안(new·held·adopted, 최근 30일, 30건) 제목을 입력에 넣고 반복 금지, 하루 최대 5건** / B: 막지 않음 | **A** |
-| 24-Q10 | 03:00에 PC가 꺼져 있었으면 | A: **기동 때 어제 보고서 행이 없으면 1회**(이틀 이상 놓친 날은 CLI) / B: 놓친 날 모두(최대 7일) / C: 따라잡지 않음 | **A** — 21-Q2와 같은 규칙 |
-| 24-Q11 | FAQ 캐시 답변 턴 | A: **채점하지 않음**(툴 결과 없음, 원래 턴이 이미 채점됨), 수만 셈 / B: 정확성 "해당 없음"으로 채점 | **A** |
-| 24-Q12 | 상한(200)을 넘을 때 고르는 순서 | A: **👎 → 검증 실패·보안 교체 → 다시 쓰기 있음 → 나머지 시간순** / B: 👎 다음 무작위 | **A** — 문제 가능성이 높은 턴부터, 결정적(테스트 쉬움) |
-| 24-Q13 | 23과의 약속: 공격 세트 사용량·보안 이벤트 | A: **23이 사용량을 `kind=eval`로 스스로 기록하고 `security_events`에는 쓰지 않음**(22 방식), 24는 결과만 받음 / B: 23은 사용량을 돌려주고 24가 기록 | **A** — 23을 CLI로 따로 돌릴 때도 같은 기록. 23 spec 확정 때 대조(다르면 §11 `to_attack_summary`·§13.4만 고침) |
-| 24-Q14 | 잠금 키 2 함수 위치 | A: **20 `lock.py`에 `quality_lock` 추가(내부 공용 함수로 뽑음)** / B: `daily_quality.py`에 따로(같은 코드 두 벌) | **A** |
-| 24-Q15 | 답변·툴 결과도 가릴까 | A: **사용자 질문만 다시 가리고, 답변·툴 결과는 그대로(사람에게 보이는 발췌는 모두 가림)** / B: 전부 가림(관광지 전화·주소 정확성 채점 불가) | **A** — 07-Q1 "답변은 가리지 않음"과 같은 판단, 답변 LLM은 가린 질문만 봤음 |
+| 24-Q1 | 개선안 대상에 **FAQ 임계값**을 넣어야 하는데 04 `PROPOSAL_TARGETS`(`system_prompt`·`tool_description`·`reranker`·`verifier`·`guard`·`data_scope`·`other`)에 없다([A] §5.1과 같음) | A: **04 상수·CHECK에 `faq_cache` 추가**(04는 아직 구현 전 — spec·DDL 문서만 고침, ERD는 값 목록이 없어 변경 없음) / B: `other`로 넣고 제목에 "[FAQ]" | **결정(2026-11-28): 추천안대로** — **A** — 25 화면에서 대상별로 거를 때 FAQ 임계값 제안이 "기타"에 묻히지 않음 |
+| 24-Q2 | 조정 설정값(`VERIFY_MAX_REWRITES`·`FAQ_CACHE_THRESHOLD`·`RAG_*`)은 22-Q11로 api·tour-tools 환경에만 들어가 ingest 스냅샷은 기본값을 보게 된다 | A: **compose `x-tuning` 공용 블록으로 api·tour-tools·ingest에 같은 값**(한 곳에 적음) + 관측값(`max_rewrites_seen`) 병기 / B: 관측값만(FAQ 임계값·리랭커는 알 수 없음) / C: ingest에 값을 따로 복사(어긋날 위험) | **결정(2026-11-28): 추천안대로** — **A** |
+| 24-Q3 | 평가 에이전트가 👍/👎를 보고 채점할까 | A: **안 보여 줌(블라인드)** — 피드백은 우선순위·일치율·보고서에만 / B: 보여 줌(피드백 쪽으로 점수가 끌려가 일치율이 의미 없어짐) | **결정(2026-11-28): 추천안대로** — **A** — FR-103 "LLM 채점 보정"은 사람이 불일치 목록(`disagree_refs`)을 보고 기준을 고치는 방식으로 |
+| 24-Q4 | 채점 척도·강도 | A: **0·1·2 + 해당 없음, 엄격(틀린 관광 사실 1개면 정확성 0, 근거는 툴 결과만)** / B: 1~5점 / C: 합격·불합격만 | **결정(2026-11-28): 추천안대로** — **A** — 단계가 적어 LLM 채점이 덜 흔들리고, 0의 뜻이 분명함 |
+| 24-Q5 | 대화 없는 날의 상태 | A: **`skipped` + 공격 세트 결과는 `stats.attack_set`에** / B: `done`(목록에서 대화 있는 날과 구분 어려움) | **결정(2026-11-28): 추천안대로** — **A** |
+| 24-Q6 | 공격 세트·요약·개선안 중 하나가 실패하면 | A: **보고서는 `done`, 실패 단계는 `stats.steps`·본문 맨 위 경고**(채점 비용을 버리지 않음). 채점 전부 실패·수집·저장 실패만 `failed` / B: 하나라도 실패면 `failed` | **결정(2026-11-28): 추천안대로** — **A** |
+| 24-Q7 | 보고서 요약문을 만들 프롬프트 | A: **`prompts/eval_summary.md`를 하나 더 둠**([PL] 밖, 호출 1회 추가 ≈ $0.001) / B: 개선안 에이전트가 요약도 같이 씀(파일 2개 유지, 개선안 실패 시 요약도 없음) | **결정(2026-11-28): 추천안대로** — **A** — 역할이 섞이지 않고 단계별 실패가 분리됨 |
+| 24-Q8 | 같은 날짜를 다시 만들기 | A: **`--force` — 그 보고서에 결정된 개선안이 없을 때만 지우고 다시** / B: 실패본만 재실행 가능(채점 기준을 고친 뒤 같은 날로 비교 불가) | **결정(2026-11-28): 추천안대로** — **A** |
+| 24-Q9 | 매일 같은 개선안이 반복되는 것 | A: **기존 열린 개선안(new·held·adopted, 최근 30일, 30건) 제목을 입력에 넣고 반복 금지, 하루 최대 5건** / B: 막지 않음 | **결정(2026-11-28): 추천안대로** — **A** |
+| 24-Q10 | 03:00에 PC가 꺼져 있었으면 | A: **기동 때 어제 보고서 행이 없으면 1회**(이틀 이상 놓친 날은 CLI) / B: 놓친 날 모두(최대 7일) / C: 따라잡지 않음 | **결정(2026-11-28): 추천안대로** — **A** — 21-Q2와 같은 규칙 |
+| 24-Q11 | FAQ 캐시 답변 턴 | A: **채점하지 않음**(툴 결과 없음, 원래 턴이 이미 채점됨), 수만 셈 / B: 정확성 "해당 없음"으로 채점 | **결정(2026-11-28): 추천안대로** — **A** |
+| 24-Q12 | 상한(200)을 넘을 때 고르는 순서 | A: **👎 → 검증 실패·보안 교체 → 다시 쓰기 있음 → 나머지 시간순** / B: 👎 다음 무작위 | **결정(2026-11-28): 추천안대로** — **A** — 문제 가능성이 높은 턴부터, 결정적(테스트 쉬움) |
+| 24-Q13 | 23과의 약속: 공격 세트 사용량·보안 이벤트 | A: **23이 사용량을 `kind=eval`로 스스로 기록하고 `security_events`에는 쓰지 않음**(22 방식), 24는 결과만 받음 / B: 23은 사용량을 돌려주고 24가 기록 | **결정(2026-11-28): 추천안대로** — **A** — 23을 CLI로 따로 돌릴 때도 같은 기록. 23 spec 확정 때 대조(다르면 §11 `to_attack_summary`·§13.4만 고침) |
+| 24-Q14 | 잠금 키 2 함수 위치 | A: **20 `lock.py`에 `quality_lock` 추가(내부 공용 함수로 뽑음)** / B: `daily_quality.py`에 따로(같은 코드 두 벌) | **결정(2026-11-28): 추천안대로** — **A** |
+| 24-Q15 | 답변·툴 결과도 가릴까 | A: **사용자 질문만 다시 가리고, 답변·툴 결과는 그대로(사람에게 보이는 발췌는 모두 가림)** / B: 전부 가림(관광지 전화·주소 정확성 채점 불가) | **결정(2026-11-28): 추천안대로** — **A** — 07-Q1 "답변은 가리지 않음"과 같은 판단, 답변 LLM은 가린 질문만 봤음 |

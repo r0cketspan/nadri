@@ -1,6 +1,6 @@
 # 26-release-readiness — 릴리스 준비 점검 (spec)
 
-> 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-22). 상태: **초안(2026-11-22)** — 확인 질문(§13)은 아직 결정 전. 브랜치 `feat/26-release-readiness`, 의존 작업 01~25 전부.
+> 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-22). 상태: **확정(2026-11-28, 확인 질문 전부 추천안대로)** — 결정은 §13 표. 26-Q1①(21 따라잡기 조건)은 21 spec에 반영됨, 26-Q8(architecture.md 문구)은 26 구현 때 고친다. 브랜치 `feat/26-release-readiness`, 의존 작업 01~25 전부.
 > 근거: [PL]=program_list.md(G4 승인본) §2 표·§3 "26-release-readiness"·§1.1-5·§4 추적표·§5 X-f · [A]=architecture.md(G3 재승인본) §2 컨테이너 표·§7 디렉터리·named volume·ADR-01·10·26·§9 "컨테이너 격리"·비밀값 표 · [R]=requirements.md NFR-08·09·17·20·21·36·71, D-23 · [TS]=TECH_STACK.md §9·§12 · [SG]=SECURITY_GUIDE.md · [PG]=PROGRESS.md 결정 로그(02-Q5·02-Q9·G4 Q1·Q8·14-Q1·20-Q12·21-Q1·21-Q2·21-Q4·22-Q8·22-Q11).
 > **이어받는 확정 spec**(compose·`.env`·Dockerfile을 만들거나 고친 작업): [01](§4.1 `.env.example` 8키·§4.3 lightrag 비밀값·§5 compose 4서비스·`compose.dev.yaml`·§5.4 Dockerfile `app`/`tools`·`01-init.sh`) · [02](§10 api·nginx·cloudflared, `TUNNEL_TOKEN` 환경변수, nginx `127.0.0.1:8080`) · [05](§8 api DB·`SESSION_SECRET`, cloudflared 프로필 제거, `create-admin`) · [06](SMTP 3키) · [10](tour-tools에 `TOURAPI_SERVICE_KEY`) · [14](§9 web 서비스·`web/Dockerfile`·nginx `location /`) · [17](ElevenLabs 2키) · [20](ingest에 `OPENAI_API_KEY`, Dockerfile `app`에 git) · [21](§5.4 ingest 상주·healthcheck·`service_healthy`) · [22](§3.3 ingest에 `TAVILY_API_KEY`·`./eval` 마운트·결정 설정값 위치) · [24](§3.3 `x-tuning`). 03·04·07~09·11~13·15·16·18·19는 compose·`.env`를 바꾸지 않는다(각 spec "새 환경변수 없음" 확인).
 > **23~25 확정본 대조(2026-11-22)**: [23](`nadri eval attack`, compose 변경 없음 — 22의 ingest 키·`./eval` 마운트 사용, 가짜 웹 툴이라 Tavily 키 안 씀) · [24](§3.3 `x-tuning` 공용 블록(24-Q2), 스케줄러 `daily_quality`@03:00·놓친 실행(24-Q10), `lock.py` 키 2(코드만, compose 무관), `nadri eval quality --date … [--force]`, `./eval` 마운트는 22 것 그대로) · [25](새 환경변수·compose·nginx 변경 없음). `.env.example`에 새 키를 넣는 작업은 없다.
@@ -30,7 +30,7 @@
 | E2E 시나리오(NFR-71 전체) | Phase 6 |
 | `dev`→`prod` 병합·`v1.0` 태그 | Phase 6 뒤, 사용자 승인 후 |
 | 컨테이너 이미지 취약점 스캔·SBOM | 요구사항 없음 |
-| 새 서비스·새 기능 | 없음. 코드 변경은 §13 결정에 따른 한두 줄뿐 |
+| 새 서비스·새 기능 | 없음. 코드 변경 없음(21 따라잡기 조건은 26-Q1에 따라 21에서 처리) |
 
 ---
 
@@ -39,16 +39,16 @@
 | 파일 | 신규/수정 | 역할 |
 |---|---|---|
 | `backend/tests/test_compose_hardening.py` | 신규 | compose·`.env.example`·Dockerfile을 읽어 §6 검사. 검사 함수 + 실제 파일 검사 + 일부러 틀린 예로 검사 함수 자체 확인 |
-| `compose.yaml` | 수정(최종) | §3 표대로 정리 — 빠진 보안 설정·`restart`·주석 보강, §13 결정 반영(lightrag healthcheck, postgres healthcheck TCP, 설정값 공유 앵커 등). 동작을 바꾸는 변경은 §13 결정분만 |
+| `compose.yaml` | 수정(최종) | §3 표대로 정리 — 빠진 보안 설정·`restart`·주석 보강, 확정 반영(lightrag healthcheck 추가 — Q2, postgres `pg_isready -h 127.0.0.1` — Q4, `x-tuning` 공용 블록 — Q5). 동작을 바꾸는 변경은 §13 결정분만 |
 | `compose.dev.yaml` | 수정(최종) | §3.3 — 포트가 모두 `127.0.0.1`인지, 보안 설정을 덮어쓰지 않는지 정리만 |
 | `.env.example` | 수정(최종) | §5 — 16개 키, 사용처·생성 방법 주석을 최종 사용처에 맞게 고침 |
 | `README.md` | 수정 | §8 — 상태 줄, "시작하기"(실제 명령), "레포 구조 (계획)" → 실제, 스택 표 버전 동기화, "MVP" 표기 없음 확인 |
 | `CLAUDE.md` | 수정 | §9 — "명령어" 절을 묶음별로 최종 정리(01·03·14·18·20·21·22·23·24가 덧붙인 줄을 합치고 중복 제거) |
-| `docs/harness/architecture.md` | 수정(문서 정리, §13 Q8) | §9 비밀값 표(Tavily → api·ingest, postgres 행 풀어 쓰기), §2 cloudflared 행(`--token` → `TUNNEL_TOKEN`), ADR-01 개발 포트 문구 |
+| `docs/harness/architecture.md` | 수정(문서 정리, 26-Q8 — 26 구현 때) | §9 비밀값 표(Tavily → api·ingest, postgres 행 풀어 쓰기), §2 cloudflared 행(`--token` → `TUNNEL_TOKEN`), ADR-01 개발 포트 문구 |
 | `docs/harness/PROGRESS.md` | 수정 | 26 완료·G5 기록, 결정 로그 |
-| `.gitattributes` | 신규(§13 Q7 결정 시) | `*.sh text eol=lf` — Windows에서 받아도 `01-init.sh` 줄바꿈이 깨지지 않게 |
+| `.gitattributes` | 신규(26-Q7) | `*.sh text eol=lf` — Windows에서 받아도 `01-init.sh` 줄바꿈이 깨지지 않게 |
 
-> [PL] 파일 목록 밖: `architecture.md`·`PROGRESS.md`(문서 불일치 정리), `.gitattributes`(Q7), 그리고 §13 결정에 따라 21 `scheduler`/`daily_sync`의 따라잡기 조건 한 줄(Q1). 결정 전에는 만들지 않는다.
+> [PL] 파일 목록 밖: `architecture.md`·`PROGRESS.md`(문서 불일치 정리), `.gitattributes`(Q7). 21 따라잡기 조건(Q1①)은 26이 아니라 21 spec·구현에서 고친다.
 
 ---
 
@@ -58,10 +58,10 @@
 
 | 서비스 | 이미지/빌드 | `user` | 보안 설정 | 볼륨 | `depends_on` | healthcheck | `restart` | 처음 넣은 작업 |
 |---|---|---|---|---|---|---|---|---|
-| `postgres` | `pgvector/pgvector:pg18` | (이미지 기본) | — | `pg-data`, `./infra/postgres/init:/docker-entrypoint-initdb.d:ro` | — | `pg_isready` (**Q4**: `-h 127.0.0.1` 추가 추천) | `unless-stopped` | 01 |
-| `lightrag` | LightRAG `v1.5.7` 고정(주소 **미확인**, 01) | (이미지 기본) | — | `lightrag-data:<작업 디렉터리>`, `env_file: infra/lightrag/lightrag.env` | `postgres: service_healthy` | 없음 → **Q2**: 추가 추천 | `unless-stopped` | 01 |
+| `postgres` | `pgvector/pgvector:pg18` | (이미지 기본) | — | `pg-data`, `./infra/postgres/init:/docker-entrypoint-initdb.d:ro` | — | `pg_isready -h 127.0.0.1 -U postgres -d nadri`(Q4) | `unless-stopped` | 01 |
+| `lightrag` | LightRAG `v1.5.7` 고정(주소 **미확인**, 01) | (이미지 기본) | — | `lightrag-data:<작업 디렉터리>`, `env_file: infra/lightrag/lightrag.env` | `postgres: service_healthy` | python으로 `/health` 호출(Q2 — 경로·인증 **미확인**, 구현 시 확인) | `unless-stopped` | 01 |
 | `ingest` | `build: {context: ./backend, target: app}` | `"10001:10001"` | `cap_drop: [ALL]`, `security_opt: ["no-new-privileges:true"]` | `wiki-data:/data/wiki`, `raw-data:/data/raw`, `./eval:/app/eval:ro`, `./eval/results:/app/eval/results` | `postgres: service_healthy` | 준비 파일 `/tmp/nadri-ingest-ready`(21) | `unless-stopped`(21) | 01·20·21·22·24 |
-| `tour-tools` | `build: {context: ./backend, target: tools}` | `"10001:10001"` | 같음 | 없음 | `postgres: service_healthy`, `lightrag: service_started`(Q2 채택 시 `service_healthy`), `ingest: service_healthy`(21) | `GET /health` | `unless-stopped` | 01·10·24 |
+| `tour-tools` | `build: {context: ./backend, target: tools}` | `"10001:10001"` | 같음 | 없음 | `postgres: service_healthy`, `lightrag: service_healthy`(Q2), `ingest: service_healthy`(21) | `GET /health` | `unless-stopped` | 01·10·24 |
 | `api` | `build: {context: ./backend, target: app}`, `uvicorn nadri.api.main:app` | `"10001:10001"` | 같음 | 없음 | `postgres: service_healthy`, `ingest: service_healthy`(21), `tour-tools`(시작만, 02) | `GET /api/health` | `unless-stopped` | 02·05·06·17·24 |
 | `web` | `build: {context: ./web, target: runner}` | `"1000:1000"` | 같음 | 없음 | — | `manifest.webmanifest` fetch(14) | `unless-stopped` | 14 |
 | `nginx` | `nginx:<stable-alpine 태그 고정>` | (이미지 기본) | — | `./infra/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro` | `api`, `web` | 없음 | `unless-stopped` | 02·14 |
@@ -263,11 +263,11 @@ def final_user(dockerfile: Path, target: str) -> str | None:
 | C-20 | (Docker CLI 있을 때) `docker compose -f compose.yaml -f compose.dev.yaml --env-file .env.example config -q` 종료 코드 0, 그리고 `-f compose.yaml … config --format json` 결과(병합·앵커 반영)에서도 C-09·C-05가 통과 | 두 파일 | 문법·병합 결과 확인 |
 | C-21 | 기동 순서: 어떤 `depends_on`에도 `service_completed_successfully` 없음, `api`·`tour-tools`는 `ingest: service_healthy`, `ingest`는 healthcheck 있음·명령에 `alembic upgrade head`와 `nadri ingest scheduler` | compose.yaml | 21-Q4 |
 | C-22 | `restart: unless-stopped` — 8개 모두 | compose.yaml | 21, 05 |
-| C-23 | healthcheck 있음: postgres·ingest·tour-tools·api·web (+Q2 채택 시 lightrag) | compose.yaml | 클린 기동 순서 |
+| C-23 | healthcheck 있음: postgres·ingest·tour-tools·api·web·lightrag(Q2) | compose.yaml | 클린 기동 순서 |
 | C-24 | 외부 이미지(`image`만 있는 서비스) 태그 고정: `:` 뒤 태그가 있고 `latest`가 아님 | compose.yaml | NFR-21 |
 | C-25 | cloudflared: `environment.TUNNEL_TOKEN == "${CLOUDFLARE_TUNNEL_TOKEN}"`, `command`에 `--token` 없음, `profiles` 없음 | compose.yaml | 02-Q5, 05 |
 | C-27 | `x-tuning`(24-Q2): compose.yaml 원문에 top-level `x-tuning` 앵커가 있고 `TUNING_SERVICES` 세 서비스의 `environment`가 모두 `<<: *tuning`으로 합침(원문 텍스트 확인), 병합 결과에서 `TUNING_KEYS` 6개 값이 세 서비스 모두 같음, 다른 서비스(web·nginx 등)에는 없음, 값은 따옴표 문자열 | compose.yaml | 22-Q11, 24-Q2 |
-| C-26 | (Q7 채택 시) `infra/**/*.sh`에 `\r` 없음, `.gitattributes`에 `*.sh text eol=lf` | 파일 | NFR-21 |
+| C-26 | `infra/**/*.sh`에 `\r` 없음, `.gitattributes`에 `*.sh text eol=lf` | 파일 | NFR-21 |
 
 - 01·05·21·22가 "compose 검사 테스트가 있으면 기대값 수정"이라 적은 대상은 이 파일이다. 26 전에는 compose를 고정 비교하는 테스트가 없다(각 spec 확인).
 
@@ -284,7 +284,7 @@ def final_user(dockerfile: Path, target: str) -> str | None:
 5. **관리자 생성**: `docker compose -p nadri-clean run --rm api nadri create-admin --username admin --email <이메일>`.
 6. **소량 적재**: `docker compose -p nadri-clean run --rm ingest nadri ingest bootstrap --area 서울 --type 12 --max-items 30` → `ingest status`.
    - [PL]은 `--limit`이라 적었지만 03이 `--max-items`로 바꿨다(§10 I-1).
-   - 21의 따라잡기(21-Q2)가 먼저 돌고 있으면 잠금 키 1 때문에 종료 코드 4 → 로그에서 `daily_sync done`을 본 뒤 다시. 그리고 **Q1을 정하지 않으면** 빈 DB에서 따라잡기가 전체 초기 적재를 스스로 시작한다(§10 I-11).
+   - 21의 따라잡기(21-Q2)가 먼저 돌고 있으면 잠금 키 1 때문에 종료 코드 4 → 로그에서 `daily_sync done`을 본 뒤 다시. 빈 DB에서는 따라잡기가 초기 적재를 시작하지 않는다(26-Q1① — 21 조건 "초기 적재를 시작한 적 있을 때만 이어하기").
    - 기동 시각이 03:00 KST 이후면 24 놓친 실행(24-Q10)도 바로 돈다 — 어제 보고서 행이 없으므로 `daily_quality`가 대화 0건으로 **공격 세트만 실행**하고 보고서를 `skipped`로 저장(24 §4 3)). 잠금 키 2라 적재·현행화(키 1)와 서로 막지 않는다. 적재 전이라 `rag_query` 항목은 빈 결과로 돈다(방어율 숫자는 참고만).
 7. **채팅 1회**: 터널 주소에서 admin 로그인 → "경복궁 관람 시간 알려줘" → 토큰 단위 스트리밍 → `✓ 확인됨`(또는 경고) → 출처·기준일 → 사이드바 이력.
 8. **정리**: `docker compose -p nadri-clean down -v`(반드시 `-p nadri-clean`) → 원래 환경 `docker compose up -d`.
@@ -381,25 +381,25 @@ def final_user(dockerfile: Path, target: str) -> str | None:
 ## 12. 완료 기준 (DoD)
 
 1. test.md ① 전부 통과(`uv run pytest tests/test_compose_hardening.py`, 전체 `uv run pytest -m "not integration"`·`npm run test`도 실패 0).
-2. `compose.yaml`·`compose.dev.yaml`·`.env.example`이 §3~§5와 같다(§13 결정 반영).
+2. `compose.yaml`·`compose.dev.yaml`·`.env.example`·`.gitattributes`가 §3~§5·§13 결정과 같다.
 3. HITL-1~7(클린 기동 → 채팅 1회 → 보안 실측) 통과, 결과표 채움.
 4. README 상태·시작하기·레포 구조·스택 표 갱신, "MVP" 0건, SECURITY_GUIDE 링크 동작. 사용자가 README 시작하기만 보고 HITL을 따라 했을 때 막힌 곳이 없음(있으면 고침).
 5. CLAUDE.md 명령어 절 최종, HITL-8 명령어 대조 통과.
-6. §10 불일치 처리 결과를 `PROGRESS.md` 결정 로그에 기록, [A] 문서 정리(Q8 결정대로).
+6. §10 불일치 처리 결과를 `PROGRESS.md` 결정 로그에 기록, architecture.md §9 비밀값 표·§2 cloudflared 행·ADR-01 개발 포트 문구 수정(26-Q8).
 7. 한국어 docstring·단계 주석([CL]). 커밋 `feat/26-release-readiness`, `[Feat] …`/`[Docs] …` + 작업 목록 + `Author:`, AI 공동작성 표기 없음. `dev` 병합은 G5 후. 그 뒤 Phase 6(E2E 설계).
 
 ---
 
 ## 13. 확인 질문
 
-| # | 질문 | 선택지 | 추천안 |
+| # | 질문 | 선택지 | 추천안 · 결정 |
 |---|---|---|---|
-| 26-Q1 | 빈 DB에서 ingest가 뜨자마자 놓친 실행 두 개가 돈다(I-11). ① 21 `daily_sync`가 **전체 초기 적재를 스스로 시작**(조건이 "완료 기록 없음"이라 한 번도 시작 안 한 경우 포함) — 잠금 충돌·TourAPI 800건·인덱싱 비용 ② 24 `daily_quality`(03:00 이후 기동 시)가 대화 0건으로 **공격 세트만** 실행 — 약 $0.03~0.10 | A: **①은 21 조건을 "초기 적재를 한 번이라도 시작했고(`ingest_runs` kind='bootstrap' 있음) 아직 안 끝났을 때만 이어하기"로 고침**(21 spec·코드 한 줄, 21 구현 전이면 21에서), **②는 그대로 두고 HITL에서 결과(`eval_reports` 어제 날짜 `skipped` 1행, 공격 세트 방어율)를 확인 항목으로 씀** / B: 둘 다 그대로, HITL은 01:00 전에 하거나 잠금이 풀릴 때까지 기다림 / C: 클린 기동에서 놓친 실행을 끄는 설정 추가(코드·설정 추가) | **A** — ①은 [A] §3.3 "초기 적재는 CLI"와 21의 "이어하기" 뜻에 맞고, 새로 설치한 사람이 모르는 사이 며칠짜리 적재·비용이 시작되지 않음. ②는 비용이 작고 설치 직후 공격 세트가 도는지 바로 확인됨 |
-| 26-Q2 | lightrag에 healthcheck가 없어 클린 기동 직후 적재·툴 호출이 LightRAG 준비 전에 갈 수 있다(I-8) | A: **lightrag healthcheck 추가**(이미지 안 python으로 `/health` 호출 — 경로·인증 필요 여부 **미확인**, 구현 시 확인) + tour-tools `lightrag: service_healthy` / B: 그대로, README·HITL에 "로그에서 준비 확인 후 진행" | **A** — 클린 기동 재현이 26의 목적. 설정 몇 줄 |
-| 26-Q3 | 외부 이미지(postgres·lightrag·nginx·cloudflared)에도 `no-new-privileges`·`cap_drop`을 넣을까 | A: **[A] §9대로 자체 이미지 4개만 강제**, 외부 이미지는 그대로 / B: 4개 모두 `no-new-privileges:true`만 추가(능력 제거는 안 함 — 기동 확인 필요) / C: cloudflared만 `cap_drop: [ALL]`+`no-new-privileges`(외부와 직접 붙는 유일한 컨테이너, 비루트 이미지로 알려짐 — **미확인**) | **A** — 상위 문서 범위. C는 한 줄이라 원하면 추가 가능(기동 확인 1회) |
-| 26-Q4 | postgres healthcheck가 첫 기동 init 도중 통과할 수 있다(I-9, **미확인**) | A: **`pg_isready -h 127.0.0.1 -U postgres -d nadri`로 바꿈**(TCP·nadri DB 기준 — init 끝난 뒤에만 통과) / B: 그대로(실패하면 재시작 정책으로 결국 뜸) | **A** — 한 줄, 클린 기동 HITL에서 효과 확인 |
-| 26-Q5 | 조정 설정값(`VERIFY_MAX_REWRITES`·`FAQ_CACHE_THRESHOLD`·`RAG_*` 4개)을 어떻게 넣을까(I-7) — 26 초안 `x-agent-settings`와 24-Q2 `x-tuning`이 겹침 | A: **24의 `x-tuning` 하나로 통일 — 6개 값을 api·tour-tools·ingest에 같은 앵커로**, C-27로 검사 / B: 서비스별로 쓰는 값만 따로 적음(api 2개·tour-tools 4개, ingest는 스냅샷이 기본값을 봄 — 24-Q2와 충돌) | **A** — 24-Q2 결정과 같고, 값을 한 곳에서만 고쳐 평가·스냅샷·운영이 어긋나지 않음 |
-| 26-Q6 | 개발 덮어쓰기 포트가 ADR-01("nginx만")보다 많다(I-6) | A: **테스트 기준 "dev 포트는 모두 127.0.0.1"**, ADR-01 문구를 그렇게 고침 / B: dev에선 nginx만 두고 통합 테스트 포트는 별도 파일(`compose.test.yaml`)로 분리 | **A** — 01 통합 테스트 방식 유지, WSL 안에서만 열림 |
-| 26-Q7 | Windows에서 레포를 받으면 `01-init.sh` 줄바꿈이 CRLF가 돼 DB 초기화가 깨질 수 있다(I-15, NFR-21) | A: **`.gitattributes`에 `*.sh text eol=lf` + 테스트 C-26** / B: README에 "Windows에선 `core.autocrlf false`" 안내만 | **A** — 파일 1줄로 원인 자체를 없앰 |
-| 26-Q8 | [A] §9 비밀값 표·§2 cloudflared 행·ADR-01 문구가 확정 spec과 다르다(I-2·3·4·6) | A: **26에서 architecture.md를 고치고 PROGRESS에 기록**(승인본 수정이므로 사용자 확인) / B: 고치지 않고 이 spec §4를 정본으로 둠 | **A** — 문서끼리 다르면 다음 사람이 또 헷갈림. 바뀌는 건 표 3곳 |
-| 26-Q9 | 클린 기동 HITL을 어느 형태로 할까 | A: **운영 형태(`compose.yaml`만 + 터널), 기존 환경은 잠시 멈춤**, 터널 없는 경로(dev + `localhost:8080`)는 선택 확인 / B: 개발 형태(dev 덮어쓰기)로만 — 운영 빌드(web standalone)를 거치지 않음 | **A** — README 기본 경로와 실제 운영 빌드를 그대로 확인 |
+| 26-Q1 | 빈 DB에서 ingest가 뜨자마자 놓친 실행 두 개가 돈다(I-11). ① 21 `daily_sync`가 **전체 초기 적재를 스스로 시작**(조건이 "완료 기록 없음"이라 한 번도 시작 안 한 경우 포함) — 잠금 충돌·TourAPI 800건·인덱싱 비용 ② 24 `daily_quality`(03:00 이후 기동 시)가 대화 0건으로 **공격 세트만** 실행 — 약 $0.03~0.10 | A: **①은 21 조건을 "초기 적재를 한 번이라도 시작했고(`ingest_runs` kind='bootstrap' 있음) 아직 안 끝났을 때만 이어하기"로 고침**(21 spec·코드 한 줄, 21 구현 전이면 21에서), **②는 그대로 두고 HITL에서 결과(`eval_reports` 어제 날짜 `skipped` 1행, 공격 세트 방어율)를 확인 항목으로 씀** / B: 둘 다 그대로, HITL은 01:00 전에 하거나 잠금이 풀릴 때까지 기다림 / C: 클린 기동에서 놓친 실행을 끄는 설정 추가(코드·설정 추가) | **결정(2026-11-28): 추천안대로** — **A** — ①은 [A] §3.3 "초기 적재는 CLI"와 21의 "이어하기" 뜻에 맞고, 새로 설치한 사람이 모르는 사이 며칠짜리 적재·비용이 시작되지 않음. ②는 비용이 작고 설치 직후 공격 세트가 도는지 바로 확인됨 |
+| 26-Q2 | lightrag에 healthcheck가 없어 클린 기동 직후 적재·툴 호출이 LightRAG 준비 전에 갈 수 있다(I-8) | A: **lightrag healthcheck 추가**(이미지 안 python으로 `/health` 호출 — 경로·인증 필요 여부 **미확인**, 구현 시 확인) + tour-tools `lightrag: service_healthy` / B: 그대로, README·HITL에 "로그에서 준비 확인 후 진행" | **결정(2026-11-28): 추천안대로** — **A** — 클린 기동 재현이 26의 목적. 설정 몇 줄 |
+| 26-Q3 | 외부 이미지(postgres·lightrag·nginx·cloudflared)에도 `no-new-privileges`·`cap_drop`을 넣을까 | A: **[A] §9대로 자체 이미지 4개만 강제**, 외부 이미지는 그대로 / B: 4개 모두 `no-new-privileges:true`만 추가(능력 제거는 안 함 — 기동 확인 필요) / C: cloudflared만 `cap_drop: [ALL]`+`no-new-privileges`(외부와 직접 붙는 유일한 컨테이너, 비루트 이미지로 알려짐 — **미확인**) | **결정(2026-11-28): 추천안대로** — **A** — 상위 문서 범위. C는 한 줄이라 원하면 추가 가능(기동 확인 1회) |
+| 26-Q4 | postgres healthcheck가 첫 기동 init 도중 통과할 수 있다(I-9, **미확인**) | A: **`pg_isready -h 127.0.0.1 -U postgres -d nadri`로 바꿈**(TCP·nadri DB 기준 — init 끝난 뒤에만 통과) / B: 그대로(실패하면 재시작 정책으로 결국 뜸) | **결정(2026-11-28): 추천안대로** — **A** — 한 줄, 클린 기동 HITL에서 효과 확인 |
+| 26-Q5 | 조정 설정값(`VERIFY_MAX_REWRITES`·`FAQ_CACHE_THRESHOLD`·`RAG_*` 4개)을 어떻게 넣을까(I-7) — 26 초안 `x-agent-settings`와 24-Q2 `x-tuning`이 겹침 | A: **24의 `x-tuning` 하나로 통일 — 6개 값을 api·tour-tools·ingest에 같은 앵커로**, C-27로 검사 / B: 서비스별로 쓰는 값만 따로 적음(api 2개·tour-tools 4개, ingest는 스냅샷이 기본값을 봄 — 24-Q2와 충돌) | **결정(2026-11-28): 추천안대로** — **A** — 24-Q2 결정과 같고, 값을 한 곳에서만 고쳐 평가·스냅샷·운영이 어긋나지 않음 |
+| 26-Q6 | 개발 덮어쓰기 포트가 ADR-01("nginx만")보다 많다(I-6) | A: **테스트 기준 "dev 포트는 모두 127.0.0.1"**, ADR-01 문구를 그렇게 고침 / B: dev에선 nginx만 두고 통합 테스트 포트는 별도 파일(`compose.test.yaml`)로 분리 | **결정(2026-11-28): 추천안대로** — **A** — 01 통합 테스트 방식 유지, WSL 안에서만 열림 |
+| 26-Q7 | Windows에서 레포를 받으면 `01-init.sh` 줄바꿈이 CRLF가 돼 DB 초기화가 깨질 수 있다(I-15, NFR-21) | A: **`.gitattributes`에 `*.sh text eol=lf` + 테스트 C-26** / B: README에 "Windows에선 `core.autocrlf false`" 안내만 | **결정(2026-11-28): 추천안대로** — **A** — 파일 1줄로 원인 자체를 없앰 |
+| 26-Q8 | [A] §9 비밀값 표·§2 cloudflared 행·ADR-01 문구가 확정 spec과 다르다(I-2·3·4·6) | A: **26에서 architecture.md를 고치고 PROGRESS에 기록**(승인본 수정이므로 사용자 확인) / B: 고치지 않고 이 spec §4를 정본으로 둠 | **결정(2026-11-28): 추천안대로** — **A** — 문서끼리 다르면 다음 사람이 또 헷갈림. 바뀌는 건 표 3곳 |
+| 26-Q9 | 클린 기동 HITL을 어느 형태로 할까 | A: **운영 형태(`compose.yaml`만 + 터널), 기존 환경은 잠시 멈춤**, 터널 없는 경로(dev + `localhost:8080`)는 선택 확인 / B: 개발 형태(dev 덮어쓰기)로만 — 운영 빌드(web standalone)를 거치지 않음 | **결정(2026-11-28): 추천안대로** — **A** — README 기본 경로와 실제 운영 빌드를 그대로 확인 |

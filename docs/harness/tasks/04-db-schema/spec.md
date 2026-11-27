@@ -227,7 +227,7 @@ SECURITY_CHECKS: tuple[str, ...] = ("pii", "moderation", "classifier", "code_che
 SECURITY_OUTCOMES: tuple[str, ...] = ("masked", "blocked", "self_harm_guide", "rewritten", "safe_replaced", "guard_error")
 EXCERPT_MAX_CHARS: int = 300
 EVAL_REPORT_STATUSES: tuple[str, ...] = ("running", "done", "skipped", "failed")
-PROPOSAL_TARGETS: tuple[str, ...] = ("system_prompt", "tool_description", "reranker", "verifier", "guard", "data_scope", "other")
+PROPOSAL_TARGETS: tuple[str, ...] = ("system_prompt", "tool_description", "reranker", "verifier", "guard", "faq_cache", "data_scope", "other")  # faq_cache: 24-Q1(2026-11-28)
 PROPOSAL_PRIORITIES: tuple[str, ...] = ("high", "medium", "low")
 PROPOSAL_STATUSES: tuple[str, ...] = ("new", "adopted", "held", "rejected")
 ```

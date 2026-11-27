@@ -1,6 +1,6 @@
 # 24-eval-daily-quality — 테스트 설계 (test)
 
-> spec.md와 짝. 절 번호 §n은 spec.md 기준. 작성 2026-11-22. 상태: **초안 — 확인 질문 대기**(spec §22).
+> spec.md와 짝. 절 번호 §n은 spec.md 기준. 작성 2026-11-22. 상태: **확정(2026-11-28, 확인 질문 전부 추천안대로)**(spec §22).
 > ① pytest(결정적 — 실제 OpenAI·tour-tools·LightRAG 호출 없음. 평가·요약·개선안 모델은 가짜 러너, 공격 세트는 가짜 `run_attack`. DB가 필요한 것은 04 테스트 컨테이너, 마커 `db`) ② HITL(사용자가 실제 하루치 보고서·개선안을 읽고 채점 기준을 판단).
 
 ---
@@ -135,9 +135,11 @@
 
 | ID | 준비 | 기대 |
 |---|---|---|
-| U-AT-01 | 23 결과 대역(23 spec 필드명) → `to_attack_summary` | §11 필드로 옮겨짐 (23 확정 후 필드명 맞춤) |
-| U-AT-02 | `run_attack`에서 23 함수가 예외 | `status="failed"`, 예외 다시 안 올림 |
-| U-AT-03 | 23 결과에 비용 없음 | `cost_usd=None` |
+| U-AT-01 | 23 `AttackReport` 대역(`by_type` 9유형 — jailbreak total 8·passed 8, 한 유형 total 0, `total=58`, `passed=54`, `defense_rate=0.931034`, `failed_ids=[2개]`, `cost_usd=Decimal("0.0412")`, `items`·`moderation_detection`에 원문 넣어 둠) → `to_attack_summary` | status done, by_type 9키·rate 1.0·0건 유형 rate None, defense_rate 0.931, failed_ids 그대로, cost_usd Decimal, 결과 직렬화에 `items` 원문 없음 |
+| U-AT-04 | `run_attack` 호출 인자(가짜 `run_attack_set` 기록) | `run_attack_set(settings)` 한 번, 키워드 인자 없음 |
+| U-AT-05 | 가짜 `run_attack_set`이 `asyncio.CancelledError` | 그대로 올라감(failed로 바꾸지 않음) |
+| U-AT-02 | `run_attack`에서 23 함수가 `AttackSetError` / `RuntimeUnavailable` / `ValueError` | 각각 `status="failed"`, error `"<클래스>: …"`(300자), 예외 다시 안 올림 |
+| U-AT-03 | `total=0`(모두 미시험) | `defense_rate` None, by_type rate 모두 None |
 
 ### 9. 개선안 (DB 없음 + `db`) — `tests/eval/test_proposals.py`
 
@@ -155,7 +157,7 @@
 | U-PR-10 | title 공백 | 버림 / cause 공백 → NULL |
 | U-PR-11 | priority low·high·medium 순 입력 | seq 1=high, 2=medium, 3=low |
 | U-PR-12 | `ProposalSet` 6건 | 스키마 오류 |
-| U-PR-13 | `ProposalDraft.target` Literal | 04 `PROPOSAL_TARGETS`와 정확히 같음(상수 대조) |
+| U-PR-13 | `ProposalDraft.target` Literal | 04 `PROPOSAL_TARGETS`와 정확히 같음(상수 대조, `faq_cache` 포함 8개) |
 | U-PR-14 | 행 dict | `status="new"`, decision 3칸 None, 키 = `improvement_proposals` 컬럼 부분집합 |
 | A-PR-15 (`db`) | `load_open_proposals`: new(10일 전)·held·adopted·rejected·new(40일 전)·31건 | rejected·40일 전 제외, 최신 30건, 본문 필드 없음 |
 | A-PR-16 (`db`) | `data_scope` | 지역×유형별 active·detailed 수, 소프트 삭제 제외 |
@@ -226,7 +228,7 @@
 | U-CLI-09 | 진행 줄 | ref·점수·수만, 질문·답변 글 없음(capsys) |
 
 ### 14. 앞 작업 회귀
-- 20·21 잠금·스케줄러 테스트, 11 `UsageRecord` Literal ⊆ `USAGE_KINDS`, 04 스키마 테스트(24-Q1 결정 시 `PROPOSAL_TARGETS` 기대값 갱신), 22 compose 기대값(24-Q2 결정 시).
+- 20·21 잠금·스케줄러 테스트, 11 `UsageRecord` Literal ⊆ `USAGE_KINDS`, 04 스키마 테스트(`PROPOSAL_TARGETS`에 `faq_cache` — 04 기대값 갱신), 22 compose 기대값(`x-tuning` 블록이 api·tour-tools·ingest에), 23 `UsageRecord` Literal(`eval`은 23, `proposal`은 24).
 
 ### 통과 기준
 - 위 전부 통과, `-m "not integration"`에서 실패 0.

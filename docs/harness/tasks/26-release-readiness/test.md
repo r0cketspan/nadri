@@ -1,6 +1,6 @@
 # 26-release-readiness — 테스트 설계 (test)
 
-> spec.md와 짝. 절 번호 §n·검사 ID C-xx는 spec.md 기준. 작성 2026-11-22. 상태: **초안(2026-11-22)** — spec §13 확인 질문 결정 전. Q2·Q4·Q7 결정에 따라 표시한 줄이 바뀐다.
+> spec.md와 짝. 절 번호 §n·검사 ID C-xx는 spec.md 기준. 작성 2026-11-22. 상태: **확정(2026-11-28, 확인 질문 전부 추천안대로)**.
 > ① pytest(결정적 — 파일만 읽음. Docker·DB·네트워크·실 키 없음. C-20만 Docker CLI가 있으면 실행) ② HITL(사용자가 직접 — 빈 볼륨 클린 기동 → 테이블 생성 → `create-admin` → 소량 적재 → 채팅 1회, 보안 설정 실측, 문서 명령 대조).
 
 ---
@@ -66,15 +66,15 @@
 | R-09 | C-17 `.env.example` 16키·값 비움·서로 일치 | 두 파일 |
 | R-10 | C-18 `.env` git 제외·추적 안 됨 | .gitignore, git |
 | R-11 | C-19 볼륨·바인드 | compose.yaml |
-| R-12 | C-21·C-22·C-23 기동 순서·재시작·healthcheck (Q2 채택 시 lightrag 포함) | compose.yaml |
+| R-12 | C-21·C-22·C-23 기동 순서·재시작·healthcheck(lightrag 포함 — Q2, postgres `pg_isready -h 127.0.0.1` — Q4) | compose.yaml |
 | R-13 | C-24·C-25 이미지 태그 고정·cloudflared | compose.yaml |
 | R-14 | C-20 `docker compose … config -q` 성공 + JSON 병합 결과에서 C-05·C-09 (Docker CLI 없으면 skip, 사유 출력) | 두 compose |
-| R-15 | (Q7 채택 시) C-26 `infra/**/*.sh` CR 없음, `.gitattributes` | 파일 |
+| R-15 | C-26 `infra/**/*.sh` CR 없음, `.gitattributes` | 파일 |
 | R-16 | C-27 `x-tuning`: 앵커 있음, api·tour-tools·ingest가 `<<: *tuning`, 병합 결과 6개 값이 세 서비스에서 같음 | compose.yaml |
 
 ### C. 앞 작업 회귀
 - 전체 `uv run pytest -m "not integration"`, `cd web && npm run typecheck && npm run test` 실패 0.
-- compose를 고친 뒤(§13 결정분) `npm run e2e`(compose 기동 상태) 통과 — 기동 순서·healthcheck 변경이 웹 테스트를 깨지 않는지.
+- compose를 고친 뒤(lightrag·postgres healthcheck, `x-tuning`) `npm run e2e`(compose 기동 상태) 통과 — 기동 순서·healthcheck 변경이 웹 테스트를 깨지 않는지.
 
 ### 통과 기준
 A·B·C 전부 통과. R-14가 skip이면 HITL-1에서 `docker compose config -q`를 직접 돌려 대신 확인.
@@ -86,7 +86,7 @@ A·B·C 전부 통과. R-14가 skip이면 HITL-1에서 `docker compose config -q
 > **경고**: 아래 모든 명령은 `-p nadri-clean`을 붙인다. 붙이지 않고 `down -v`를 하면 **기존 적재 데이터가 지워진다.** 명령은 이 문서에서 그대로 복사한다.
 
 ### 전제
-- 01~25가 `dev`에 병합되어 있고, 26 브랜치에서 §13 결정을 반영한 compose·`.env.example`·README.
+- 01~25가 `dev`에 병합되어 있고, 26 브랜치에서 확정 결정을 반영한 compose·`.env.example`·`.gitattributes`·README, 21 따라잡기 조건 수정(26-Q1①)이 들어간 21 구현.
 - `.env`에 실 키(TourAPI·OpenAI·Tavily·터널 토큰, 가능하면 Gmail·ElevenLabs).
 - 기존 환경의 오늘 TourAPI 사용량이 적을 때(`docker compose exec ingest nadri ingest status`의 오늘 카운터 — 같은 키의 하루 1,000건 한도를 같이 씀). 01:00·03:00 작업 시간대는 피한다.
 - 예상 비용: TourAPI 약 90~150건, OpenAI 약 $0.1~0.5(인덱싱 30페이지 + 채팅 1회, **추정**) + 03:00 KST 이후 기동이면 24 놓친 실행의 공격 세트 약 $0.03~0.10.
@@ -108,10 +108,10 @@ docker compose -p nadri-clean ps
 docker compose -p nadri-clean logs -f ingest      # "scheduler started" 확인 후 Ctrl+C
 ```
 - [ ] 새 볼륨 4개가 `nadri-clean_` 접두어로 생김(`docker volume ls | grep nadri-clean`), 기존 `nadri_` 볼륨 그대로
-- [ ] postgres·ingest·tour-tools·api·web `healthy`(Q2 채택 시 lightrag도), nginx·cloudflared `running`
+- [ ] postgres·lightrag·ingest·tour-tools·api·web `healthy`, nginx·cloudflared `running`
 - [ ] `docker compose -p nadri-clean ps --format '{{.Name}} {{.Ports}}'`에 호스트로 게시된 포트(`0.0.0.0:`·`127.0.0.1:`) 없음
 - [ ] 재시작 반복 없음(`ps`의 Status에 `Restarting` 없음). 첫 1분 사이 lightrag·ingest 재시작 횟수 기록(`docker inspect -f '{{.RestartCount}}'`) — Q4·Q2 효과 확인
-- [ ] ingest 로그에 따라잡기 실행이 보이면 끝날 때까지 기다림(`daily_sync done`). **Q1 결정 A**면 이 실행이 초기 적재를 시작하지 않음(`kind='bootstrap'` 행 0개)
+- [ ] ingest 로그에 따라잡기 실행이 보이면 끝날 때까지 기다림(`daily_sync done`). 이 실행이 초기 적재를 시작하지 않음(26-Q1①)(`kind='bootstrap'` 행 0개)
 - [ ] 03:00 KST 이후 기동이면 `daily_quality start date=<어제>` → `done … status=skipped attack=n/m` 로그, `$P -d nadri -Atc "select report_date,status,stats->'attack_set'->>'defense_rate' from eval_reports"`(HITL-2의 `P` 사용)에 어제 날짜 `skipped` 1행. 03:00 전 기동이면 행 없음(정상) — 결과표에 기동 시각과 함께 기록
 - 걸린 시간(빌드 포함) 기록
 
@@ -191,7 +191,7 @@ docker compose ps
 |---|---|
 | ① pytest 결과(R-14 실행/skip) | |
 | 1 기동 시간, healthy까지, 재시작 횟수(lightrag·ingest), 게시 포트 없음 | |
-| 1 따라잡기 동작(Q1 결정대로 초기 적재 시작 안 함), 24 놓친 실행(기동 시각·`skipped` 행·방어율·비용) | |
+| 1 따라잡기 동작(초기 적재 시작 안 함 — 26-Q1①), 24 놓친 실행(기동 시각·`skipped` 행·방어율·비용) | |
 | 2 테이블 수·롤·DB·확장 | |
 | 3 create-admin | |
 | 4 적재 30건, TourAPI 호출 수, tools smoke | |

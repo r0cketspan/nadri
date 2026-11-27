@@ -1,9 +1,9 @@
 # 25-admin-quality-hitl — 관리자: 품질 리포트·개선안 결정 (spec)
 
-> 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-22). 상태: **초안 — 확인 질문 대기**(마지막 절 표). 브랜치 `feat/25-admin-quality-hitl`, 의존 작업 18-admin-users(→ 05·14), 24-eval-daily-quality(→ 23·22·…).
+> 하네스 Phase 4 산출물 (spec-writer, 작성 2026-11-22). 상태: **확정(2026-11-28, 확인 질문 전부 추천안대로)** — 마지막 절 표. 브랜치 `feat/25-admin-quality-hitl`, 의존 작업 18-admin-users(→ 05·14), 24-eval-daily-quality(→ 23·22·…).
 > 근거: [PL]=program_list.md(G4 승인본, 2026-11-22 개정) §2 표·§3 "25-admin-quality-hitl"·"24-eval-daily-quality"·§5 X-d · [A]=architecture.md(G3 재승인본) §2.1 web(`/admin` 품질 리포트)·§3.7(03:00 평가 → 개선안 → HITL)·§3.8 끝줄·§5.1 `eval_reports`·`eval_scores`·`improvement_proposals`·§6.1 품질 API 4개·§7(`web/app/admin/quality/`)·ADR-12·ADR-23·§13("보안 이벤트 전용 화면" 없음, "개선안 자동 적용·자동 PR" 없음) · [R]=requirements.md FR-100·101·102·105, NFR-05·10·14·36 · [E]=erd.md(한글 명칭 정본) · [PG]=PROGRESS.md 결정 로그(18~22 확인 질문 결정, 21-Q7).
 > **이어받는 확정 spec**: [04](`EvalReport`·`EvalScore`·`ImprovementProposal`·`EVAL_REPORT_STATUSES`(running·done·skipped·failed)·`PROPOSAL_TARGETS`(7종)·`PROPOSAL_PRIORITIES`(high·medium·low)·`PROPOSAL_STATUSES`(new·adopted·held·rejected)·`improvement_proposals.report_id` SET NULL·`decided_by` SET NULL·`FEEDBACK_REASONS`·`VERIFY_STATUSES`) · [05](`require_admin`·`CurrentUser`·`get_db`·`get_now`·`ApiError(status, code, message, extra=)`·`errors.py`·`MSG_FORBIDDEN`·CSRF 미들웨어(POST 전부)·테스트 헬퍼 `make_user`·`login`·`post`·`clock`) · [11](`kst_day`) · [14](`apiJson`·`ApiError`(web)·`MSG_VALIDATION`·Playwright 설정·`e2e/helpers/db.ts`·`global-setup.ts`) · [15](`SafeMarkdown`) · [16](`REASON_LABELS` — 👎 사유 한글 이름) · [18](`admin_router`(`/api/admin`, `require_admin` 일괄)·A-ADR-06 권한 누락 검사·`AdminShell.tsx`의 `ADMIN_NAV`·`formatKst`·`makeAdmin`) · [19](`invalid_range`·`MSG_INVALID_RANGE`·`MAX_RANGE_DAYS` 366 — 25-Q6) · [21](90일 정리 C3·C4·C5 — 보류 → 나중에 기각 전이를 전제, 21-Q7) · [23](`ATTACK_TYPES` 9개) · [24](`stats` §9·`body_md` §10.2·개선안 §12.4·상태 §4.1·§4.2·계약 §16).
-> **24·23 확정본 반영(2026-11-22)**: 집계 JSON 키·모양은 24 spec §9(정본 표)·§16(25 계약), 보고서 상태·단계 실패는 24 §4.1·§4.2, 개선안 필드·대상은 24 §12.4, 공격 유형 9개는 23 spec §4.2(`ATTACK_TYPES`)를 따른다. 24-Q1(대상 `faq_cache` 추가)이 채택되면 대상 이름표에 1줄이 붙는다.
+> **24·23 확정본 반영(2026-11-22)**: 집계 JSON 키·모양은 24 spec §9(정본 표)·§16(25 계약), 보고서 상태·단계 실패는 24 §4.1·§4.2, 개선안 필드·대상은 24 §12.4, 공격 유형 9개는 23 spec §4.2(`ATTACK_TYPES`)를 따른다. 24-Q1(대상 `faq_cache` 추가)은 채택됨(2026-11-28) — 대상 8개.
 > **미확인** = 문서·공식 자료로 확인하지 못한 사실.
 
 ---
@@ -132,7 +132,7 @@ class ProposalOut(BaseModel):
     report_id: int | None              # 90일 정리로 보고서가 지워지면 None(04 SET NULL, 21 C5)
     report_date: date | None           # eval_reports LEFT JOIN — report_id가 None이면 None
     seq: int
-    target: str                        # PROPOSAL_TARGETS(24-Q1 채택 시 faq_cache 포함)
+    target: str                        # PROPOSAL_TARGETS 8개(faq_cache 포함 — 24-Q1)
     title: str
     problem: str
     evidence: list[Any]                # jsonb 그대로 — 24 §12.4: [{type: turn|stat|attack|security, ref, quote|null, note}] 1~5개. 90일 지나면 [](21 C4)
@@ -271,7 +271,7 @@ ORDER BY CASE p.priority WHEN 'high' THEN 0 WHEN 'medium' THEN 1 ELSE 2 END,
 
 ## 5. 상태 전이·핵심 지표
 
-### 5.1 결정 전이 (정본 표, 25-Q2 추천안)
+### 5.1 결정 전이 (정본 표, 25-Q2 결정)
 | 현재 상태 \ 요청 | adopted | held | rejected |
 |---|---|---|---|
 | `new`(결정 대기) | → 채택 | → 보류 | → 기각 |
@@ -312,7 +312,7 @@ ORDER BY CASE p.priority WHEN 'high' THEN 0 WHEN 'medium' THEN 1 ELSE 2 END,
 export type ProposalStatus = "new" | "adopted" | "held" | "rejected";
 export type DecisionStatus = Exclude<ProposalStatus, "new">;
 export type ReportStatus = "running" | "done" | "skipped" | "failed";
-export type ProposalTarget = "system_prompt" | "tool_description" | "reranker" | "verifier" | "guard" | "faq_cache" | "data_scope" | "other";  // faq_cache는 24-Q1 채택 시
+export type ProposalTarget = "system_prompt" | "tool_description" | "reranker" | "verifier" | "guard" | "faq_cache" | "data_scope" | "other";  // 04 PROPOSAL_TARGETS 8개(24-Q1)
 /** 개선안 근거 1개(24 §12.4). 화면은 이 모양이 아니어도 깨지지 않게 evidenceLines로 처리 */
 export type Evidence = { type: "turn" | "stat" | "attack" | "security"; ref: string; quote: string | null; note: string | null };
 export type ProposalPriority = "high" | "medium" | "low";
@@ -385,7 +385,7 @@ export function evidenceLines(item: unknown): string[];
   5. **개선안 n건**: 우선순위 순 `ProposalCard` 목록(§6.5). 없으면 "이 보고서에는 개선안이 없어요."
 - 404 `report_not_found` → 문구 + 목록 링크.
 
-### 6.4 집계 표시 — 24 §9 키 + 나머지 키-값 (25-Q1 추천안)
+### 6.4 집계 표시 — 24 §9 키 + 나머지 키-값 (25-Q1 결정)
 `splitStats`는 아래 표의 **맨 위 키**만 알아본다. 각 묶음은 모양 검사(`isXxx` 가드 — 아래 "필수 모양"만 검사)를 통과할 때만 보기 좋게 그리고, 통과 못 하면 그 키를 통째로 `rest`(키-값 줄)로 보낸다. 가드를 통과한 묶음 안에 **표에 없는 하위 키**가 있으면 그 하위 키만 `rest`로(`"section.key"`). 표에 없는 맨 위 키도 `rest`로 간다. **24 키가 나중에 늘거나 바뀌어도 화면이 깨지지 않고 모든 값이 어딘가에 보인다**(안전장치 — 24 §9는 "모든 키는 항상 있다"를 보장하지만 그대로 믿지 않는다).
 
 키·모양 정본 = **24 spec §9 표**. 공통 규칙(24 §9): 비율은 0~1(null 가능), 평균 점수 0~2, 시간은 밀리초 정수, 금액은 문자열 Decimal, 분포 키는 문자열.
@@ -454,7 +454,7 @@ export function ProposalCard(props: { proposal: Proposal; showReportLink: boolea
 | `reranker` | 리랭커 |
 | `verifier` | 검증 에이전트 |
 | `guard` | 입력·출력 검사 |
-| `faq_cache` | FAQ 캐시 임계값 (24-Q1 채택 시) |
+| `faq_cache` | FAQ 캐시 임계값 |
 | `data_scope` | 데이터 범위 |
 | `other` | 기타 |
 
@@ -533,7 +533,7 @@ export function ProposalCard(props: { proposal: Proposal; showReportLink: boolea
 3. **`report_date`가 없는 개선안**: 90일 정리 뒤 남은 채택·보류 개선안은 `report_id`가 NULL이라 어느 날 보고서였는지 알 수 없다(`improvement_proposals`에 날짜 컬럼 없음, `created_at`만 있음). 화면은 `created_at`과 "보고서 없음"으로 대신한다.
 4. **결정 이력 없음**: 결정을 바꾸면 이전 결정·메모가 행에서 사라진다(로그에만 남음, 메모 내용은 로그에도 없음) — 25-Q3.
 5. 24 §16은 턴별 점수(`ref`·`alias`·점수) 화면을 허용하지만 25는 만들지 않는다(25-Q5) — 근거의 `turn` ref는 글자로만 보인다.
-6. 24-Q1(대상 `faq_cache`)이 채택되면 04 `PROPOSAL_TARGETS`가 8개가 되고 25 이름표·타입에 1줄이 붙는다(§6.1·§6.8). 기각되면 그 줄을 뺀다.
+6. 24-Q1 채택(2026-11-28)으로 04 `PROPOSAL_TARGETS`가 8개(`faq_cache` 추가) — 25 이름표·타입에 반영(§6.1·§6.8).
 7. [PL] 의존은 18·24지만 화면 서식·기간 검사에 19 함수를 쓴다(§8 #5).
 8. [PL] 25 파일 목록 밖 파일 — §2 참고.
 
@@ -555,12 +555,12 @@ export function ProposalCard(props: { proposal: Proposal; showReportLink: boolea
 
 | # | 질문 | 추천안 | 대안 |
 |---|---|---|---|
-| 25-Q1 | 집계 JSON(`stats`) 키는 24 §9가 정본이다. 화면은 어떻게 맞출까 | **24 §9 맨 위 키 11개(§6.4 — 머리 4개 + 묶음 10개)를 보기 좋게 그리고, 모양 검사에 실패하거나 모르는 키·하위 키는 "기타 집계" 키-값 표로 그대로 보여 주는 안전장치를 유지한다.** API는 `stats`를 해석 없이 넘김. 목록 지표는 24 §16 "목록 표에 쓸 값" 5개(`HEADLINE_PATHS`) | A: 전부 키-값 표로만(코드 가장 적음, 읽기 불편) / B: 24 키를 pydantic 모델로 고정하고 서버가 검사(키가 바뀌면 API 오류 — 24·25가 함께 바뀌어야 함) |
-| 25-Q2 | 결정 전이 규칙(보류 → 채택, 결정 취소 등) | **결정은 다른 결정으로 언제든 바꿀 수 있다(보류 → 채택·기각, 채택 → 보류·기각, 기각 → 채택·보류). 같은 결정 다시 보내기 = 409. `new`로 되돌리기(결정 취소) 없음.** 확인 창 없음(되돌릴 수 있으므로). 21 C3(보류 → 기각) 전제와 맞음 | A: 채택·기각은 최종, 보류만 다시 결정(실수 수정은 DB 명령) / B: A + 결정 취소(→ new) 허용 |
-| 25-Q3 | 메모 규칙과 결정 이력 | **메모는 선택, 앞뒤 공백 제거, 최대 1000자, 결정을 바꿀 때 덮어씀(화면은 기존 메모를 미리 채움). 이력 테이블 없음 — 바뀔 때마다 로그 1줄(관리자 id·전후 상태·메모 글자 수)** | A: 기각·보류는 메모 필수 / B: 결정 이력 테이블 추가(ERD·04 변경 — G3 범위) / C: 같은 상태로 메모만 고치기 허용(같은 결정 = 200) |
-| 25-Q4 | 결정 버튼을 어디에 둘까 | **보고서 화면과 개선안 목록 화면 둘 다**(같은 `ProposalCard`). 90일이 지나 보고서가 지워진 보류안은 개선안 목록에서만 결정할 수 있기 때문 | 보고서 화면에만([PL] 파일 설명 그대로, 개선안 목록은 보기 전용) |
-| 25-Q5 | 턴별 채점(`eval_scores`)을 화면에 보일까 — 24 §16은 `ref`·`alias`·점수만이면 허용 | **보이지 않는다** — 24 본문에 "점수가 낮은 턴(최대 10)"이 이미 있고 집계·근거 발췌로 충분. 관리자에게 보여 주는 대화 범위를 늘리지 않음. 근거의 `turn` ref는 글자로만 | 보고서 화면에 턴 점수 표(24 §9.1 `scores`에서 `ref`·`alias`·점수·지적 사항만, 근거 ref를 누르면 그 줄로 — 사용자·세션 링크 없음) |
-| 25-Q6 | 목록 기간과 19 재사용 | **기본 최근 30일(`report_date` 기준), 최대 366일. 기간 오류 코드·문구(`invalid_range`)와 금액·숫자 서식(`formatUsd`·`formatInt`)은 19 것을 재사용** — 19(M4)가 25(M6)보다 먼저 병합되므로 문제없음. [PL] 의존 표에 19 추가 권장 | 25가 같은 코드를 따로 둠(19와 무관, 중복 몇 줄) / 기간 필터 없이 전부 표시 |
-| 25-Q7 | 보고서 본문(`body_md`)을 어떻게 그릴까 | **15 `SafeMarkdown`(링크 허용 목록 비움, 링크 끔)** — 표·목록은 보이고 HTML·이미지·링크는 동작 안 함. 개선안 글·근거는 마크다운 없이 일반 텍스트 | 본문도 일반 텍스트(줄바꿈만 유지 — 표가 깨져 보임) |
-| 25-Q8 | 메뉴 이름과 현재 메뉴 표시 | **"품질"(18 약속), 앞부분 일치로 현재 메뉴 표시**(하위 주소에서도 켜짐 — 18 `AdminShell` 한 줄 변경 가능성). 결정 대기 수 배지는 넣지 않음 | 배지 추가(메뉴가 화면마다 API 호출) / 18 판정 그대로(하위 주소에서는 메뉴가 안 켜짐) |
-| 25-Q9 | 개선안 목록 페이지 나누기 | **넣지 않음** — 하루 몇 건, new·rejected는 90일 뒤 지워짐(21). 채택·보류만 오래 쌓임 | 50건 단위 페이지 |
+| 25-Q1 | 집계 JSON(`stats`) 키는 24 §9가 정본이다. 화면은 어떻게 맞출까 | **결정(2026-11-28): 추천안대로** — **24 §9 맨 위 키 11개(§6.4 — 머리 4개 + 묶음 10개)를 보기 좋게 그리고, 모양 검사에 실패하거나 모르는 키·하위 키는 "기타 집계" 키-값 표로 그대로 보여 주는 안전장치를 유지한다.** API는 `stats`를 해석 없이 넘김. 목록 지표는 24 §16 "목록 표에 쓸 값" 5개(`HEADLINE_PATHS`) | A: 전부 키-값 표로만(코드 가장 적음, 읽기 불편) / B: 24 키를 pydantic 모델로 고정하고 서버가 검사(키가 바뀌면 API 오류 — 24·25가 함께 바뀌어야 함) |
+| 25-Q2 | 결정 전이 규칙(보류 → 채택, 결정 취소 등) | **결정(2026-11-28): 추천안대로** — **결정은 다른 결정으로 언제든 바꿀 수 있다(보류 → 채택·기각, 채택 → 보류·기각, 기각 → 채택·보류). 같은 결정 다시 보내기 = 409. `new`로 되돌리기(결정 취소) 없음.** 확인 창 없음(되돌릴 수 있으므로). 21 C3(보류 → 기각) 전제와 맞음 | A: 채택·기각은 최종, 보류만 다시 결정(실수 수정은 DB 명령) / B: A + 결정 취소(→ new) 허용 |
+| 25-Q3 | 메모 규칙과 결정 이력 | **결정(2026-11-28): 추천안대로** — **메모는 선택, 앞뒤 공백 제거, 최대 1000자, 결정을 바꿀 때 덮어씀(화면은 기존 메모를 미리 채움). 이력 테이블 없음 — 바뀔 때마다 로그 1줄(관리자 id·전후 상태·메모 글자 수)** | A: 기각·보류는 메모 필수 / B: 결정 이력 테이블 추가(ERD·04 변경 — G3 범위) / C: 같은 상태로 메모만 고치기 허용(같은 결정 = 200) |
+| 25-Q4 | 결정 버튼을 어디에 둘까 | **결정(2026-11-28): 추천안대로** — **보고서 화면과 개선안 목록 화면 둘 다**(같은 `ProposalCard`). 90일이 지나 보고서가 지워진 보류안은 개선안 목록에서만 결정할 수 있기 때문 | 보고서 화면에만([PL] 파일 설명 그대로, 개선안 목록은 보기 전용) |
+| 25-Q5 | 턴별 채점(`eval_scores`)을 화면에 보일까 — 24 §16은 `ref`·`alias`·점수만이면 허용 | **결정(2026-11-28): 추천안대로** — **보이지 않는다** — 24 본문에 "점수가 낮은 턴(최대 10)"이 이미 있고 집계·근거 발췌로 충분. 관리자에게 보여 주는 대화 범위를 늘리지 않음. 근거의 `turn` ref는 글자로만 | 보고서 화면에 턴 점수 표(24 §9.1 `scores`에서 `ref`·`alias`·점수·지적 사항만, 근거 ref를 누르면 그 줄로 — 사용자·세션 링크 없음) |
+| 25-Q6 | 목록 기간과 19 재사용 | **결정(2026-11-28): 추천안대로** — **기본 최근 30일(`report_date` 기준), 최대 366일. 기간 오류 코드·문구(`invalid_range`)와 금액·숫자 서식(`formatUsd`·`formatInt`)은 19 것을 재사용** — 19(M4)가 25(M6)보다 먼저 병합되므로 문제없음. [PL] 의존 표에 19 추가 권장 | 25가 같은 코드를 따로 둠(19와 무관, 중복 몇 줄) / 기간 필터 없이 전부 표시 |
+| 25-Q7 | 보고서 본문(`body_md`)을 어떻게 그릴까 | **결정(2026-11-28): 추천안대로** — **15 `SafeMarkdown`(링크 허용 목록 비움, 링크 끔)** — 표·목록은 보이고 HTML·이미지·링크는 동작 안 함. 개선안 글·근거는 마크다운 없이 일반 텍스트 | 본문도 일반 텍스트(줄바꿈만 유지 — 표가 깨져 보임) |
+| 25-Q8 | 메뉴 이름과 현재 메뉴 표시 | **결정(2026-11-28): 추천안대로** — **"품질"(18 약속), 앞부분 일치로 현재 메뉴 표시**(하위 주소에서도 켜짐 — 18 `AdminShell` 한 줄 변경 가능성). 결정 대기 수 배지는 넣지 않음 | 배지 추가(메뉴가 화면마다 API 호출) / 18 판정 그대로(하위 주소에서는 메뉴가 안 켜짐) |
+| 25-Q9 | 개선안 목록 페이지 나누기 | **결정(2026-11-28): 추천안대로** — **넣지 않음** — 하루 몇 건, new·rejected는 90일 뒤 지워짐(21). 채택·보류만 오래 쌓임 | 50건 단위 페이지 |

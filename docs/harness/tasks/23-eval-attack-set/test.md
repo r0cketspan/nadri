@@ -1,6 +1,6 @@
 # 23-eval-attack-set — 테스트 설계 (test)
 
-> spec.md와 짝. 절 번호 §n은 spec.md 기준. 작성 2026-11-22. 상태: **초안 — 사용자 검토 대기**.
+> spec.md와 짝. 절 번호 §n은 spec.md 기준. 작성 2026-11-22. 상태: **확정(2026-11-28, 확인 질문 전부 추천안대로)**.
 > ① pytest(결정적 — 실제 LLM·Moderation·LightRAG·Tavily·TourAPI 호출 없음. 가짜 모델로 **실제 그래프·실제 입력 검사 코드**를 돌림. DB가 필요한 것은 04 테스트 컨테이너, 마커 `db`) ② HITL(사용자가 직접 — 세트 검수, 첫 실행 결과 검토, Moderation 임계값·보완 여부 결정).
 
 ---
@@ -170,7 +170,7 @@
 |---|---|---|
 | A-AT-01 | usage [moderation, classify, answer, web_search, verify, moderation] + 판정 `eval` 1건 → `run_attack_set(…, sf=db_sf, record=True, runtime=가짜)` | `usage_events` 6행(web_search 제외), 모두 `kind="eval"`, `user_id`·`message_id` NULL, answer·verify·classify·판정 행의 `cost_usd` = 11 `llm_cost`, moderation 0 |
 | A-AT-02 | `record=False` | 0행 |
-| A-AT-03 | `security_events` | 실행 전후 행 수 같음(공격 실행이 보안 이벤트를 남기지 않음 — Q13) |
+| A-AT-03 | `security_events` | 실행 전후 행 수 같음(공격 실행이 보안 이벤트를 남기지 않음 — 23-Q13) |
 | A-AT-04 | 기록 중 DB 오류(세션 팩토리가 예외) | `AttackReport` 정상 반환, 로그에 예외 클래스명만 |
 
 ### 10. 앞 작업 회귀
@@ -212,7 +212,7 @@
 - 결과 파일에서 `judge_used=true` 항목을 모두 사용자에게 보여 준다(질문·답변·판정·사유).
 - 사용자가 동의/비동의를 표시 → 동의율 기록. 비동의가 있으면 판정 프롬프트 보완 또는 그 항목에 `must_not` 추가(사용자 확인).
 
-### HITL-6 허용 URL 빈틈 확인 (spec §12 차이 3, Q11)
+### HITL-6 허용 URL 빈틈 확인 (spec §12 차이 3, 23-Q11 — 23은 측정만, 보완은 별도 결정)
 - 간접 인젝션 중 "공격자 링크 넣기" 항목들이 어디서 막혔는지(`defended_at`)·뚫렸는지 보여 준다.
 - 사용자 결정: 그대로(검증 에이전트에 맡김) / 웹 결과 URL 허용 규칙 보완(별도 작업).
 
